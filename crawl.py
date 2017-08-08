@@ -1,16 +1,12 @@
 # -*- coding:utf-8 -*-
 __author__ = 'hubin6'
-import sqlite3
-import cookielib
 import os, sys
-import win32crypt
 import urllib2
 import re
 from bs4 import BeautifulSoup
 import math
 import json
 import time, datetime
-import requests
 import mysql.connector
 from mysql.connector import errorcode
 
@@ -245,13 +241,14 @@ class Route(object):
         return '{{"distance":"{0}","duration":"{1}","on_station":"{2}","off_station":"{3}","stop_num":{4},"name":"{5}",' \
                             '"type":"{6}"}}'.format(self.distance, self.duration, self.on_station, self.off_station, self.stop_num, self.name, self.type)
 
-def loadShopsByCategory(category):
-    cnx = getMySQLConnection()
+def loadShopsByCategory(category, cnx):
     cursor = cnx.cursor()
     category_id = category[1:]
-    delete_shop = "delete from shop where category_id = {0}".format(category_id)
-    cursor.execute(delete_shop)
-    add_shop = ("INSERT INTO shop "
+    # cursor.execute("delete from shop where category_id = {0}".format(category_id))
+    # cursor.execute("delete from shop_score where category_id = {0}".format(category_id))
+    # cursor.execute("delete from shop_heat where category_id = {0}".format(category_id))
+    cnx.commit()
+    add_shop = ("INSERT INTO shop"
                "(shop_id, shop_name, address, phone, lat, lng, category_id) "
                "VALUES (%s, %s, %s, %s, %s, %s, %s)")
     add_shop_score = ("INSERT INTO shop_score "
@@ -263,33 +260,46 @@ def loadShopsByCategory(category):
     cnt = 0
     for r in open("shops/"+category, "r"):
         cnt += 1
-        info = r.strip().split(',')
-        shop_name = info[0]
-        avg_price = info[1]
-        if avg_price == "": avg_price = None
-        taste_score = info[3]
-        env_score = info[4]
-        ser_score = info[5]
-        shop_id = info[7][info[7].rfind("/")+1:]
-        address = info[6]
-        print shop_id
-        try:
-            phoneNo, hits, monthlyHits, weeklyHits, todayHits, prevWeeklyHits, glat, glng = getShopDetails(shop_id)
-        except:
-            continue
-        data_shop = (shop_id, shop_name, address, phoneNo, glat, glng, category_id)
-        data_shop_score = (shop_id, avg_price, taste_score, env_score, ser_score)
-        data_shop_heat = (shop_id, hits, monthlyHits, weeklyHits, todayHits, prevWeeklyHits)
-        cursor.execute(add_shop, data_shop)
-        cursor.execute(add_shop_score, data_shop_score)
-        cursor.execute(add_shop_heat, data_shop_heat)
+        info = r.strip().split('\t')
+        shop_id, shop_name, address, lat, lng, phoneNo = info[0:6]
+        data = (shop_id, shop_name, address, phoneNo, lat, lng, category_id)
+        cursor.execute(add_shop, data)
         if cnt % 50 == 0: cnx.commit()
     cnx.commit()
-    cursor.close
-    cnx.close
+    for r in open("scores/"+category, "r"):
+        cnt += 1
+        info = r.strip().split('\t')
+        shop_id, avg_price, taste_score, env_score, ser_score = info[0:5]
+        if avg_price == "": avg_price = None
+        data = (shop_id, avg_price, taste_score, env_score, ser_score)
+        cursor.execute(add_shop_score, data)
+        if cnt % 50 == 0: cnx.commit()
+    cnx.commit()
+    for r in open("heats/"+category, "r"):
+        cnt += 1
+        info = r.strip().split('\t')
+        shop_id, hits, monthlyHits, weeklyHits, todayHits, prevWeeklyHits = info[0:6]
+        if hits=="None": hits = None;
+        if monthlyHits == "None": monthlyHits = None;
+        if weeklyHits == "None": weeklyHits = None;
+        if todayHits == "None": todayHits = None;
+        if prevWeeklyHits == "None": prevWeeklyHits = None;
+        data = (shop_id, hits, monthlyHits, weeklyHits, todayHits, prevWeeklyHits)
+        cursor.execute(add_shop_heat, data)
+        if cnt % 50 == 0: cnx.commit()
+    cnx.commit()
+    cursor.close()
+
+def loadAllShops(cnx):
+    for r in open("base/category.txt", "r"):
+        info = r.strip().split(" ")
+        category = info[1]
+        loadShopsByCategory(category, cnx)
 
 if __name__ == '__main__':
-    crawlAllShops()
+    cnx = getMySQLConnection()
+    loadAllShops(cnx)
+    cnx.close()
 
 
 
