@@ -1,0 +1,293 @@
+# -*- coding:utf-8 -*-
+__author__ = 'hubin6'
+import sqlite3
+import cookielib
+import os, sys
+import win32crypt
+import urllib2
+import re
+from bs4 import BeautifulSoup
+import math
+import json
+import time, datetime
+import requests
+import mysql.connector
+from mysql.connector import errorcode
+
+reload(sys)
+sys.setdefaultencoding("utf-8")
+
+def crawl(url):
+    return urllib2.urlopen(url).read()
+
+def getAllCBD(content):
+    return {(item.text, item['href'][item['href'].rfind("/")+1:]) for item in content.find("div", id="bussi-nav", class_="nc-items").find_all("a")}
+
+def getAllMetros(content):
+    return {(item.text, item['href'][item['href'].rfind("/")+1:]) for item in content.find("div", id="metro-nav", class_="nc-items").find_all("a")}
+
+def getAllRegions(content):
+    return {(item.text, item['href'][item['href'].rfind("/")+1:]) for item in content.find("div", id="region-nav", class_="nc-items").find_all("a")}
+
+def getAllClass(content):
+    return {(item.text, item['href'][item['href'].rfind("/")+1:]) for item in content.find("div", id="classfy", class_="nc-items").find_all("a")}
+
+def parseContent(url):
+    return BeautifulSoup(crawl(url), "lxml")
+
+def writeRecordsToFile(fileName, records, field_delimiter):
+    f = open(fileName, "w")
+    for row in records:
+        f.write(field_delimiter.join(row[0:])+'\n')
+    f.close()
+
+def parseScoreFromContent(data):
+    for i in data.find_all("span"):
+        score = i.find(text=re.compile("\.\d*"))
+        if i.text.find("口味") >= 0:
+            taste_score = score
+        if i.text.find("环境") >= 0:
+            env_score = score
+        if i.text.find("服务") >= 0:
+            ser_score = score
+    return taste_score, env_score, ser_score
+
+def getCommentNumFromContent(data):
+    try:
+        t = data.find("a", class_="review-num")
+        num = t.find(text=re.compile(".*\d.*"))
+    except:
+        num = ""
+    return num
+
+def getAvgPriceFromContent(data):
+    try:
+        t = data.find("a", class_="mean-price")
+        num = t.find(text=re.compile("\d.*"))[1:]
+    except:
+        num = ""
+    return num
+
+def crawlAllShopsInfo(type, orderBy, threshold, limit_num=1000):
+    prefix = "http://www.dianping.com/search/category/1/10"
+    heat_seq = "o2"
+    rate_seq = "o3"
+    taste_seq = "o5"
+    env_seq = "o6"
+    ser_seq = "o7"
+    cmmt_seq = "o10"
+    if orderBy == "taste":
+        url = prefix + "/" + type + taste_seq
+    elif orderBy == "rate":
+        url = prefix + "/" + type + rate_seq
+    elif orderBy == "heat":
+        url = prefix + "/" + type + heat_seq
+    elif orderBy == "env":
+        url = prefix + "/" + type + env_seq
+    elif orderBy == "ser":
+        url = prefix + "/" + type + ser_seq
+    elif orderBy == "cmmt":
+        url = prefix + "/" + type + cmmt_seq
+    shops = []
+    page = 0
+    stop_flag = 0
+    total_num = 0
+    while True:
+        if stop_flag == 1: break
+        page += 1
+        page_num = "p{0}".format(page)
+        p_url = url + page_num
+        print p_url
+        time.sleep(0.2)
+        content = parseContent(p_url)
+        for shop in content.find("div", id="shop-all-list").find_all("li", class_=""):
+            link = shop.find("div", class_="pic")
+            comment = shop.find("div", class_="comment")
+            avg_price = getAvgPriceFromContent(comment)
+            cmmt_num = getCommentNumFromContent(comment)
+            addr = shop.find("div", class_="tag-addr").find("span", class_="addr").text
+            scores = shop.find("span", class_="comment-list")
+            taste_score, env_score, ser_score = parseScoreFromContent(scores)
+            total_num += 1
+            if float(taste_score) < threshold or total_num > limit_num:
+                stop_flag = 1
+                break
+            shops.append((link.img['alt'], avg_price, cmmt_num, taste_score, env_score, ser_score, addr, link.a['href']))
+    return shops
+
+def getGeoFromAddr(address):
+    app_key = "9MhIHvmWZHiQkEEoCIxKXGYkXbKS5hrq"
+    url = "http://api.map.baidu.com/geocoder/v2/?city=上海市&address={0}&ak={1}&output=json".format(address, app_key)
+    obj = json.loads(crawl(url))
+    status = obj['status']
+    if status == 0:
+        result = obj['result']
+    elif status == 1:
+        url = "http://api.map.baidu.com/place/v2/suggestion?region=上海市&city_limit=true&query={0}&ak={1}&output=json".format(address, app_key)
+        result = json.loads(crawl(url))['result'][0]
+    loc = result['location']
+    return "{0},{1}".format(loc['lat'], loc['lng'])
+
+def getPath(origin, destination):
+    app_key = "9MhIHvmWZHiQkEEoCIxKXGYkXbKS5hrq"
+    url = "http://api.map.baidu.com/direction/v2/transit?tactics_incity=4&origin={0}&destination={1}&ak={2}".format(origin, destination, app_key)
+    routes = json.loads(crawl(url))['result']['routes']
+    return routes
+
+def getVehicleNameByType(type_id):
+    if type_id == 3:
+        return "metro/bus"
+    if type_id == 5:
+        return "walk"
+
+def getFormattedTimeBySeconds(seconds):
+    hour = seconds / 3600
+    min = (seconds-hour*3600) / 60
+    sec = (seconds-hour*3600-min*60) % 60
+    str = ""
+    if hour > 0:
+        str = "{0}小时".format(hour)
+    if min > 0:
+        str += "{0}分钟".format(min)
+    if sec > 0:
+        str += "{0}秒".format(sec)
+    return str
+
+def getCompleteRoutes(origin, destination):
+    rec_route = getPath(origin, destination)[0]
+    steps = rec_route['steps']
+    total_distance = rec_route['distance']
+    total_duration = getFormattedTimeBySeconds(rec_route['duration'])
+    #routes.append("总路程{0:.1f}km, 耗时：{1}".format(total_distance/1000.0, getFormattedTimeBySeconds(total_duration)))
+    routes = '['
+    for t in steps:
+        step = t[0]
+        vehicle_info = step['vehicle_info']
+        distance = step['distance']
+        duration = getFormattedTimeBySeconds(step['duration'])
+        if getVehicleNameByType(vehicle_info['type']) == "metro/bus":
+            on_station = vehicle_info['detail']['on_station']
+            off_station = vehicle_info['detail']['off_station']
+            stop_num = vehicle_info['detail']['stop_num']
+            name = vehicle_info['detail']['name']
+            r = str(Route(distance, duration, on_station, off_station, stop_num, name, "metro/bus")) + ','
+            routes += r
+            #routes.append(" ▷从 {0} 乘坐{1}到 {2} 下，共{3}站，耗时{4}".format(on_station, name, off_station, stop_num, duration))
+        else:
+            if distance > 50:
+                r = str(Route(distance, duration, "", "", 0, "", "walk")) + ','
+                routes += r
+                #routes.append(" ▷行走路程{0}m, 耗时:{1}".format(distance, duration))
+    routes = routes[:-1] + ']'
+    complete_routes = r'{{"distance":{0},"duration":"{1}","routes":{2}}}'.format(total_distance, total_duration, routes)
+    return complete_routes
+
+def crawlAllShops():
+    for r in open("category.txt", "r"):
+        info = r.strip().split(" ")
+        category = info[1]
+        writeRecordsToFile(category, crawlAllShopsInfo(category, "taste", 8.5, 200), ",")
+
+def crawlAllShopsRoutesInfo():
+    origin = getGeoFromAddr("金高路988弄")
+    for r in open("hotpot", "r"):
+        info = r.strip().split(",")
+        name = info[0]
+        addr = info[6]
+        destination = getGeoFromAddr(addr)
+        print "{0}||{1}||{2}".format(name, addr, getCompleteRoutes(origin, destination))
+
+def getShopDetails(shopId):
+    url = "http://www.dianping.com/ajax/json/shopfood/wizard/BasicHideInfoAjaxFP?_nr_force=1502177990602&shopId={0}".format(shopId)
+    details = json.loads(crawl(url))['msg']['shopInfo']
+    todayHits = details['todayHits']
+    monthlyHits = details['monthlyHits']
+    weeklyHits = details['weeklyHits']
+    glat = details['glat']
+    glng = details['glng']
+    hits = details['hits']
+    phoneNo = details['phoneNo']
+    prevWeeklyHits = details['prevWeeklyHits']
+    return phoneNo, hits, monthlyHits, weeklyHits, todayHits, prevWeeklyHits, glat, glng
+
+def getMySQLConnection():
+    config = {
+        'user': 'dp_user',
+        'password': 'dp_user',
+        'host': 'localhost',
+        'port': 3306,
+        'database': 'dp'
+    }
+    cnx = mysql.connector.connect(**config)
+    return cnx
+
+class Route(object):
+    def __init__(self, distance, duration, on_station, off_station, stop_num, name, type):
+        self.distance = distance
+        self.duration = duration
+        self.on_station = on_station
+        self.off_station = off_station
+        self.stop_num = stop_num
+        self.name = name
+        self.type = type
+    def __str__(self):
+        return '{{"distance":"{0}","duration":"{1}","on_station":"{2}","off_station":"{3}","stop_num":{4},"name":"{5}",' \
+                            '"type":"{6}"}}'.format(self.distance, self.duration, self.on_station, self.off_station, self.stop_num, self.name, self.type)
+
+def loadShopsByCategory(category):
+    cnx = getMySQLConnection()
+    cursor = cnx.cursor()
+    category_id = category[1:]
+    delete_shop = "delete from shop where category_id = {0}".format(category_id)
+    cursor.execute(delete_shop)
+    add_shop = ("INSERT INTO shop "
+               "(shop_id, shop_name, address, phone, lat, lng, category_id) "
+               "VALUES (%s, %s, %s, %s, %s, %s, %s)")
+    add_shop_score = ("INSERT INTO shop_score "
+               "(shop_id, avg_price, taste_score, env_score, ser_score) "
+               "VALUES (%s, %s, %s, %s, %s)")
+    add_shop_heat = ("INSERT INTO shop_heat "
+               "(shop_id, hits, monthlyHits, weeklyHits, todayHits, prevWeeklyHits) "
+               "VALUES (%s, %s, %s, %s, %s, %s)")
+    cnt = 0
+    for r in open("shops/"+category, "r"):
+        cnt += 1
+        info = r.strip().split(',')
+        shop_name = info[0]
+        avg_price = info[1]
+        if avg_price == "": avg_price = None
+        taste_score = info[3]
+        env_score = info[4]
+        ser_score = info[5]
+        shop_id = info[7][info[7].rfind("/")+1:]
+        address = info[6]
+        print shop_id
+        try:
+            phoneNo, hits, monthlyHits, weeklyHits, todayHits, prevWeeklyHits, glat, glng = getShopDetails(shop_id)
+        except:
+            continue
+        data_shop = (shop_id, shop_name, address, phoneNo, glat, glng, category_id)
+        data_shop_score = (shop_id, avg_price, taste_score, env_score, ser_score)
+        data_shop_heat = (shop_id, hits, monthlyHits, weeklyHits, todayHits, prevWeeklyHits)
+        cursor.execute(add_shop, data_shop)
+        cursor.execute(add_shop_score, data_shop_score)
+        cursor.execute(add_shop_heat, data_shop_heat)
+        if cnt % 50 == 0: cnx.commit()
+    cnx.commit()
+    cursor.close
+    cnx.close
+
+if __name__ == '__main__':
+    #token = "eJxdi0sLgkAUhf/LXQ+NM75woEVlC0tbhAoSLrImFR+JM6EU/fdGchFdLnyHj3Ne0HtXYERTRxBIobKpUWJbDiWGRRFc/pytI8j62AV2IqZuIWrTdDJHJb7GsbQU/URqqJ86nqrAraw5wxhvGI4E7wUuHlnZYpeLSt47LLmQi0I2NSAANWpCNVKsZp5nypmizFtgwHdjuBe25+N1IMJoPPTJEDyTMc69ld8l23JYLuH9AZC5QgE="
+    #url = "http://www.dianping.com/ajax/json/shopDynamic/fav?shopId=43386343&_token={0}".format(token)
+    #print url
+    filter = ['g203','g215','g219','g247','g248','g251','g26481','g3243','g508']
+
+    for i in os.listdir("shops"):
+        try:
+            print filter.index(i)
+            loadShopsByCategory( i )
+        except:
+            continue
+
+
