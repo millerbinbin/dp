@@ -18,6 +18,7 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 
 def crawl(url):
+    time.sleep(0.1)
     return urllib2.urlopen(url).read()
 
 def getAllCBD(content):
@@ -68,8 +69,9 @@ def getAvgPriceFromContent(data):
         num = ""
     return num
 
-def crawlAllShopsInfo(type, orderBy, threshold, limit_num=1000):
+def crawlAllShopsInfoByCategory(category, orderBy, threshold, limit_num=1000):
     prefix = "http://www.dianping.com/search/category/1/10"
+    category_id = category[1:]
     heat_seq = "o2"
     rate_seq = "o3"
     taste_seq = "o5"
@@ -77,18 +79,20 @@ def crawlAllShopsInfo(type, orderBy, threshold, limit_num=1000):
     ser_seq = "o7"
     cmmt_seq = "o10"
     if orderBy == "taste":
-        url = prefix + "/" + type + taste_seq
+        url = prefix + "/" + category + taste_seq
     elif orderBy == "rate":
-        url = prefix + "/" + type + rate_seq
+        url = prefix + "/" + category + rate_seq
     elif orderBy == "heat":
-        url = prefix + "/" + type + heat_seq
+        url = prefix + "/" + category + heat_seq
     elif orderBy == "env":
-        url = prefix + "/" + type + env_seq
+        url = prefix + "/" + category + env_seq
     elif orderBy == "ser":
-        url = prefix + "/" + type + ser_seq
+        url = prefix + "/" + category + ser_seq
     elif orderBy == "cmmt":
-        url = prefix + "/" + type + cmmt_seq
-    shops = []
+        url = prefix + "/" + category + cmmt_seq
+    shop_infos = []
+    shop_heats = []
+    shop_scores = []
     page = 0
     stop_flag = 0
     total_num = 0
@@ -98,22 +102,26 @@ def crawlAllShopsInfo(type, orderBy, threshold, limit_num=1000):
         page_num = "p{0}".format(page)
         p_url = url + page_num
         print p_url
-        time.sleep(0.2)
         content = parseContent(p_url)
         for shop in content.find("div", id="shop-all-list").find_all("li", class_=""):
             link = shop.find("div", class_="pic")
+            shop_name = link.img['alt']
+            shop_id = link.a['href'][link.a['href'].rfind('/')+1:]
             comment = shop.find("div", class_="comment")
             avg_price = getAvgPriceFromContent(comment)
-            cmmt_num = getCommentNumFromContent(comment)
-            addr = shop.find("div", class_="tag-addr").find("span", class_="addr").text
+            #cmmt_num = getCommentNumFromContent(comment)
+            address = shop.find("div", class_="tag-addr").find("span", class_="addr").text
             scores = shop.find("span", class_="comment-list")
             taste_score, env_score, ser_score = parseScoreFromContent(scores)
+            phoneNo, hits, monthlyHits, weeklyHits, todayHits, prevWeeklyHits, glat, glng = getShopDetails(shop_id)
             total_num += 1
             if float(taste_score) < threshold or total_num > limit_num:
                 stop_flag = 1
                 break
-            shops.append((link.img['alt'], avg_price, cmmt_num, taste_score, env_score, ser_score, addr, link.a['href']))
-    return shops
+            shop_infos.append((shop_id, shop_name, address, glng, glat, category_id, phoneNo ))
+            shop_scores.append((shop_id, avg_price, taste_score, env_score, ser_score))
+            shop_heats.append((shop_id, hits, monthlyHits, weeklyHits, todayHits, prevWeeklyHits))
+    return shop_infos, shop_scores, shop_heats
 
 def getGeoFromAddr(address):
     app_key = "9MhIHvmWZHiQkEEoCIxKXGYkXbKS5hrq"
@@ -183,10 +191,13 @@ def getCompleteRoutes(origin, destination):
     return complete_routes
 
 def crawlAllShops():
-    for r in open("category.txt", "r"):
+    for r in open("base/category.txt", "r"):
         info = r.strip().split(" ")
         category = info[1]
-        writeRecordsToFile(category, crawlAllShopsInfo(category, "taste", 8.5, 200), ",")
+        shops, scores, heats = crawlAllShopsInfoByCategory(category, "taste", 8.5, 250)
+        writeRecordsToFile(fileName="shops/" + category, records=shops, field_delimiter="\t")
+        writeRecordsToFile(fileName="scores/" + category, records=scores, field_delimiter="\t")
+        writeRecordsToFile(fileName="heats/" + category, records=heats, field_delimiter="\t")
 
 def crawlAllShopsRoutesInfo():
     origin = getGeoFromAddr("金高路988弄")
@@ -200,14 +211,14 @@ def crawlAllShopsRoutesInfo():
 def getShopDetails(shopId):
     url = "http://www.dianping.com/ajax/json/shopfood/wizard/BasicHideInfoAjaxFP?_nr_force=1502177990602&shopId={0}".format(shopId)
     details = json.loads(crawl(url))['msg']['shopInfo']
-    todayHits = details['todayHits']
-    monthlyHits = details['monthlyHits']
-    weeklyHits = details['weeklyHits']
-    glat = details['glat']
-    glng = details['glng']
-    hits = details['hits']
-    phoneNo = details['phoneNo']
-    prevWeeklyHits = details['prevWeeklyHits']
+    todayHits = str(details['todayHits'])
+    monthlyHits = str(details['monthlyHits'])
+    weeklyHits = str(details['weeklyHits'])
+    glat = str(details['glat'])
+    glng = str(details['glng'])
+    hits = str(details['hits'])
+    phoneNo = str(details['phoneNo'])
+    prevWeeklyHits = str(details['prevWeeklyHits'])
     return phoneNo, hits, monthlyHits, weeklyHits, todayHits, prevWeeklyHits, glat, glng
 
 def getMySQLConnection():
@@ -278,16 +289,7 @@ def loadShopsByCategory(category):
     cnx.close
 
 if __name__ == '__main__':
-    #token = "eJxdi0sLgkAUhf/LXQ+NM75woEVlC0tbhAoSLrImFR+JM6EU/fdGchFdLnyHj3Ne0HtXYERTRxBIobKpUWJbDiWGRRFc/pytI8j62AV2IqZuIWrTdDJHJb7GsbQU/URqqJ86nqrAraw5wxhvGI4E7wUuHlnZYpeLSt47LLmQi0I2NSAANWpCNVKsZp5nypmizFtgwHdjuBe25+N1IMJoPPTJEDyTMc69ld8l23JYLuH9AZC5QgE="
-    #url = "http://www.dianping.com/ajax/json/shopDynamic/fav?shopId=43386343&_token={0}".format(token)
-    #print url
-    filter = ['g203','g215','g219','g247','g248','g251','g26481','g3243','g508']
+    crawlAllShops()
 
-    for i in os.listdir("shops"):
-        try:
-            print filter.index(i)
-            loadShopsByCategory( i )
-        except:
-            continue
 
 

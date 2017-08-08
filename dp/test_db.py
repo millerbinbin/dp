@@ -119,7 +119,7 @@ def loadCategory(cnx):
     add_category = ("INSERT INTO category "
                "(category_id, category_name) "
                "VALUES (%s, %s)")
-    for r in open("category.txt", "r"):
+    for r in open("base/category.txt", "r"):
         info = r.strip().split(' ')
         category_id = info[1][1:]
         category_name = info[0]
@@ -133,7 +133,7 @@ def loadDistrict(cnx):
     add_district = ("INSERT INTO district "
                "(district_id, district_name) "
                "VALUES (%s, %s)")
-    for r in open("district.txt", "r"):
+    for r in open("base/district.txt", "r"):
         info = r.strip().split(' ')
         district_id = info[1][1:]
         district_name = info[0]
@@ -144,8 +144,8 @@ def loadDistrict(cnx):
 
 if __name__ == '__main__':
     cnx = getMySQLConnection()
-    #createAllTables(cnx)
-    #loadCategory(cnx)
+    createAllTables(cnx)
+    loadCategory(cnx)
     loadDistrict(cnx)
     cnx.close
 
