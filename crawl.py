@@ -14,7 +14,6 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 
 def crawl(url):
-    time.sleep(0.1)
     return urllib2.urlopen(url).read()
 
 def getAllCBD(content):
@@ -130,11 +129,14 @@ def getGeoFromAddr(address):
         url = "http://api.map.baidu.com/place/v2/suggestion?region=上海市&city_limit=true&query={0}&ak={1}&output=json".format(address, app_key)
         result = json.loads(crawl(url))['result'][0]
     loc = result['location']
-    return "{0},{1}".format(loc['lat'], loc['lng'])
+    return (loc['lng'], loc['lat'])
 
 def getPath(origin, destination):
     app_key = "9MhIHvmWZHiQkEEoCIxKXGYkXbKS5hrq"
+    origin = "{0},{1}".format(origin[1], origin[0])
+    destination = "{0},{1}".format(destination[1], destination[0])
     url = "http://api.map.baidu.com/direction/v2/transit?tactics_incity=4&origin={0}&destination={1}&ak={2}".format(origin, destination, app_key)
+    print url
     routes = json.loads(crawl(url))['result']['routes']
     return routes
 
@@ -243,7 +245,7 @@ class Route(object):
 
 def loadShopsByCategory(category, cnx):
     cursor = cnx.cursor()
-    category_id = category[1:]
+    # category_id = category[1:]
     # cursor.execute("delete from shop where category_id = {0}".format(category_id))
     # cursor.execute("delete from shop_score where category_id = {0}".format(category_id))
     # cursor.execute("delete from shop_heat where category_id = {0}".format(category_id))
@@ -261,7 +263,11 @@ def loadShopsByCategory(category, cnx):
     for r in open("shops/"+category, "r"):
         cnt += 1
         info = r.strip().split('\t')
-        shop_id, shop_name, address, lat, lng, phoneNo = info[0:6]
+        phoneNo = ""
+        if len(info) == 7:
+            shop_id, shop_name, address, lng, lat, category_id, phoneNo = info[0:7]
+        if len(info) == 6:
+            shop_id, shop_name, address, lng, lat, category_id = info[0:6]
         data = (shop_id, shop_name, address, phoneNo, lat, lng, category_id)
         cursor.execute(add_shop, data)
         if cnt % 50 == 0: cnx.commit()
@@ -296,10 +302,34 @@ def loadAllShops(cnx):
         category = info[1]
         loadShopsByCategory(category, cnx)
 
+def calcEarthDistance(origin, dest):
+    lngA, latA = origin
+    lngB, latB = dest
+    C = math.sin(latA) * math.sin(latB) + math.cos(lngA - lngB) * math.cos(latA) * math.cos(latB)
+    R = 6371.004
+    Pi = 3.1415926
+    distance = R * math.acos(C) * Pi / 180
+    return "{0:.2f}".format(distance)
+
 if __name__ == '__main__':
     cnx = getMySQLConnection()
-    loadAllShops(cnx)
+    #loadAllShops(cnx)
+    cursor = cnx.cursor()
+    cursor.execute("select distinct shop_id, shop_name, lng, lat from dp.shop where shop_id=27294995")
+    results = cursor.fetchall()
+    origin = getGeoFromAddr("金高路988弄")
+    records = []
+    for row in results:
+        dest = (float(row[2]), float(row[3]))
+        earth_distance = calcEarthDistance(origin, dest)
+        routes = json.loads(getCompleteRoutes(origin, dest))
+        direct_distance = routes['distance']
+        duration = routes['duration']
+        path = routes['routes']
+        shop_id = str(row[0])
+        print shop_id
+        records.append((shop_id, duration, str(path)))
+    writeRecordsToFile("routes", records, "|")
     cnx.close()
-
 
 

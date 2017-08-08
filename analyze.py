@@ -22,8 +22,3 @@ if __name__=="__main__":
                 "ROW FORMAT DELIMITED FIELDS TERMINATED BY ','\n"\
                 "STORED AS TEXTFILE".format(table_name)
     #spark.sql(createSql)
-
-    loadSql = "load data local inpath '{0}' into table {1}".format("hotpot", table_name)
-    #loadSql = "insert into table {0} values(1,1,1,1,1,1,1,1,1)".format(table_name)
-    print loadSql
-    spark.sql(loadSql)
