@@ -1,8 +1,6 @@
 # -*- coding:utf-8 -*-
 from db import mysqlBase
-from db import dbinit
 import os
-from entity import entity
 
 __author__ = 'hubin6'
 
@@ -130,23 +128,11 @@ def load_all_shops(cnx):
     load_all_shops_heat(cnx)
     load_all_shops_comment(cnx)
 
-def query_test(cnx):
+
+def get_all_shops_location(cnx):
     cursor = cnx.cursor()
     lib = mysqlBase.MySQLLib(cursor)
-    result = lib.fetch_result("select distinct shop_id, lng, lat from shop")
+    result = lib.fetch_result("select distinct shop_id, lng, lat from shop order by id")
     return result
 
-if __name__ == '__main__':
-    conn = mysqlBase.MySQLConnection().getConnection()
-    row = query_test(cnx=conn)[0]
-    lat = float(row[2])
-    lng = float(row[1])
-    print entity.Location(lat=lat, lng=lng)
-    # dbinit.init_all_tables(cnx=conn)
-    # load_category(cnx=conn)
-    # load_district(cnx=conn)
-    # truncate_all_shops(cnx=conn)
-    # load_all_shops(cnx=conn)
 
-
-    conn.close()

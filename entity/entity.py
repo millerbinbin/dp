@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 import sys
-
+import json
 __author__ = 'hubin6'
 
 reload(sys)
@@ -25,14 +25,21 @@ class TaxiRoute(object):
     def __str__(self):
         return "distance:{0}, duration:{1}, price:{2}".format(self.distance, self.duration, self.price)
 
+    def to_json(self):
+        return json.dumps({"distance": self.distance, "duration": self.duration, "price": self.price})
+
 
 class WalkRoute(object):
     def __init__(self, distance, duration):
         self.distance = distance
         self.duration = duration
+        self.type = 1
 
     def __str__(self):
-        return "distance:{0}, duration:{1}".format(self.distance, self.duration)
+        return 'distance:{0}, duration:{1}, type:{2}'.format(self.distance, self.duration, self.type)
+
+    def to_json(self):
+        return {"distance": self.distance, "duration": self.duration, "type": self.type}
 
 
 class PublicRoute(object):
@@ -43,10 +50,16 @@ class PublicRoute(object):
         self.off_station = off_station
         self.stop_num = stop_num
         self.name = name
+        self.type = 2
 
     def __str__(self):
-        return "distance:{0}, duration:{1}, on_station:{2}, off_station:{3}, stop_num:{4}, name:{5}"\
-            .format(self.distance, self.duration, self.on_station, self.off_station, self.stop_num, self.name)
+        return "distance:{0}, duration:{1}, on_station:{2}, off_station:{3}, stop_num:{4}, name:{5}, type:{6}"\
+            .format(self.distance, self.duration, self.on_station, self.off_station, self.stop_num, self.name, self.type)
+
+    def to_json(self):
+        return {"distance": self.distance, "duration": self.duration, "name": self.name,
+                "on_station": self.on_station, "off_station": self.off_station,
+                "stop_num": self.stop_num, "type": self.type}
 
 
 class Route(object):
@@ -59,7 +72,10 @@ class Route(object):
         return "distance:{0}, duration:{1}, routes:{2}".format(self.distance, self.duration, self.routes)
 
     def add_route(self, route):
-        self.routes.append(route)
+        self.routes.append(route.to_json())
+
+    def to_json(self):
+        return json.dumps({"distance": self.distance, "duration": self.duration, "routes": self.routes}, ensure_ascii=False).encode('utf8')
 
 
 class Shop(object):
