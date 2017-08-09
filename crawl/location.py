@@ -1,0 +1,92 @@
+from crawl import crawlLib
+from entity import entity
+import math
+# -*- coding:utf-8 -*-
+__author__ = 'hubin6'
+
+
+BAIDU_APP_KEY = "9MhIHvmWZHiQkEEoCIxKXGYkXbKS5hrq"
+
+def get_geo_from_address(address):
+    url = "http://api.map.baidu.com/geocoder/v2/?city=上海市&address={0}&ak={1}&output=json".format(address, BAIDU_APP_KEY)
+    obj = crawlLib.Crawler(url).toJson()
+    status = obj['status']
+    if status == 0:
+        result = obj['result']
+    elif status == 1:
+        url = "http://api.map.baidu.com/place/v2/suggestion?region=上海市&city_limit=true&query={0}&ak={1}&output=json".format(address, BAIDU_APP_KEY)
+        result = crawlLib.Crawler(url).toJson()['result'][0]
+    loc = result['location']
+    return entity.Location(loc['lng'], loc['lat'])
+
+
+def get_all_available_routes(origin, destination):
+    x = "{0},{1}".format(origin.lat, origin.lng)
+    y = "{0},{1}".format(destination.lat, destination.lng)
+    url = "http://api.map.baidu.com/direction/v2/transit?tactics_incity=4&origin={0}&destination={1}&ak={2}".format(x, y, BAIDU_APP_KEY)
+    result = crawlLib.Crawler(url).toJson()['result']
+    return result['routes'], result['taxi']
+
+
+def get_taxi_price(details):
+    for t in details:
+        desc = t['desc']
+        if desc.find("白天") >= 0:
+            return t['total_price']
+    return None
+
+
+def get_taxi_route(route):
+    distance = route['distance']
+    duration = route['duration']
+    detail = route['detail']
+    price = get_taxi_price(detail)
+    return entity.TaxiRoute(distance, duration, price)
+
+
+def get_public_route(route):
+    vehicle_info = route['vehicle_info']
+    distance = route['distance']
+    duration = route['duration']
+    if vehicle_info['type'] == 3:
+        on_station = vehicle_info['detail']['on_station']
+        off_station = vehicle_info['detail']['off_station']
+        stop_num = vehicle_info['detail']['stop_num']
+        name = vehicle_info['detail']['name']
+        return entity.PublicRoute(distance, duration, on_station, off_station, stop_num, name)
+        #routes.append(" ▷从 {0} 乘坐{1}到 {2} 下，共{3}站，耗时{4}".format(on_station, name, off_station, stop_num, duration))
+    elif vehicle_info['type'] == 5 and distance > 50:
+        return entity.WalkRoute(distance, duration)
+        #routes.append(" ▷行走路程{0}m, 耗时:{1}".format(distance, duration))
+
+
+def get_complete_route(origin, destination):
+    public_route, taxi_route = get_all_available_routes(origin, destination)
+    taxi = get_taxi_route(taxi_route)
+    public = None
+    if len(public_route) > 0 :
+        recommend_route = public_route[0]
+        steps = recommend_route['steps']
+        distance = recommend_route['distance']
+        duration = recommend_route['duration']
+        public = entity.Route(distance, duration)
+        for step in steps:
+            public.add_route(get_public_route(step[0]))
+
+    return {"taxi":taxi, "public":public}
+
+
+def calc_earth_distance(origin, destination):
+    lng_a, latA = origin
+    lngB, latB = dest
+    C = math.sin(latA) * math.sin(latB) + math.cos(lngA - lngB) * math.cos(latA) * math.cos(latB)
+    R = 6371.004
+    Pi = 3.1415926
+    distance = R * math.acos(C) * Pi / 180
+    return "{0:.2f}".format(distance)
+
+
+if __name__ == '__main__':
+    origin = get_geo_from_address("sap研究院")
+    dest = get_geo_from_address("1号店")
+    print get_complete_route(origin=origin, destination=dest).get("public").routes[1]
