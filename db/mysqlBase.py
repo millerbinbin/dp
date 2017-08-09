@@ -43,3 +43,12 @@ class MySQLLib(object):
             self.cursor.execute("drop table if exists {0}".format(table))
         except mysql.connector.Error as err:
             print "execute drop table [{0}] failed! Error msg:{1}.".format(table, err.msg)
+
+    def fetch_result(self, sql):
+        try:
+            self.cursor.execute(sql)
+            result = self.cursor.fetchall()
+            return result
+        except mysql.connector.Error as err:
+            print "execute SQL: [{0}] failed! Error msg:{1}.".format(sql, err.msg)
+        return None
