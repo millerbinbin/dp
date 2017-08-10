@@ -1,10 +1,7 @@
 # -*- coding:utf-8 -*-
-import sys
 import json
-__author__ = 'hubin6'
 
-reload(sys)
-sys.setdefaultencoding("utf-8")
+__author__ = 'hubin6'
 
 
 class Location(object):

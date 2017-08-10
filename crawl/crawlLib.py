@@ -3,6 +3,7 @@ import urllib2
 import json
 from bs4 import BeautifulSoup
 import requests
+
 __author__ = 'hubin6'
 
 
@@ -11,15 +12,14 @@ class Crawler(object):
         self.url = url
 
     def crawl(self):
-        #time.sleep(0.1)
         return urllib2.urlopen(self.url).read()
 
-    def parseContent(self, mode="normal"):
+    def parse_content(self, mode="normal"):
         if mode == "complex":
             return BeautifulSoup(self.auth_crawl(), "lxml")
         return BeautifulSoup(self.crawl(), "lxml")
 
-    def toJson(self):
+    def to_json(self):
         return json.loads(self.crawl())
 
     def auth_crawl(self):

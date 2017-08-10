@@ -2,21 +2,23 @@
 from crawl import crawlLib
 from entity import entity
 import math
+
 __author__ = 'hubin6'
 
 
 BAIDU_APP_KEY = "9MhIHvmWZHiQkEEoCIxKXGYkXbKS5hrq"
 
+
 def get_geo_from_address(address):
     url = "http://api.map.baidu.com/geocoder/v2/?city=上海市&address={0}&ak={1}&output=json".format(address, BAIDU_APP_KEY)
-    obj = crawlLib.Crawler(url).toJson()
+    obj = crawlLib.Crawler(url).to_json()
     status = obj['status']
+    result = None
     if status == 0:
         result = obj['result']
     elif status == 1:
         url = "http://api.map.baidu.com/place/v2/suggestion?region=上海市&city_limit=true&query={0}&ak={1}&output=json".format(address, BAIDU_APP_KEY)
-        result = crawlLib.Crawler(url).toJson()['result'][0]
-    print url
+        result = crawlLib.Crawler(url).to_json()['result'][0]
     loc = result['location']
     return entity.Location(loc['lng'], loc['lat'])
 
@@ -25,8 +27,7 @@ def get_all_available_routes(origin, destination):
     x = "{0},{1}".format(origin.lat, origin.lng)
     y = "{0},{1}".format(destination.lat, destination.lng)
     url = "http://api.map.baidu.com/direction/v2/transit?tactics_incity=4&origin={0}&destination={1}&ak={2}".format(x, y, BAIDU_APP_KEY)
-    print url
-    result = crawlLib.Crawler(url).toJson()['result']
+    result = crawlLib.Crawler(url).to_json()['result']
     return result['routes'], result['taxi']
 
 
@@ -56,10 +57,8 @@ def get_public_route(route):
         stop_num = vehicle_info['detail']['stop_num']
         name = vehicle_info['detail']['name']
         return entity.PublicRoute(distance, duration, on_station, off_station, stop_num, name)
-        #routes.append(" ▷从 {0} 乘坐{1}到 {2} 下，共{3}站，耗时{4}".format(on_station, name, off_station, stop_num, duration))
     elif vehicle_info['type'] == 5 and distance >= 100:
         return entity.WalkRoute(distance, duration)
-        #routes.append(" ▷行走路程{0}m, 耗时:{1}".format(distance, duration))
     else:
         return None
 

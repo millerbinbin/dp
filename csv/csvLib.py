@@ -1,14 +1,17 @@
 # -*- coding:utf-8 -*-
 import sys
+
 __author__ = 'hubin6'
+
+
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
-def writeRecordsToFile(fileName, records, field_delimiter, mode="w"):
+
+# mode="w" -- overwrite
+# mode="a" -- append
+def write_records_to_csv(fileName, records, field_delimiter, mode="w"):
     f = open(fileName, mode)
     for row in records:
         f.write(field_delimiter.join("{0}".format(r) for r in row)+'\n')
     f.close()
-
-if __name__ == '__main__':
-    writeRecordsToFile("test.txt", [(u'64650577', None, None, None, None, None, 31.171909, 121.38254)], ',')

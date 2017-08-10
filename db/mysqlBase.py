@@ -1,11 +1,9 @@
 # -*- coding:utf-8 -*-
 import mysql.connector
 from mysql.connector import errorcode
-import sys
+
 __author__ = 'hubin6'
 
-reload(sys)
-sys.setdefaultencoding("utf-8")
 
 config = {
     'user': 'dp_user',
@@ -15,12 +13,15 @@ config = {
     'database': 'dp'
 }
 
+
 class MySQLConnection(object):
     def __init__(self):
         self.config = config
 
-    def getConnection(self):
+    @staticmethod
+    def get_connection():
         return mysql.connector.connect(**config)
+
 
 class MySQLLib(object):
     def __init__(self, cursor):

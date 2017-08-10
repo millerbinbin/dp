@@ -17,7 +17,8 @@ def load_category(cnx):
         category_id = category_id[1:]
         lib.insert_record(sql=add_category, data=(category_id, category_name))
     cnx.commit()
-    cursor.close
+    cursor.close()
+    print "loading category data finished..."
 
 
 def load_district(cnx):
@@ -30,6 +31,7 @@ def load_district(cnx):
         lib.insert_record(sql=add_district, data=(district_id, district_name))
     cnx.commit()
     cursor.close
+    print "loading district data finished..."
 
 
 def load_region(cnx):
@@ -42,7 +44,9 @@ def load_region(cnx):
         district_id = district_id[1:]
         lib.insert_record(sql=add_region, data=(region_id, region_name, district_id))
     cnx.commit()
-    cursor.close
+    cursor.close()
+    print "loading region data finished..."
+
 
 
 def truncate_all_base(cnx):
@@ -78,6 +82,7 @@ def load_all_shops_info(cnx):
             if cnt % 50 == 0: cnx.commit()
         cnx.commit()
     cursor.close()
+    print "loading shops data finished..."
 
 
 def load_all_shops_score(cnx):
@@ -100,6 +105,7 @@ def load_all_shops_score(cnx):
             if cnt % 50 == 0: cnx.commit()
         cnx.commit()
     cursor.close()
+    print "loading scores data finished..."
 
 
 def load_all_shops_heat(cnx):
@@ -126,6 +132,7 @@ def load_all_shops_heat(cnx):
             if cnt % 50 == 0: cnx.commit()
         cnx.commit()
     cursor.close()
+    print "loading heat data finished..."
 
 
 def load_all_shops_comment(cnx):
@@ -147,6 +154,7 @@ def load_all_shops_comment(cnx):
             if cnt % 50 == 0: cnx.commit()
         cnx.commit()
     cursor.close()
+    print "loading comment data finished..."
 
 
 def load_all_shops_route(cnx):
@@ -181,6 +189,7 @@ def load_all_shops_route(cnx):
             if cnt % 50 == 0: cnx.commit()
         cnx.commit()
     cursor.close()
+    print "loading routes data finished..."
 
 
 def load_all_shops(cnx):
@@ -205,15 +214,13 @@ def get_all_shops_location(cnx):
 
 
 def get_region_table():
-    conn = mysqlBase.MySQLConnection().getConnection()
-    cursor = conn.cursor()
-    lib = mysqlBase.MySQLLib(cursor)
+    cnx = mysqlBase.MySQLConnection().get_connection()
+    lib = mysqlBase.MySQLLib(cnx.cursor())
     region_table = {}
     for item in lib.fetch_result("select distinct region_id, region_name, district_id from region order by id"):
         region_table[item[1]] = (item[0], item[2])
     for item in lib.fetch_result("select distinct district_id, district_name from district order by id"):
         region_table[item[1]] = (None, item[0])
-    conn.close
     return region_table
 
 """
@@ -237,13 +244,9 @@ order by taste_score
 """
 
 if __name__ == '__main__':
-    conn = mysqlBase.MySQLConnection().getConnection()
-    # truncate_all_shops(cnx=conn)
-    # load_all_shops(cnx=conn)
-
-    # dbinit.init_all_tables(cnx=conn)
-    # truncate_all_base(cnx=conn)
-    # load_all_base(cnx=conn)
-    # load_all_shops_route(cnx=conn)
-    conn.close
-
+    conn = mysqlBase.MySQLConnection().get_connection()
+    dbinit.init_all_tables(cnx=conn)
+    truncate_all_base(cnx=conn)
+    load_all_base(cnx=conn)
+    truncate_all_shops(cnx=conn)
+    load_all_shops(cnx=conn)
