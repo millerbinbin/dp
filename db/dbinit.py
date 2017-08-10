@@ -23,7 +23,7 @@ def all_tables_meta():
         "  `district_id` bigint NOT NULL,"
         "  `update_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,"
         "  PRIMARY KEY (`id`),"
-        "  UNIQUE KEY `sk` (`region_id`) USING BTREE"
+        "  UNIQUE KEY `sk` (`region_id`, `district_id`) USING BTREE"
         ") ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT")
 
     tables['category'] = (
@@ -95,6 +95,21 @@ def all_tables_meta():
         "  UNIQUE KEY `sk` (`shop_id`) USING BTREE"
         ") ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT")
 
+    tables['shop_route'] = (
+        "CREATE TABLE `shop_route` ("
+        "  `id` int(11) NOT NULL AUTO_INCREMENT,"
+        "  `shop_id` bigint NOT NULL,"
+        "  `taxi_duration` int,"
+        "  `taxi_distance` int,"
+        "  `taxi_price` int,"
+        "  `public_duration` int,"
+        "  `public_distance` int,"
+        "  `routes` varchar(4000),"
+        "  `update_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,"
+        "  PRIMARY KEY (`id`),"
+        "  UNIQUE KEY `sk` (`shop_id`) USING BTREE"
+        ") ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT")
+
     return tables
 
 
@@ -104,7 +119,7 @@ def init_all_tables(cnx):
     lib = mysqlBase.MySQLLib(cursor)
     for name, ddl in tables.iteritems():
         print "Creating table {}.".format(name)
-        lib.drop_table(table=name)
+        #lib.drop_table(table=name)
         lib.create_table(sql=ddl)
     cursor.close
 

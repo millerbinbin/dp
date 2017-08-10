@@ -79,16 +79,18 @@ class Route(object):
 
 
 class Shop(object):
-    def __init__(self, shop_id, shop_name, address, lng, lat, phone_no, category,
+    def __init__(self, shop_id, shop_name, address, lng, lat, phone_no, district, region, category,
                  avg_price, taste_score, env_score, ser_score,
                  total_hits, today_hits, monthly_hits, weekly_hits, last_week_hits,
-                 cmt_num):
+                 cmt_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num):
         self.shop_id = shop_id
         self.shop_name = shop_name
         self.address = address
         self.lng = lng
         self.lat = lat
         self.phone_no = phone_no
+        self.district = district
+        self.region = region
         self.category = category
         self.avg_price = avg_price
         self.taste_score = taste_score
@@ -100,9 +102,14 @@ class Shop(object):
         self.weekly_hits = weekly_hits
         self.last_week_hits = last_week_hits
         self.cmt_num = cmt_num
+        self.star_5_num = star_5_num
+        self.star_4_num = star_4_num
+        self.star_3_num = star_3_num
+        self.star_2_num = star_2_num
+        self.star_1_num = star_1_num
 
     def get_info(self):
-        return ShopInfo(self.shop_id, self.shop_name, self.address, self.lng, self.lat, self.phone_no, self.category)
+        return ShopInfo(self.shop_id, self.shop_name, self.address, self.lng, self.lat, self.phone_no, self.district, self.region, self.category)
 
     def get_score(self):
         return ShopScore(self.shop_id, self.avg_price, self.taste_score, self.env_score, self.ser_score)
@@ -111,21 +118,23 @@ class Shop(object):
         return ShopHeat(self.shop_id, self.total_hits, self.today_hits, self.monthly_hits, self.weekly_hits, self.last_week_hits)
 
     def get_comment(self):
-        return ShopComment(self.shop_id, self.cmt_num)
+        return ShopComment(self.shop_id, self.cmt_num, self.star_5_num, self.star_4_num, self.star_3_num, self.star_2_num, self.star_1_num)
 
 
 class ShopInfo(object):
-    def __init__(self, shop_id, shop_name, address, lng, lat, phone_no, category):
+    def __init__(self, shop_id, shop_name, address, lng, lat, phone_no, district, region, category):
         self.shop_id = shop_id
         self.shop_name = shop_name
         self.address = address
         self.lng = lng
         self.lat = lat
         self.phone_no = phone_no
+        self.district = district
+        self.region = region
         self.category = category
 
     def to_tuple(self):
-        return self.shop_id, self.shop_name, self.address, self.lng, self.lat, self.phone_no, self.category
+        return self.shop_id, self.shop_name, self.address, self.lng, self.lat, self.phone_no, self.district, self.region, self.category
 
 
 class ShopScore(object):
@@ -154,9 +163,14 @@ class ShopHeat(object):
 
 
 class ShopComment(object):
-    def __init__(self, shop_id, cmt_num):
+    def __init__(self, shop_id, cmt_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num):
         self.shop_id = shop_id
         self.cmt_num = cmt_num
+        self.star_5_num = star_5_num
+        self.star_4_num = star_4_num
+        self.star_3_num = star_3_num
+        self.star_2_num = star_2_num
+        self.star_1_num = star_1_num
 
     def to_tuple(self):
-        return self.shop_id, self.cmt_num
+        return self.shop_id, self.cmt_num, self.star_5_num, self.star_4_num, self.star_3_num, self.star_2_num, self.star_1_num

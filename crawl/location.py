@@ -16,6 +16,7 @@ def get_geo_from_address(address):
     elif status == 1:
         url = "http://api.map.baidu.com/place/v2/suggestion?region=上海市&city_limit=true&query={0}&ak={1}&output=json".format(address, BAIDU_APP_KEY)
         result = crawlLib.Crawler(url).toJson()['result'][0]
+    print url
     loc = result['location']
     return entity.Location(loc['lng'], loc['lat'])
 
@@ -88,3 +89,11 @@ def calc_earth_distance(origin, dest):
     Pi = 3.1415926
     distance = R * math.acos(C) * Pi / 180
     return "{0:.2f}".format(distance)
+
+
+if __name__ == '__main__':
+    origin = entity.Location(lng=121.615539648, lat=31.2920292218)
+    dest = entity.Location(lng=121.620270262, lat=31.290009937)
+    get_all_available_routes(origin, dest)
+    print get_geo_from_address("春江花悦园")
+    print get_geo_from_address("双桥路1216号")

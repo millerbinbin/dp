@@ -1,8 +1,11 @@
 # -*- coding:utf-8 -*-
-__author__ = 'hubin6'
-
 import mysql.connector
 from mysql.connector import errorcode
+import sys
+__author__ = 'hubin6'
+
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
 config = {
     'user': 'dp_user',
