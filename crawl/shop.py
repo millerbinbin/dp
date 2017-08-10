@@ -1,8 +1,9 @@
 # -*- coding:utf-8 -*-
-import re
-from crawl import crawlLib
+from crawl import crawlLib, location
 from entity import entity
-from db import tasks
+from db import tasks, mysqlBase
+from csv import csvLib
+import re, json
 
 __author__ = 'hubin6'
 
@@ -10,6 +11,9 @@ __author__ = 'hubin6'
 SH_URL = "http://www.dianping.com/search/category/1/10"
 SHOP_DETAILS_URL = "http://www.dianping.com/ajax/json/shopfood/wizard/BasicHideInfoAjaxFP?_nr_force=1502177990602&shopId={}"
 REVIEW_URL = "http://www.dianping.com/shop/{0}/review_more"
+COMMENT_URL = "http://www.dianping.com/shop/{0}/review_more_5star?pageno={1}"
+CSV_DIR = "../data"
+FIELD_DELIMITER = "\t"
 REGION_TABLE = tasks.get_region_table()
 
 
@@ -117,3 +121,74 @@ def get_shop_review_star_num(shop_id):
     star_2_num = data.find("div", class_="comment-star").find_all("dd")[4].find("em", class_="col-exp").text[1:-1]
     star_1_num = data.find("div", class_="comment-star").find_all("dd")[5].find("em", class_="col-exp").text[1:-1]
     return comment_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num
+
+
+def get_shop_favorite_food(shop_id):
+    dish_list = {}
+    for pageno in range(1, 11):
+        data = crawlLib.Crawler(COMMENT_URL.format(shop_id, pageno)).parse_content(mode="complex")
+        for comment in data.find_all("div", class_="comment-recommend"):
+            for dish in comment.find_all("a", class_="col-exp", target="_blank"):
+                dish_list[dish.text] = 1 if dish_list.get(dish.text) is None else 1 + dish_list.get(dish.text)
+    return dish_list
+
+
+def crawl_all_shops():
+    for i in open(CSV_DIR + "/base/category.csv"):
+        category_name, category = i.strip().split(FIELD_DELIMITER)
+        print "start to crawl: {0}...".format(category_name)
+        info_list, heat_list, score_list, cmt_list = crawl_all_shops_by_category(category, "taste", 8.5, 500)
+        csvLib.write_records_to_csv(CSV_DIR + "/shops/{0}.csv".format(category), info_list, FIELD_DELIMITER)
+        csvLib.write_records_to_csv(CSV_DIR + "/heats/{0}.csv".format(category), heat_list, FIELD_DELIMITER)
+        csvLib.write_records_to_csv(CSV_DIR + "/scores/{0}.csv".format(category), score_list, FIELD_DELIMITER)
+        csvLib.write_records_to_csv(CSV_DIR + "/comments/{0}.csv".format(category), cmt_list, FIELD_DELIMITER)
+
+
+def crawl_shops_routes():
+    def load_all_saved_routes():
+        return {i.strip().split(FIELD_DELIMITER)[0] for i in open(CSV_DIR + "/routes/data.csv")}
+    shop_list = load_all_saved_routes()
+    origin = entity.Location(lng=121.615539648, lat=31.2920292218)
+    conn = mysqlBase.MySQLConnection().get_connection()
+    public_routes = []
+    for row in tasks.get_all_shops_location(cnx=conn):
+        shop_id = str(row[0])
+        if shop_id in shop_list: continue
+        dest = entity.Location(lat=float(row[2]), lng=float(row[1]))
+        routes = location.get_complete_route(origin, dest)
+        taxi = routes.get("taxi")
+        public = routes.get("public")
+        if taxi is None: continue # too far to arrive
+        if public is None:
+            public_routes.append((shop_id, taxi.to_json(), None,))
+        else:
+            public_routes.append((shop_id, taxi.to_json(), public.to_json(),))
+        if len(public_routes) % 20 == 0:
+            print "flush data to disk..."
+            csvLib.write_records_to_csv(CSV_DIR + "/routes/data.csv", public_routes, FIELD_DELIMITER, mode="a")
+            public_routes = []
+    conn.close()
+    csvLib.write_records_to_csv(CSV_DIR + "/routes/data.csv", public_routes, FIELD_DELIMITER, mode="a")
+
+
+def crawl_shops_favorite_food():
+    def load_all_saved_favorites():
+        return {i.strip().split(FIELD_DELIMITER)[0] for i in open(CSV_DIR + "/favorite/data.csv")}
+
+    shop_list = load_all_saved_favorites()
+
+    favorite_list = []
+    for row in tasks.get_all_shops():
+        shop_id = str(row[0])
+        if shop_id in shop_list: continue
+        favorite_food = json.dumps(get_shop_favorite_food(shop_id), ensure_ascii=False).encode('utf8')
+        print favorite_food
+        favorite_list.append((shop_id, favorite_food))
+        if len(favorite_list) % 20 == 0:
+            print "flush data to disk..."
+            csvLib.write_records_to_csv(CSV_DIR + "/favorite/data.csv", favorite_list, FIELD_DELIMITER, mode="a")
+            favorite_list = []
+    csvLib.write_records_to_csv(CSV_DIR + "/favorite/data.csv", favorite_list, FIELD_DELIMITER, mode="a")
+
+if __name__ == '__main__':
+    crawl_shops_favorite_food()

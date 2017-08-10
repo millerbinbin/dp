@@ -90,6 +90,8 @@ def calc_earth_distance(origin, dest):
     return "{0:.2f}".format(distance)
 
 
+
+
 if __name__ == '__main__':
     origin = entity.Location(lng=121.615539648, lat=31.2920292218)
     dest = entity.Location(lng=121.620270262, lat=31.290009937)

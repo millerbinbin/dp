@@ -223,6 +223,13 @@ def get_region_table():
         region_table[item[1]] = (None, item[0])
     return region_table
 
+
+def get_all_shops():
+    cnx = mysqlBase.MySQLConnection().get_connection()
+    cursor = cnx.cursor()
+    lib = mysqlBase.MySQLLib(cursor)
+    result = lib.fetch_result("select distinct shop_id from shop order by id")
+    return result
 """
 SELECT distinct s.shop_name, s.address, 
 ca.category_name, d.district_name, re.region_name,  
