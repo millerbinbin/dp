@@ -213,7 +213,7 @@ def crawl_shops_baidu_location():
             continue
         print lng, lat
         location_list.append((shop_id, lng, lat))
-        if len(location_list) % 2 == 0:
+        if len(location_list) % 20 == 0:
             print "flush data to disk..."
             csvLib.write_records_to_csv(CSV_DIR + "/location/data.csv", location_list, FIELD_DELIMITER, mode="a")
             location_list = []
@@ -221,3 +221,4 @@ def crawl_shops_baidu_location():
 
 if __name__ == '__main__':
     crawl_shops_baidu_location()
+    #location.get_geo_from_address("张杨路与中环路交口久金广场2层")

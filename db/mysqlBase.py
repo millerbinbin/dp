@@ -33,6 +33,12 @@ class MySQLLib(object):
         except mysql.connector.Error as err:
             print "execute SQL: [{0}] failed! Error msg:{1}.".format(sql, err.msg)
 
+    def update_record(self, sql, data):
+        try:
+            self.cursor.execute(sql, data)
+        except mysql.connector.Error as err:
+            print "execute SQL: [{0}] failed! Error msg:{1}.".format(sql, err.msg)
+
     def create_table(self, sql):
         try:
             self.cursor.execute(sql)

@@ -244,6 +244,25 @@ def load_all_shops_location(cnx):
     print "loading location data finished..."
 
 
+def update_shop_location(cnx):
+    cursor = cnx.cursor()
+    lib = mysqlBase.MySQLLib(cursor)
+    result = lib.fetch_result("select shop_id, lng, lat from shop_location")
+    update_location = "update shop set lng=%s, lat=%s where shop_id=%s"
+    cnt = 0
+    for row in result:
+        cnt += 1
+        shop_id = int(row[0])
+        lng = float(row[1])
+        lat = float(row[2])
+        if lng is None: continue
+        if lng <= 120 or lng >= 122 or lat <= 30.6 or lat >= 32: continue
+        lib.update_record(sql=update_location, data=(lng, lat, shop_id))
+        if cnt % 50 == 0: cnx.commit()
+    cnx.commit()
+    cursor.close()
+
+
 def load_all_shops(cnx):
     load_all_shops_info(cnx)
     load_all_shops_score(cnx)
@@ -252,6 +271,7 @@ def load_all_shops(cnx):
     load_all_shops_route(cnx)
     load_all_shops_favors(cnx)
     load_all_shops_location(cnx)
+    update_shop_location(cnx)
 
 
 def load_all_base(cnx):
@@ -288,13 +308,12 @@ def get_all_shops():
 
 def get_customize_shops():
     sql = """
-SELECT s.shop_name, ifnull(l.lng,s.lng), ifnull(l.lat,s.lat), e.avg_price, e.taste_score, max(ca.category_name)
+SELECT s.shop_name, s.lng, s.lat, e.avg_price, e.taste_score, max(ca.category_name)
 FROM dp.shop s
 left join dp.shop_score e on s.shop_id = e.shop_id
 left join dp.shop_heat h on s.shop_id = h.shop_id
 left join dp.shop_comment c on s.shop_id = c.shop_id
 left join dp.shop_route r on s.shop_id = r.shop_id
-left join dp.shop_location l on s.shop_id = l.shop_id
 left join dp.category ca on s.category_id = ca.category_id
 left join dp.region re on s.region_id = re.region_id
 left join dp.district d on s.district_id = d.district_id
@@ -315,3 +334,5 @@ group by s.shop_name, s.lng, s.lat, e.avg_price, e.taste_score
 #     load_all_base(cnx=conn)
 #     truncate_all_shops(cnx=conn)
 #     load_all_shops(cnx=conn)
+conn = mysqlBase.MySQLConnection().get_connection()
+update_shop_location(conn)

@@ -11,19 +11,20 @@ BAIDU_APP_KEY = "9MhIHvmWZHiQkEEoCIxKXGYkXbKS5hrq"
 
 def get_geo_from_address(address):
     address = address.split(' ')[0]
-    url = "http://api.map.baidu.com/geocoder/v2/?city=上海市&address={0}&ak={1}&output=json".format(address, BAIDU_APP_KEY)
+    url = "http://api.map.baidu.com/place/v2/suggestion?region=上海市&city_limit=true&query={0}&ak={1}&output=json".format(
+        address, BAIDU_APP_KEY)
     print url
-    obj = crawlLib.Crawler(url).to_json()
-    status = obj['status']
-    result = None
-    if status == 0:
-        result = obj['result']
-    elif status == 1:
-        url = "http://api.map.baidu.com/place/v2/suggestion?region=上海市&city_limit=true&query={0}&ak={1}&output=json".format(address, BAIDU_APP_KEY)
+    results = crawlLib.Crawler(url).to_json()['result']
+    if len(results) == 0:
+        url = "http://api.map.baidu.com/geocoder/v2/?city=上海市&address={0}&ak={1}&output=json".format(address,
+                                                                                                     BAIDU_APP_KEY)
         print url
-        results = crawlLib.Crawler(url).to_json()['result']
-        if len(results) == 0 : return None
-        else: result = results[0]
+        obj = crawlLib.Crawler(url).to_json()
+        if obj['status'] == 0: result = obj['result']
+        else: return None
+    else:
+        result = results[0]
+        #if result['location'] is None:
     loc = result['location']
     return entity.Location(loc['lng'], loc['lat'])
 
@@ -93,8 +94,6 @@ def calc_earth_distance(origin, dest):
     Pi = 3.1415926
     distance = R * math.acos(C) * Pi / 180
     return "{0:.2f}".format(distance)
-
-
 
 
 if __name__ == '__main__':
