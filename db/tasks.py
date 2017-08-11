@@ -63,12 +63,15 @@ def truncate_all_shops(cnx):
     cursor.execute("truncate table shop_heat")
     cursor.execute("truncate table shop_comment")
     cursor.execute("truncate table shop_route")
+    cursor.execute("truncate table shop_favors")
 
 
 def load_all_shops_info(cnx):
     cursor = cnx.cursor()
-    add_shop = ("INSERT INTO shop(shop_id, shop_name, address, lng, lat, district_id, region_id, category_id, phone) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)")
+    add_shop = """
+            INSERT INTO shop(shop_id, shop_name, address, lng, lat, district_id, region_id, category_id, phone) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
     cnt = 0
     shop_path = "../data/shops/"
     lib = mysqlBase.MySQLLib(cursor)
@@ -88,8 +91,10 @@ def load_all_shops_info(cnx):
 def load_all_shops_score(cnx):
     cursor = cnx.cursor()
     shop_id_list = []
-    add_score = ("INSERT INTO shop_score (shop_id, avg_price, taste_score, env_score, ser_score)"
-                 "VALUES (%s, %s, %s, %s, %s)")
+    add_score = """
+            INSERT INTO shop_score (shop_id, avg_price, taste_score, env_score, ser_score)
+            VALUES (%s, %s, %s, %s, %s)
+            """
     cnt = 0
     shop_path = "../data/scores/"
     lib = mysqlBase.MySQLLib(cursor)
@@ -111,9 +116,11 @@ def load_all_shops_score(cnx):
 def load_all_shops_heat(cnx):
     cursor = cnx.cursor()
     shop_id_list = []
-    add_heat = ("INSERT INTO shop_heat "
-                "(shop_id, total_hits, today_hits, monthly_hits, weekly_hits, last_week_hits) "
-                "VALUES (%s, %s, %s, %s, %s, %s)")
+    add_heat = """
+            INSERT INTO shop_heat 
+            (shop_id, total_hits, today_hits, monthly_hits, weekly_hits, last_week_hits) 
+            VALUES (%s, %s, %s, %s, %s, %s)
+            """
     cnt = 0
     shop_path = "../data/heats/"
     lib = mysqlBase.MySQLLib(cursor)
@@ -138,9 +145,11 @@ def load_all_shops_heat(cnx):
 def load_all_shops_comment(cnx):
     cursor = cnx.cursor()
     shop_id_list = []
-    add_comment = ("INSERT INTO shop_comment "
-                   "(shop_id, comment_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num) "
-                   "VALUES (%s, %s, %s, %s, %s, %s, %s)")
+    add_comment = """
+                INSERT INTO shop_comment 
+                (shop_id, comment_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """
     cnt = 0
     shop_path = "../data/comments/"
     lib = mysqlBase.MySQLLib(cursor)
@@ -160,9 +169,11 @@ def load_all_shops_comment(cnx):
 def load_all_shops_route(cnx):
     cursor = cnx.cursor()
     shop_id_list = []
-    add_route = ("INSERT INTO shop_route "
-                   "(shop_id, taxi_duration, taxi_distance, taxi_price, public_duration, public_distance, routes) "
-                   "VALUES (%s, %s, %s, %s, %s, %s, %s)")
+    add_route = """
+                INSERT INTO shop_route
+                (shop_id, taxi_duration, taxi_distance, taxi_price, public_duration, public_distance, routes)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """
     cnt = 0
     shop_path = "../data/routes/"
     lib = mysqlBase.MySQLLib(cursor)
@@ -192,12 +203,55 @@ def load_all_shops_route(cnx):
     print "loading routes data finished..."
 
 
+def load_all_shops_favors(cnx):
+    cursor = cnx.cursor()
+    shop_id_list = []
+    add_favors = "INSERT INTO shop_favors (shop_id, favorite_list)VALUES (%s, %s)"
+    cnt = 0
+    shop_path = "../data/favorite/"
+    lib = mysqlBase.MySQLLib(cursor)
+    for f in os.listdir(shop_path):
+        for r in open(shop_path + f, "r"):
+            cnt += 1
+            shop_id, favorite_list = r.strip().split(FIELD_DELIMITER)
+            if shop_id in shop_id_list: continue
+            shop_id_list.append(shop_id)
+            lib.insert_record(sql=add_favors, data=(shop_id, favorite_list))
+            if cnt % 50 == 0: cnx.commit()
+        cnx.commit()
+    cursor.close()
+    print "loading favors data finished..."
+
+
+def load_all_shops_location(cnx):
+    cursor = cnx.cursor()
+    shop_id_list = []
+    add_location = "INSERT INTO shop_location (shop_id, lng, lat)VALUES (%s, %s, %s)"
+    cnt = 0
+    shop_path = "../data/location/"
+    lib = mysqlBase.MySQLLib(cursor)
+    for f in os.listdir(shop_path):
+        for r in open(shop_path + f, "r"):
+            cnt += 1
+            print r
+            shop_id, lng, lat = r.strip().split(FIELD_DELIMITER)
+            if shop_id in shop_id_list: continue
+            shop_id_list.append(shop_id)
+            lib.insert_record(sql=add_location, data=(shop_id, lng, lat))
+            if cnt % 50 == 0: cnx.commit()
+        cnx.commit()
+    cursor.close()
+    print "loading location data finished..."
+
+
 def load_all_shops(cnx):
     load_all_shops_info(cnx)
     load_all_shops_score(cnx)
     load_all_shops_heat(cnx)
     load_all_shops_comment(cnx)
     load_all_shops_route(cnx)
+    load_all_shops_favors(cnx)
+    load_all_shops_location(cnx)
 
 
 def load_all_base(cnx):
@@ -206,9 +260,9 @@ def load_all_base(cnx):
     load_region(cnx)
 
 
-def get_all_shops_location(cnx):
-    cursor = cnx.cursor()
-    lib = mysqlBase.MySQLLib(cursor)
+def get_all_shops_location():
+    cnx = mysqlBase.MySQLConnection().get_connection()
+    lib = mysqlBase.MySQLLib(cnx.cursor())
     result = lib.fetch_result("select distinct shop_id, lng, lat from shop order by id")
     return result
 
@@ -228,32 +282,36 @@ def get_all_shops():
     cnx = mysqlBase.MySQLConnection().get_connection()
     cursor = cnx.cursor()
     lib = mysqlBase.MySQLLib(cursor)
-    result = lib.fetch_result("select distinct shop_id from shop order by id")
+    result = lib.fetch_result("select distinct shop_id, address from shop order by id")
     return result
-"""
-SELECT distinct s.shop_name, s.address, 
-ca.category_name, d.district_name, re.region_name,  
-e.avg_price, e.taste_score, e.env_score, e.ser_score,
-h.last_week_hits, h.today_hits, h.monthly_hits,
-c.comment_num, 
-r.taxi_duration, r.taxi_price, r.public_duration
+
+
+def get_customize_shops():
+    sql = """
+SELECT s.shop_name, ifnull(l.lng,s.lng), ifnull(l.lat,s.lat), e.avg_price, e.taste_score, max(ca.category_name)
 FROM dp.shop s
 left join dp.shop_score e on s.shop_id = e.shop_id
 left join dp.shop_heat h on s.shop_id = h.shop_id
 left join dp.shop_comment c on s.shop_id = c.shop_id
 left join dp.shop_route r on s.shop_id = r.shop_id
+left join dp.shop_location l on s.shop_id = l.shop_id
 left join dp.category ca on s.category_id = ca.category_id
 left join dp.region re on s.region_id = re.region_id
 left join dp.district d on s.district_id = d.district_id
-where taste_score >= 9 
-and category_name in('蟹宴', '日本菜', '海鲜')
-order by taste_score
-"""
+where taste_score >= 8.8 and avg_price <= 400 and public_duration<=4200 and (c.star_1_num + c.star_2_num)/c.comment_num < 0.03
+group by s.shop_name, s.lng, s.lat, e.avg_price, e.taste_score
+        """
+    cnx = mysqlBase.MySQLConnection().get_connection()
+    cursor = cnx.cursor()
+    lib = mysqlBase.MySQLLib(cursor)
+    result = lib.fetch_result(sql)
+    return result
 
-if __name__ == '__main__':
-    conn = mysqlBase.MySQLConnection().get_connection()
-    dbinit.init_all_tables(cnx=conn)
-    truncate_all_base(cnx=conn)
-    load_all_base(cnx=conn)
-    truncate_all_shops(cnx=conn)
-    load_all_shops(cnx=conn)
+
+# if __name__ == '__main__':
+#     conn = mysqlBase.MySQLConnection().get_connection()
+#     dbinit.init_all_tables(cnx=conn)
+#     truncate_all_base(cnx=conn)
+#     load_all_base(cnx=conn)
+#     truncate_all_shops(cnx=conn)
+#     load_all_shops(cnx=conn)

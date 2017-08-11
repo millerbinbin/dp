@@ -133,6 +133,11 @@ def get_shop_favorite_food(shop_id):
     return dish_list
 
 
+def get_shop_location(shop_name):
+    pos = location.get_geo_from_address(shop_name)
+    return pos.lng, pos.lat
+
+
 def crawl_all_shops():
     for i in open(CSV_DIR + "/base/category.csv"):
         category_name, category = i.strip().split(FIELD_DELIMITER)
@@ -190,5 +195,29 @@ def crawl_shops_favorite_food():
             favorite_list = []
     csvLib.write_records_to_csv(CSV_DIR + "/favorite/data.csv", favorite_list, FIELD_DELIMITER, mode="a")
 
+
+def crawl_shops_baidu_location():
+    def load_all_saved_location():
+        return {i.strip().split(FIELD_DELIMITER)[0] for i in open(CSV_DIR + "/location/data.csv")}
+
+    shop_list = load_all_saved_location()
+
+    location_list = []
+    for row in tasks.get_all_shops():
+        shop_id = str(row[0])
+        shop_name = str(row[1])
+        if shop_id in shop_list: continue
+        try:
+            lng, lat = get_shop_location(shop_name)
+        except:
+            continue
+        print lng, lat
+        location_list.append((shop_id, lng, lat))
+        if len(location_list) % 2 == 0:
+            print "flush data to disk..."
+            csvLib.write_records_to_csv(CSV_DIR + "/location/data.csv", location_list, FIELD_DELIMITER, mode="a")
+            location_list = []
+    csvLib.write_records_to_csv(CSV_DIR + "/location/data.csv", location_list, FIELD_DELIMITER, mode="a")
+
 if __name__ == '__main__':
-    crawl_shops_favorite_food()
+    crawl_shops_baidu_location()

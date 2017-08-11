@@ -10,7 +10,9 @@ BAIDU_APP_KEY = "9MhIHvmWZHiQkEEoCIxKXGYkXbKS5hrq"
 
 
 def get_geo_from_address(address):
+    address = address.split(' ')[0]
     url = "http://api.map.baidu.com/geocoder/v2/?city=上海市&address={0}&ak={1}&output=json".format(address, BAIDU_APP_KEY)
+    print url
     obj = crawlLib.Crawler(url).to_json()
     status = obj['status']
     result = None
@@ -18,7 +20,10 @@ def get_geo_from_address(address):
         result = obj['result']
     elif status == 1:
         url = "http://api.map.baidu.com/place/v2/suggestion?region=上海市&city_limit=true&query={0}&ak={1}&output=json".format(address, BAIDU_APP_KEY)
-        result = crawlLib.Crawler(url).to_json()['result'][0]
+        print url
+        results = crawlLib.Crawler(url).to_json()['result']
+        if len(results) == 0 : return None
+        else: result = results[0]
     loc = result['location']
     return entity.Location(loc['lng'], loc['lat'])
 

@@ -126,6 +126,31 @@ def all_tables_meta():
           UNIQUE KEY `sk` (`shop_id`) USING BTREE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT
         """)
+
+    tables['shop_favors'] = (
+        """
+        CREATE TABLE `shop_favors` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `shop_id` bigint NOT NULL,
+          `favorite_list` varchar(4000),
+          `update_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `sk` (`shop_id`) USING BTREE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT
+        """)
+
+    tables['shop_location'] = (
+        """
+        CREATE TABLE `shop_location` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `shop_id` bigint NOT NULL,
+          `lng` decimal(12,6) NOT NULL,
+          `lat` decimal(12,6) NOT NULL,
+          `update_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `sk` (`shop_id`) USING BTREE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT
+        """)
     return tables
 
 
@@ -135,7 +160,7 @@ def init_all_tables(cnx):
     lib = mysqlBase.MySQLLib(cursor)
     for name, ddl in tables.iteritems():
         print "Creating table {0}...".format(name)
-        lib.drop_table(table=name)
+        #lib.drop_table(table=name)
         lib.create_table(sql=ddl)
     cursor.close()
 
