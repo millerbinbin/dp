@@ -160,7 +160,7 @@ def init_all_tables(cnx):
     lib = mysqlBase.MySQLLib(cursor)
     for name, ddl in tables.iteritems():
         print "Creating table {0}...".format(name)
-        #lib.drop_table(table=name)
+        lib.drop_table(table=name)
         lib.create_table(sql=ddl)
     cursor.close()
 

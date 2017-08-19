@@ -15,17 +15,17 @@ def get_geo_from_address(address):
         address, BAIDU_APP_KEY)
     print url
     results = crawlLib.Crawler(url).to_json()['result']
-    if len(results) == 0:
+    if len(results) == 0 or 'location' not in results[0]:
         url = "http://api.map.baidu.com/geocoder/v2/?city=上海市&address={0}&ak={1}&output=json".format(address,
                                                                                                      BAIDU_APP_KEY)
         print url
         obj = crawlLib.Crawler(url).to_json()
-        if obj['status'] == 0: result = obj['result']
-        else: return None
-    else:
-        result = results[0]
-        #if result['location'] is None:
-    loc = result['location']
+        if obj['status'] == 0:
+            loc = obj['result']['location']
+            return entity.Location(loc['lng'], loc['lat'])
+        else:
+            return None
+    loc = results[0]['location']
     return entity.Location(loc['lng'], loc['lat'])
 
 
@@ -33,6 +33,7 @@ def get_all_available_routes(origin, destination):
     x = "{0},{1}".format(origin.lat, origin.lng)
     y = "{0},{1}".format(destination.lat, destination.lng)
     url = "http://api.map.baidu.com/direction/v2/transit?tactics_incity=4&origin={0}&destination={1}&ak={2}".format(x, y, BAIDU_APP_KEY)
+    print url
     result = crawlLib.Crawler(url).to_json()['result']
     return result['routes'], result['taxi']
 

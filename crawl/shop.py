@@ -4,6 +4,7 @@ from entity import entity
 from db import tasks, mysqlBase
 from csv import csvLib
 import re, json
+import os
 
 __author__ = 'hubin6'
 
@@ -12,9 +13,10 @@ SH_URL = "http://www.dianping.com/search/category/1/10"
 SHOP_DETAILS_URL = "http://www.dianping.com/ajax/json/shopfood/wizard/BasicHideInfoAjaxFP?_nr_force=1502177990602&shopId={}"
 REVIEW_URL = "http://www.dianping.com/shop/{0}/review_more"
 COMMENT_URL = "http://www.dianping.com/shop/{0}/review_more_5star?pageno={1}"
-CSV_DIR = "../data"
+CSV_DIR = os.getcwd()+"/data"
 FIELD_DELIMITER = "\t"
 REGION_TABLE = tasks.get_region_table()
+HOME_LOC = entity.Location(lng=121.615539648, lat=31.2920292218)
 
 
 def get_seq_suffix_from_type(type):
@@ -37,6 +39,7 @@ def crawl_all_shops_by_category(category, order_type, score_threshold, limit_num
             break
         page_num = "p{0}".format(page)
         p_url = url + page_num
+        print p_url
         content = crawlLib.Crawler(p_url).parse_content()
         for c in content.find("div", id="shop-all-list").find_all("li", class_=""):
             result = get_shop_result(c, category_id)
@@ -72,6 +75,7 @@ def get_shop_result(data, category):
     tmp = data.find("div", class_="pic")
     shop_id = tmp.a['href'][tmp.a['href'].rfind('/') + 1:]
     shop_name = tmp.img['alt']
+    print shop_name
     region_name = data.find("div", class_="tag-addr").find(href=re.compile(".*/[^g]\d+$")).text
     try:
         region, district = REGION_TABLE.get(region_name)
@@ -142,7 +146,7 @@ def crawl_all_shops():
     for i in open(CSV_DIR + "/base/category.csv"):
         category_name, category = i.strip().split(FIELD_DELIMITER)
         print "start to crawl: {0}...".format(category_name)
-        info_list, heat_list, score_list, cmt_list = crawl_all_shops_by_category(category, "taste", 8.5, 500)
+        info_list, heat_list, score_list, cmt_list = crawl_all_shops_by_category(category, "taste", 8.2, 400)
         csvLib.write_records_to_csv(CSV_DIR + "/shops/{0}.csv".format(category), info_list, FIELD_DELIMITER)
         csvLib.write_records_to_csv(CSV_DIR + "/heats/{0}.csv".format(category), heat_list, FIELD_DELIMITER)
         csvLib.write_records_to_csv(CSV_DIR + "/scores/{0}.csv".format(category), score_list, FIELD_DELIMITER)
@@ -152,15 +156,15 @@ def crawl_all_shops():
 def crawl_shops_routes():
     def load_all_saved_routes():
         return {i.strip().split(FIELD_DELIMITER)[0] for i in open(CSV_DIR + "/routes/data.csv")}
+
     shop_list = load_all_saved_routes()
-    origin = entity.Location(lng=121.615539648, lat=31.2920292218)
-    conn = mysqlBase.MySQLConnection().get_connection()
+
     public_routes = []
-    for row in tasks.get_all_shops_location(cnx=conn):
+    for row in tasks.get_all_shops_location():
         shop_id = str(row[0])
         if shop_id in shop_list: continue
         dest = entity.Location(lat=float(row[2]), lng=float(row[1]))
-        routes = location.get_complete_route(origin, dest)
+        routes = location.get_complete_route(HOME_LOC, dest)
         taxi = routes.get("taxi")
         public = routes.get("public")
         if taxi is None: continue # too far to arrive
@@ -168,11 +172,10 @@ def crawl_shops_routes():
             public_routes.append((shop_id, taxi.to_json(), None,))
         else:
             public_routes.append((shop_id, taxi.to_json(), public.to_json(),))
-        if len(public_routes) % 20 == 0:
+        if len(public_routes) % 10 == 0:
             print "flush data to disk..."
             csvLib.write_records_to_csv(CSV_DIR + "/routes/data.csv", public_routes, FIELD_DELIMITER, mode="a")
             public_routes = []
-    conn.close()
     csvLib.write_records_to_csv(CSV_DIR + "/routes/data.csv", public_routes, FIELD_DELIMITER, mode="a")
 
 
@@ -212,6 +215,7 @@ def crawl_shops_baidu_location():
         except:
             continue
         print lng, lat
+
         location_list.append((shop_id, lng, lat))
         if len(location_list) % 20 == 0:
             print "flush data to disk..."
@@ -220,5 +224,4 @@ def crawl_shops_baidu_location():
     csvLib.write_records_to_csv(CSV_DIR + "/location/data.csv", location_list, FIELD_DELIMITER, mode="a")
 
 if __name__ == '__main__':
-    crawl_shops_baidu_location()
-    #location.get_geo_from_address("张杨路与中环路交口久金广场2层")
+    crawl_shops_routes()

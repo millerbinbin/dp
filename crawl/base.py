@@ -1,13 +1,14 @@
 # -*- coding:utf-8 -*-
 from crawl import crawlLib
 from csv import csvLib
+import os
 
 __author__ = 'hubin6'
 
 
 SH_URL = "http://www.dianping.com/search/category/1/10"
 FIELD_DELIMITER = "\t"
-BASE_DATA_DIR = "../data/base"
+BASE_DATA_DIR = os.getcwd()+"/data/base"
 
 
 def get_all_cbd(data):
@@ -53,13 +54,14 @@ def get_all_regions(districts):
 def get_all_base_info(data):
     return get_all_cbd(data), get_all_metros(data), get_all_districts(data), get_all_category(data)
 
-if __name__ == '__main__':
+
+def crawl_all_base_info():
     content = crawlLib.Crawler(SH_URL).parse_content()
     cbd, metros, districts, category = get_all_base_info(content)
-    #regions = get_all_regions(districts)
+    regions = get_all_regions(districts)
 
     csvLib.write_records_to_csv(BASE_DATA_DIR + "/CBD.csv", cbd, FIELD_DELIMITER)
     csvLib.write_records_to_csv(BASE_DATA_DIR + "/metros.csv", metros, FIELD_DELIMITER)
     csvLib.write_records_to_csv(BASE_DATA_DIR + "/districts.csv", districts, FIELD_DELIMITER)
     csvLib.write_records_to_csv(BASE_DATA_DIR + "/category.csv", category, FIELD_DELIMITER)
-    #csvLib.write_records_to_csv(BASE_DATA_DIR + "/regions.csv", regions, FIELD_DELIMITER)
+    csvLib.write_records_to_csv(BASE_DATA_DIR + "/regions.csv", regions, FIELD_DELIMITER)
