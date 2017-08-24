@@ -3,7 +3,7 @@
 from selenium import webdriver
 from filewriter import csvLib
 import json
-from db import mysql_task
+from crawl import load_data
 driver = webdriver.PhantomJS()
 
 FIELD_DELIMITER = "\t"
@@ -12,11 +12,11 @@ FIELD_DELIMITER = "\t"
 try:
     dishes = []
     def load_all_saved_favorites():
-        return {i.strip().split(FIELD_DELIMITER)[0] for i in open("test.filewriter")}
+        return {i.strip().split(FIELD_DELIMITER)[0] for i in open("test.csv")}
 
     shop_list = load_all_saved_favorites()
-    for row in mysql_task.get_all_shops():
-        shop_id = str(row[0])
+    for row in load_data.get_distinct_shops():
+        shop_id = str(row.shop_id)
         if shop_id in shop_list: continue
         print shop_id
         driver.get("http://www.dianping.com/shop/{}".format(shop_id))
@@ -37,8 +37,8 @@ try:
         dishes.append((shop_id, json.dumps(favors, ensure_ascii=False).encode('utf8')))
         if len(dishes) % 20 == 0:
             print "flush data to disk..."
-            csvLib.write_records_to_csv("test.filewriter", dishes, FIELD_DELIMITER, mode="a")
+            csvLib.write_records_to_csv("test.csv", dishes, FIELD_DELIMITER, mode="a")
             dishes = []
-    csvLib.write_records_to_csv("test.filewriter", dishes, FIELD_DELIMITER, "a")
+    csvLib.write_records_to_csv("test.csv", dishes, FIELD_DELIMITER, "a")
 finally:
     driver.close()
