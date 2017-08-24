@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta http-equiv="X-UA-Compatible" content="IE=Edge" charset="UTF-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
 	<style type="text/css">
 		body, html,#allmap {width: 100%;height: 100%;overflow: hidden;margin:0;font-family:"微软雅黑";}
@@ -9,56 +9,65 @@
 		#r-result{height:100%;width:20%;float:left;}
 	</style>
 	<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=kAWXbccRXNNwQl79u9cFcV6eysiBiBeA"></script>
-	<script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+	<script type="text/javascript" src="../static/jquery-3.2.1.min.js"></script>
+
+	<!-- Bootstrap -->
+	<!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+    <link href="../static/bootstrap.min.css" rel="stylesheet">
+
+	<!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+	<script type="text/javascript" src="../static/bootstrap.min.js"></script>
 
 	<title>精品推荐</title>
 </head>
 <body>
-	<div id="allmap"></div>
-	<script type="text/javascript">
-		var map = new BMap.Map("allmap");
-		var point = new BMap.Point(121.483644, 31.236923);
-		map.centerAndZoom(point, 13);
-		map.enableScrollWheelZoom(true);
+	<div id="allmap">
+        <script type="text/javascript">
+            var map = new BMap.Map("allmap");
+            var point = new BMap.Point(121.483644, 31.236923);
+            map.centerAndZoom(point, 13);
+            map.enableScrollWheelZoom(true);
 
-		var data_info;
-		$.ajax({
-           url: '/shops/50',
-           dataType: 'json',
-		   type: 'POST',
-		   data: {"taste_score": 9.2},
-           timeout: 3000,
-           cache: false,
-           crossDomain: true,
-           async : false,
-           error: function(){alert("rr");},  //错误执行方法
-           success: function(data){data_info = data;} //成功执行方法
-        });
+            var data_info;
+            $.ajax({
+               url: '/shops',
+               dataType: 'json',
+               type: 'GET',
+               timeout: 3000,
+               cache: false,
+               crossDomain: true,
+               async : false,
+               error: function(){alert("rr");},  //错误执行方法
+               success: function(data){data_info = data;} //成功执行方法
+            });
 
-		for(var i=0;i<data_info.length;i++){
-			var marker = new BMap.Marker(new BMap.Point(data_info[i].lng,data_info[i].lat));  // 创建标注
-			var content = '<a href="http://www.dianping.com/shop/'+data_info[i].shop_id+'"target="_blank">'+
-			"<h3 style='margin:0 0 5px 0;padding:0.2em 0' href=\"/shop/21035069\">"+data_info[i].name+"</h3></a></br>"+
-			"<h4 style='margin:0 0 5px 0;padding:0.2em 0'>"+data_info[i].category+"</h4></br>"+
-			"<style='margin:0 0 5px 0;padding:0.2em 0'>人均："+data_info[i].avg_price+"</br>"+
-			"<style='margin:0 0 5px 0;padding:0.2em 0'>口味："+data_info[i].taste_score+"</div>"
+            for(var i=0;i<data_info.length;i++){
+                var marker = new BMap.Marker(new BMap.Point(data_info[i].lng,data_info[i].lat));  // 创建标注
+                var title = '<a href="http://www.dianping.com/shop/'+data_info[i].shop_id+'"target="_blank">'+
+                '<h4 style="margin:0 0 5px 0;padding:0.2em 0">'+data_info[i].name+'</h4></a></br>';
 
-			map.addOverlay(marker);               // 将标注添加到地图中
-			var label = new BMap.Label(data_info[i].name,{offset:new BMap.Size(20,-10)});
-			marker.setLabel(label);
-			addClickHandler(content,marker);
-		}
-		function addClickHandler(content,marker){
-			marker.addEventListener("click",function(e){
-				openInfo(content,e)}
-			);
-		}
-		function openInfo(content,e){
-			var p = e.target;
-			var point = new BMap.Point(p.getPosition().lng, p.getPosition().lat);
-			var infoWindow = new BMap.InfoWindow(content);  // 创建信息窗口对象
-			map.openInfoWindow(infoWindow,point); //开启信息窗
-		}
-	</script>
+                var content ='<h4><style="margin:0 0 5px 0;padding:1em 0">'+data_info[i].category+'</h4></br>'+
+                '<div><span class="label label-info"><style="margin:0 0 6px 0;padding:1em 0">人均：'+data_info[i].avg_price+'</span></div>'+
+                '<div><span class="label label-info"><style="margin:0 0 6px 0;padding:1em 0">口味：'+data_info[i].taste_score+'</br></span></div>'
+                map.addOverlay(marker);               // 将标注添加到地图中
+                var label = new BMap.Label(data_info[i].name,{offset:new BMap.Size(20, 5)});
+                marker.setLabel(label);
+                addClickHandler(content,title,marker);
+            }
+            function addClickHandler(content,title,marker){
+                marker.addEventListener("click",function(e){
+                    openInfo(content,title,e)}
+                );
+            }
+            function openInfo(content,title,e){
+                var p = e.target;
+                var point = new BMap.Point(p.getPosition().lng, p.getPosition().lat);
+                var option = {maxWidth:700, title:title}
+                var infoWindow = new BMap.InfoWindow(content, option);  // 创建信息窗口对象
+
+                map.openInfoWindow(infoWindow,point); //开启信息窗
+            }
+        </script>
+    </div>
 </body>
 </html>
