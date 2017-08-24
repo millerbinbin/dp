@@ -1,12 +1,11 @@
 # -*- coding:utf-8 -*-
-from crawl import crawlLib
+from crawl import crawlLib, BAIDU_APP_KEY
 from entity import entity
 import math
 
 __author__ = 'hubin6'
 
 
-BAIDU_APP_KEY = "9MhIHvmWZHiQkEEoCIxKXGYkXbKS5hrq"
 
 
 def get_geo_from_address(address):

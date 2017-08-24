@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-from db import mysqlBase
+from db import mysql_base
 
 __author__ = 'hubin6'
 
@@ -157,7 +157,7 @@ def all_tables_meta():
 def init_all_tables(cnx):
     tables = all_tables_meta()
     cursor = cnx.cursor()
-    lib = mysqlBase.MySQLLib(cursor)
+    lib = mysql_base.MySQLLib(cursor)
     for name, ddl in tables.iteritems():
         print "Creating table {0}...".format(name)
         lib.drop_table(table=name)

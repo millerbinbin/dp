@@ -1,9 +1,9 @@
 # -*- coding: UTF-8 -*-
 
 from selenium import webdriver
-from csv import csvLib
+from filewriter import csvLib
 import json
-from db import tasks
+from db import mysql_task
 driver = webdriver.PhantomJS()
 
 FIELD_DELIMITER = "\t"
@@ -12,10 +12,10 @@ FIELD_DELIMITER = "\t"
 try:
     dishes = []
     def load_all_saved_favorites():
-        return {i.strip().split(FIELD_DELIMITER)[0] for i in open("test.csv")}
+        return {i.strip().split(FIELD_DELIMITER)[0] for i in open("test.filewriter")}
 
     shop_list = load_all_saved_favorites()
-    for row in tasks.get_all_shops():
+    for row in mysql_task.get_all_shops():
         shop_id = str(row[0])
         if shop_id in shop_list: continue
         print shop_id
@@ -37,8 +37,8 @@ try:
         dishes.append((shop_id, json.dumps(favors, ensure_ascii=False).encode('utf8')))
         if len(dishes) % 20 == 0:
             print "flush data to disk..."
-            csvLib.write_records_to_csv("test.csv", dishes, FIELD_DELIMITER, mode="a")
+            csvLib.write_records_to_csv("test.filewriter", dishes, FIELD_DELIMITER, mode="a")
             dishes = []
-    csvLib.write_records_to_csv("test.csv", dishes, FIELD_DELIMITER, "a")
+    csvLib.write_records_to_csv("test.filewriter", dishes, FIELD_DELIMITER, "a")
 finally:
     driver.close()

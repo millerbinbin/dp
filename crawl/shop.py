@@ -1,21 +1,30 @@
 # -*- coding:utf-8 -*-
-from crawl import crawlLib, location
+from crawl import crawlLib, location, load_data, SH_URL, WORK_DIR
 from entity import entity
-from db import tasks, mysqlBase
-from csv import csvLib
+from filewriter import csvLib
 import re, json
 import os
 
 __author__ = 'hubin6'
 
 
-SH_URL = "http://www.dianping.com/search/category/1/10"
 SHOP_DETAILS_URL = "http://www.dianping.com/ajax/json/shopfood/wizard/BasicHideInfoAjaxFP?_nr_force=1502177990602&shopId={}"
 REVIEW_URL = "http://www.dianping.com/shop/{0}/review_more"
 COMMENT_URL = "http://www.dianping.com/shop/{0}/review_more_5star?pageno={1}"
-CSV_DIR = os.getcwd()+"/data"
+
+DATA_DIR = os.path.join(WORK_DIR, "data")
+CATEGORY_CSV = os.path.join(DATA_DIR, "base/category.csv")
+FAVORITE_CSV = os.path.join(DATA_DIR, "favorite/data.csv")
+LOCATION_CSV = os.path.join(DATA_DIR, "location/data.csv")
+ROUTE_CSV = os.path.join(DATA_DIR, "routes/data.csv")
+
+SHOP_DATA_DIR = os.path.join(DATA_DIR, "shops")
+COMMENT_DATA_DIR = os.path.join(DATA_DIR, "comments")
+HEAT_DATA_DIR = os.path.join(DATA_DIR, "heats")
+SCORE_DATA_DIR = os.path.join(DATA_DIR, "scores")
+
 FIELD_DELIMITER = "\t"
-REGION_TABLE = tasks.get_region_table()
+REGION_TABLE = mysql_task.get_region_table()
 HOME_LOC = entity.Location(lng=121.615539648, lat=31.2920292218)
 
 
@@ -143,27 +152,27 @@ def get_shop_location(shop_name):
 
 
 def crawl_all_shops():
-    for i in open(CSV_DIR + "/base/category.csv"):
+    for i in open(CATEGORY_CSV):
         category_name, category = i.strip().split(FIELD_DELIMITER)
         print "start to crawl: {0}...".format(category_name)
         info_list, heat_list, score_list, cmt_list = crawl_all_shops_by_category(category, "taste", 8.2, 400)
-        csvLib.write_records_to_csv(CSV_DIR + "/shops/{0}.csv".format(category), info_list, FIELD_DELIMITER)
-        csvLib.write_records_to_csv(CSV_DIR + "/heats/{0}.csv".format(category), heat_list, FIELD_DELIMITER)
-        csvLib.write_records_to_csv(CSV_DIR + "/scores/{0}.csv".format(category), score_list, FIELD_DELIMITER)
-        csvLib.write_records_to_csv(CSV_DIR + "/comments/{0}.csv".format(category), cmt_list, FIELD_DELIMITER)
+        csvLib.write_records_to_csv(SHOP_DATA_DIR+ "/{0}.csv".format(category), info_list, FIELD_DELIMITER)
+        csvLib.write_records_to_csv(HEAT_DATA_DIR + "/{0}.csv".format(category), heat_list, FIELD_DELIMITER)
+        csvLib.write_records_to_csv(SCORE_DATA_DIR + "/{0}.csv".format(category), score_list, FIELD_DELIMITER)
+        csvLib.write_records_to_csv(COMMENT_DATA_DIR + "/{0}.csv".format(category), cmt_list, FIELD_DELIMITER)
 
 
 def crawl_shops_routes():
     def load_all_saved_routes():
-        return {i.strip().split(FIELD_DELIMITER)[0] for i in open(CSV_DIR + "/routes/data.csv")}
+        return {i.strip().split(FIELD_DELIMITER)[0] for i in open(ROUTE_CSV)}
 
     shop_list = load_all_saved_routes()
 
     public_routes = []
-    for row in tasks.get_all_shops_location():
-        shop_id = str(row[0])
+    for row in load_data.get_distinct_shops():
+        shop_id = str(row.shop_id)
         if shop_id in shop_list: continue
-        dest = entity.Location(lat=float(row[2]), lng=float(row[1]))
+        dest = entity.Location(lat=float(row.lat), lng=float(row.lng))
         routes = location.get_complete_route(HOME_LOC, dest)
         taxi = routes.get("taxi")
         public = routes.get("public")
@@ -174,41 +183,41 @@ def crawl_shops_routes():
             public_routes.append((shop_id, taxi.to_json(), public.to_json(),))
         if len(public_routes) % 10 == 0:
             print "flush data to disk..."
-            csvLib.write_records_to_csv(CSV_DIR + "/routes/data.csv", public_routes, FIELD_DELIMITER, mode="a")
+            csvLib.write_records_to_csv(ROUTE_CSV, public_routes, FIELD_DELIMITER, mode="a")
             public_routes = []
-    csvLib.write_records_to_csv(CSV_DIR + "/routes/data.csv", public_routes, FIELD_DELIMITER, mode="a")
+    csvLib.write_records_to_csv(ROUTE_CSV, public_routes, FIELD_DELIMITER, mode="a")
 
 
 def crawl_shops_favorite_food():
     def load_all_saved_favorites():
-        return {i.strip().split(FIELD_DELIMITER)[0] for i in open(CSV_DIR + "/favorite/data.csv")}
+        return {i.strip().split(FIELD_DELIMITER)[0] for i in open(FAVORITE_CSV)}
 
     shop_list = load_all_saved_favorites()
 
     favorite_list = []
-    for row in tasks.get_all_shops():
-        shop_id = str(row[0])
+    for row in load_data.get_distinct_shops():
+        shop_id = str(row.shop_id)
         if shop_id in shop_list: continue
         favorite_food = json.dumps(get_shop_favorite_food(shop_id), ensure_ascii=False).encode('utf8')
         print favorite_food
         favorite_list.append((shop_id, favorite_food))
         if len(favorite_list) % 20 == 0:
             print "flush data to disk..."
-            csvLib.write_records_to_csv(CSV_DIR + "/favorite/data.csv", favorite_list, FIELD_DELIMITER, mode="a")
+            csvLib.write_records_to_csv(FAVORITE_CSV, favorite_list, FIELD_DELIMITER, mode="a")
             favorite_list = []
-    csvLib.write_records_to_csv(CSV_DIR + "/favorite/data.csv", favorite_list, FIELD_DELIMITER, mode="a")
+    csvLib.write_records_to_csv(FAVORITE_CSV, favorite_list, FIELD_DELIMITER, mode="a")
 
 
 def crawl_shops_baidu_location():
     def load_all_saved_location():
-        return {i.strip().split(FIELD_DELIMITER)[0] for i in open(CSV_DIR + "/location/data.csv")}
+        return {i.strip().split(FIELD_DELIMITER)[0] for i in open(LOCATION_CSV)}
 
     shop_list = load_all_saved_location()
 
     location_list = []
-    for row in tasks.get_all_shops():
-        shop_id = str(row[0])
-        shop_name = str(row[1])
+    for row in load_data.get_distinct_shops():
+        shop_id = str(row.shop_id)
+        shop_name = row.shop_name
         if shop_id in shop_list: continue
         try:
             lng, lat = get_shop_location(shop_name)
@@ -219,9 +228,9 @@ def crawl_shops_baidu_location():
         location_list.append((shop_id, lng, lat))
         if len(location_list) % 20 == 0:
             print "flush data to disk..."
-            csvLib.write_records_to_csv(CSV_DIR + "/location/data.csv", location_list, FIELD_DELIMITER, mode="a")
+            csvLib.write_records_to_csv(LOCATION_CSV, location_list, FIELD_DELIMITER, mode="a")
             location_list = []
-    csvLib.write_records_to_csv(CSV_DIR + "/location/data.csv", location_list, FIELD_DELIMITER, mode="a")
+    csvLib.write_records_to_csv(LOCATION_CSV, location_list, FIELD_DELIMITER, mode="a")
 
 if __name__ == '__main__':
     crawl_shops_routes()

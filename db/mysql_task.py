@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-from db import mysqlBase, dbinit
+from db import mysql_base, dbinit
 import os
 import json
 
@@ -12,8 +12,8 @@ DATA_DIR = os.getcwd()+"/data"
 def load_category(cnx):
     cursor = cnx.cursor()
     add_category = "INSERT INTO category (category_id, category_name) VALUES (%s, %s)"
-    lib = mysqlBase.MySQLLib(cursor)
-    for r in open(DATA_DIR + "/base/category.csv", "r"):
+    lib = mysql_base.MySQLLib(cursor)
+    for r in open(DATA_DIR + "/base/category.filewriter", "r"):
         category_name, category_id = r.strip().split(FIELD_DELIMITER)[0:2]
         category_id = category_id[1:]
         lib.insert_record(sql=add_category, data=(category_id, category_name))
@@ -25,8 +25,8 @@ def load_category(cnx):
 def load_district(cnx):
     cursor = cnx.cursor()
     add_district = "INSERT INTO district (district_id, district_name) VALUES (%s, %s)"
-    lib = mysqlBase.MySQLLib(cursor)
-    for r in open(DATA_DIR + "/base/districts.csv", "r"):
+    lib = mysql_base.MySQLLib(cursor)
+    for r in open(DATA_DIR + "/base/districts.filewriter", "r"):
         district_name, district_id = r.strip().split(FIELD_DELIMITER)[0:2]
         district_id = district_id[1:]
         lib.insert_record(sql=add_district, data=(district_id, district_name))
@@ -38,8 +38,8 @@ def load_district(cnx):
 def load_region(cnx):
     cursor = cnx.cursor()
     add_region = "INSERT INTO region (region_id, region_name, district_id) VALUES (%s, %s, %s)"
-    lib = mysqlBase.MySQLLib(cursor)
-    for r in open(DATA_DIR + "/base/regions.csv", "r"):
+    lib = mysql_base.MySQLLib(cursor)
+    for r in open(DATA_DIR + "/base/regions.filewriter", "r"):
         region_name, region_id, district_id = r.strip().split(FIELD_DELIMITER)[0:3]
         region_id = region_id[1:]
         district_id = district_id[1:]
@@ -75,7 +75,7 @@ def load_all_shops_info(cnx):
             """
     cnt = 0
     shop_path = DATA_DIR + "/shops/"
-    lib = mysqlBase.MySQLLib(cursor)
+    lib = mysql_base.MySQLLib(cursor)
     for f in os.listdir(shop_path):
         for r in open(shop_path + f, "r"):
             cnt += 1
@@ -98,7 +98,7 @@ def load_all_shops_score(cnx):
             """
     cnt = 0
     shop_path = DATA_DIR + "/scores/"
-    lib = mysqlBase.MySQLLib(cursor)
+    lib = mysql_base.MySQLLib(cursor)
     for f in os.listdir(shop_path):
         for r in open(shop_path + f, "r"):
             cnt += 1
@@ -124,7 +124,7 @@ def load_all_shops_heat(cnx):
             """
     cnt = 0
     shop_path = DATA_DIR + "/heats/"
-    lib = mysqlBase.MySQLLib(cursor)
+    lib = mysql_base.MySQLLib(cursor)
     for f in os.listdir(shop_path):
         for r in open(shop_path + f, "r"):
             cnt += 1
@@ -153,7 +153,7 @@ def load_all_shops_comment(cnx):
                 """
     cnt = 0
     shop_path = DATA_DIR + "/comments/"
-    lib = mysqlBase.MySQLLib(cursor)
+    lib = mysql_base.MySQLLib(cursor)
     for f in os.listdir(shop_path):
         for r in open(shop_path + f, "r"):
             cnt += 1
@@ -177,7 +177,7 @@ def load_all_shops_route(cnx):
                 """
     cnt = 0
     shop_path = DATA_DIR + "/routes/"
-    lib = mysqlBase.MySQLLib(cursor)
+    lib = mysql_base.MySQLLib(cursor)
     for f in os.listdir(shop_path):
         for r in open(shop_path + f, "r"):
             cnt += 1
@@ -210,7 +210,7 @@ def load_all_shops_favors(cnx):
     add_favors = "INSERT INTO shop_favors (shop_id, favorite_list)VALUES (%s, %s)"
     cnt = 0
     shop_path = DATA_DIR + "/favorite/"
-    lib = mysqlBase.MySQLLib(cursor)
+    lib = mysql_base.MySQLLib(cursor)
     for f in os.listdir(shop_path):
         for r in open(shop_path + f, "r"):
             cnt += 1
@@ -230,7 +230,7 @@ def load_all_shops_location(cnx):
     add_location = "INSERT INTO shop_location (shop_id, lng, lat)VALUES (%s, %s, %s)"
     cnt = 0
     shop_path = DATA_DIR + "/location/"
-    lib = mysqlBase.MySQLLib(cursor)
+    lib = mysql_base.MySQLLib(cursor)
     for f in os.listdir(shop_path):
         for r in open(shop_path + f, "r"):
             cnt += 1
@@ -246,7 +246,7 @@ def load_all_shops_location(cnx):
 
 def update_shop_location(cnx):
     cursor = cnx.cursor()
-    lib = mysqlBase.MySQLLib(cursor)
+    lib = mysql_base.MySQLLib(cursor)
     result = lib.fetch_result("select shop_id, lng, lat from shop_location")
     update_location = "update shop set lng=%s, lat=%s where shop_id=%s"
     cnt = 0
@@ -282,15 +282,15 @@ def load_all_base(cnx):
 
 
 def get_all_shops_location():
-    cnx = mysqlBase.MySQLConnection().get_connection()
-    lib = mysqlBase.MySQLLib(cnx.cursor())
+    cnx = mysql_base.MySQLConnection().get_connection()
+    lib = mysql_base.MySQLLib(cnx.cursor())
     result = lib.fetch_result("select distinct shop_id, lng, lat from shop order by id")
     return result
 
 
 def get_region_table():
-    cnx = mysqlBase.MySQLConnection().get_connection()
-    lib = mysqlBase.MySQLLib(cnx.cursor())
+    cnx = mysql_base.MySQLConnection().get_connection()
+    lib = mysql_base.MySQLLib(cnx.cursor())
     region_table = {}
     for item in lib.fetch_result("select distinct region_id, region_name, district_id from region order by id"):
         region_table[item[1]] = (item[0], item[2])
@@ -300,9 +300,9 @@ def get_region_table():
 
 
 def get_all_shops():
-    cnx = mysqlBase.MySQLConnection().get_connection()
+    cnx = mysql_base.MySQLConnection().get_connection()
     cursor = cnx.cursor()
-    lib = mysqlBase.MySQLLib(cursor)
+    lib = mysql_base.MySQLLib(cursor)
     result = lib.fetch_result("select distinct shop_id, address from shop order by id")
     return result
 
@@ -324,15 +324,15 @@ and avg_price between 50 and 500
 group by s.shop_name, s.lng, s.lat, e.avg_price, e.taste_score, s.shop_id 
 order by e.taste_score desc, h.last_week_hits desc, h.monthly_hits limit 100
         """
-    cnx = mysqlBase.MySQLConnection().get_connection()
+    cnx = mysql_base.MySQLConnection().get_connection()
     cursor = cnx.cursor()
-    lib = mysqlBase.MySQLLib(cursor)
+    lib = mysql_base.MySQLLib(cursor)
     result = lib.fetch_result(sql)
     return result
 
 
 def reload_all():
-    conn = mysqlBase.MySQLConnection().get_connection()
+    conn = mysql_base.MySQLConnection().get_connection()
     dbinit.init_all_tables(cnx=conn)
     truncate_all_base(cnx=conn)
     load_all_base(cnx=conn)

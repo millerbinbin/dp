@@ -1,28 +1,47 @@
-from db import tasks
+# -*- coding:utf-8 -*-
 import json
+import sys
+
+from flask import render_template, request
+
 from app import app
-from flask import render_template
+from crawl import load_data
+
+__author__ = 'hubin6'
+
+reload(sys)
+sys.setdefaultencoding("utf-8")
+
+all_data_info = load_data.load_weight_details()
 
 
-def init():
-    idx = 0
-    data = []
-    for shop in tasks.get_customize_shops():
-        data.append({"name": shop[0], "lng": float(shop[1]), "lat": float(shop[2]), "avg_price": float(shop[3]),
-                     "taste_score": float(shop[4]), "category": shop[5], "shop_id": shop[6]})
-        idx += 1
-        if idx == 300: break
-    return data
+def df_2_json(df):
+    res = [{"name": row.shop_name, "lng": row.lng, "lat": row.lat, "avg_price": row.avg_price,
+             "taste_score": row.taste_score, "category": row.category_name, "shop_id": row.shop_id}
+            for row in df.itertuples()]
+    return json.dumps(res, ensure_ascii=False).encode("utf-8")
 
 
-all_data_info = init()
+def get_string_param_2_number(param_name):
+    value = request.values.get(param_name)
+    if value is not None: value = float(value)
+    return value
 
 
-@app.route('/shops')
-def get_all_shops():
-    return json.dumps(all_data_info, ensure_ascii=False).encode("utf-8")
+@app.route('/shops/<int:limit>', methods=['POST'])
+def get_default_shops(limit):
+    bad_rate = get_string_param_2_number("bad_rate")
+    taste_score = get_string_param_2_number("taste_score")
+    avg_price = get_string_param_2_number("avg_price")
+    comment_num = get_string_param_2_number("comment_num")
+    params = {"bad_rate": bad_rate, "taste_score": taste_score, "avg_price": avg_price, "comment_num": comment_num}
+    print params
+    limit_data = load_data.customized_shops(all_data_info, params=params).head(limit)
+    return df_2_json(limit_data)
+
 
 @app.route('/')
 @app.route('/index')
 def index():
     return render_template('index.html')
+

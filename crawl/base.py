@@ -1,14 +1,18 @@
 # -*- coding:utf-8 -*-
-from crawl import crawlLib
-from csv import csvLib
+from crawl import crawlLib, WORK_DIR, SH_URL
+from filewriter import csvLib
 import os
 
 __author__ = 'hubin6'
 
 
-SH_URL = "http://www.dianping.com/search/category/1/10"
 FIELD_DELIMITER = "\t"
-BASE_DATA_DIR = os.getcwd()+"/data/base"
+BASE_DATA_DIR = os.path.join(WORK_DIR, "data/base")
+CBD_CSV = os.path.join(BASE_DATA_DIR, "cbd.csv")
+METRO_CSV = os.path.join(BASE_DATA_DIR, "metros.csv")
+REGION_CSV = os.path.join(BASE_DATA_DIR, "regions.csv")
+CATEGORY_CSV = os.path.join(BASE_DATA_DIR, "category.csv")
+DISTRICT_CSV = os.path.join(BASE_DATA_DIR, "districts.csv")
 
 
 def get_all_cbd(data):
@@ -60,8 +64,8 @@ def crawl_all_base_info():
     cbd, metros, districts, category = get_all_base_info(content)
     regions = get_all_regions(districts)
 
-    csvLib.write_records_to_csv(BASE_DATA_DIR + "/CBD.csv", cbd, FIELD_DELIMITER)
-    csvLib.write_records_to_csv(BASE_DATA_DIR + "/metros.csv", metros, FIELD_DELIMITER)
-    csvLib.write_records_to_csv(BASE_DATA_DIR + "/districts.csv", districts, FIELD_DELIMITER)
-    csvLib.write_records_to_csv(BASE_DATA_DIR + "/category.csv", category, FIELD_DELIMITER)
-    csvLib.write_records_to_csv(BASE_DATA_DIR + "/regions.csv", regions, FIELD_DELIMITER)
+    csvLib.write_records_to_csv(CBD_CSV, cbd, FIELD_DELIMITER)
+    csvLib.write_records_to_csv(METRO_CSV, metros, FIELD_DELIMITER)
+    csvLib.write_records_to_csv(DISTRICT_CSV, districts, FIELD_DELIMITER)
+    csvLib.write_records_to_csv(CATEGORY_CSV, category, FIELD_DELIMITER)
+    csvLib.write_records_to_csv(REGION_CSV, regions, FIELD_DELIMITER)

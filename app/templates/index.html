@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=Edge" charset="UTF-8" />
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
 	<style type="text/css">
 		body, html,#allmap {width: 100%;height: 100%;overflow: hidden;margin:0;font-family:"微软雅黑";}
@@ -14,14 +14,6 @@
 	<title>精品推荐</title>
 </head>
 <body>
-<div id="selector">
-	<select>
-	  <option value="volvo">Volvo</option>
-	  <option value="saab">Saab</option>
-	  <option value="opel">Opel</option>
-	  <option value="audi">Audi</option>
-	</select>
-</div>
 	<div id="allmap"></div>
 	<script type="text/javascript">
 		var map = new BMap.Map("allmap");
@@ -31,9 +23,10 @@
 
 		var data_info;
 		$.ajax({
-           url: '/shops',
+           url: '/shops/50',
            dataType: 'json',
-		   type: 'GET',
+		   type: 'POST',
+		   data: {"taste_score": 9.2},
            timeout: 3000,
            cache: false,
            crossDomain: true,
