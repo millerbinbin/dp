@@ -63,7 +63,7 @@ def get_comments():
     all_files = glob.glob(os.path.join(COMMENT_DATA_DIR, "*.csv"))
     df = pd.concat((pd.read_csv(f, header=None, sep=FIELD_DELIMITER) for f in all_files))
     df.columns = ["shop_id", "comment_num", "star_5_num", "star_4_num", "star_3_num", "star_2_num", "star_1_num"]
-    df["bad_rate"] = 100 * (df["star_1_num"]+df["star_2_num"]) / df["comment_num"]
+    df["good_rate"] = 100 * (df["star_4_num"]+df["star_5_num"]) / df["comment_num"]
     return df
 
 
@@ -98,7 +98,7 @@ def get_weight_details():
     all_info = get_all_info()
     df = all_info[["shop_id", "shop_name", "lng", "lat",
                    "comment_num", "star_5_num", "star_4_num", "star_3_num", "star_2_num", "star_1_num",
-                   "avg_price", "taste_score", "env_score", "ser_score", "bad_rate",
+                   "avg_price", "taste_score", "env_score", "ser_score", "good_rate",
                    "total_hits", "today_hits", "monthly_hits", "weekly_hits", "last_week_hits",
                    "category_name"
                    ]]
@@ -106,7 +106,7 @@ def get_weight_details():
         .groupby("shop_id")\
         .agg({"shop_id": np.max, "shop_name": np.max, "lng": np.max, "lat": np.max,
             "comment_num": np.max, "star_5_num": np.max, "star_4_num": np.max, "star_3_num": np.max, "star_2_num": np.max, "star_1_num": np.max,
-            "avg_price": np.max, "taste_score": np.max, "env_score": np.max, "ser_score": np.max, "bad_rate": np.max,
+            "avg_price": np.max, "taste_score": np.max, "env_score": np.max, "ser_score": np.max, "good_rate": np.max,
             "total_hits": np.max, "today_hits": np.max, "monthly_hits": np.max, "weekly_hits": np.max, "last_week_hits": np.max,
             "category_name": np.max})\
         .sort_values(['taste_score', "comment_num"], ascending=[False, False])
@@ -123,7 +123,7 @@ def load_weight_details():
     return df
 
 
-def customized_shops(details, params):
+def customized_shops(details, params, order_by):
     bad_rate, taste_score, comment_num, avg_price = None, None, None, None
     try:
         bad_rate = params['bad_rate']
@@ -142,13 +142,17 @@ def customized_shops(details, params):
     if avg_price is not None:
         condition = condition & (details["avg_price"] <= avg_price)
 
-    if condition is not True:
-        return details[condition]\
-              .sort_values(['taste_score', 'last_week_hits'], ascending=[False, False])\
-              .loc[:, ["shop_id", "shop_name", "taste_score", "avg_price", "category_name", "lng", "lat", "last_week_hits"]]
+    if order_by is not None and order_by in ('taste_score', 'last_week_hits', 'comment_num', 'good_rate'):
+        details = details.sort_values([order_by], ascending=[False])
     else:
-        return details.sort_values(['taste_score', 'last_week_hits'], ascending=[False, False]) \
-                .loc[:, ["shop_id", "shop_name", "taste_score", "avg_price", "category_name", "lng", "lat", "last_week_hits"]]
+        details = details
+
+    if condition is not True:
+        return details[condition].loc[:, ["shop_id", "shop_name", "taste_score", "avg_price", "category_name", "lng", "lat", "last_week_hits"]]
+    else:
+        return details.loc[:, ["shop_id", "shop_name", "taste_score", "avg_price", "category_name", "lng", "lat", "last_week_hits"]]
+
+
 
 
 def get_distinct_shops():
@@ -157,7 +161,4 @@ def get_distinct_shops():
 
 
 if __name__ == '__main__':
-    # save_weight_details()
-    # print customized_shops(load_weight_details(), params={"bad_rate": 2, "taste_score": 9, "comment_num": 2000})
-    for row in get_distinct_shops():
-        print row.shop_id, row.shop_name, row.lng, row.lat
+    save_weight_details()

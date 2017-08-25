@@ -1,86 +1,159 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 	<style type="text/css">
-		html, body, #allmap {width: 100%;height: 100%;}
+		html, body, #map {width: 100%;height: 100%;}
 	</style>
 	<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=kAWXbccRXNNwQl79u9cFcV6eysiBiBeA"></script>
-	<script type="text/javascript" src="../static/jquery-3.2.1.min.js"></script>
-
+	<script type="text/javascript" src="../static/js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="../static/js/dp.js"></script>
 	<!-- Bootstrap -->
 	<!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
-    <link href="../static/bootstrap.min.css" rel="stylesheet">
+    <link href="../static/css/bootstrap.css" rel="stylesheet">
+    <link href="../static/css/buttons.css" rel="stylesheet">
 
 	<!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
-	<script type="text/javascript" src="../static/bootstrap.min.js"></script>
+	<script type="text/javascript" src="../static/js/bootstrap.min.js"></script>
 
 	<title>精品推荐</title>
-	<link rel="shortcut icon" href="../static/dp.jpg" >
+	<link rel="shortcut icon" href="../static/image/dp.jpg" >
 </head>
 <body>
-    <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
-        <div class="collapse navbar-collapse">
-           <ul class="nav navbar-nav navbar-left">
-               <li><a href="#">筛选</a></li>
-               <li class="active"><a href="#">口味优先</a></li>
-               <li><a href="#">最热讨论</a></li>
-               <li><a href="#">点击为王</a></li>
-           </ul>
-           <ul class="nav navbar-nav navbar-right">
-               <li><a href="#">换一批</a></li>
-           </ul>
-       </div>
-    </nav>
-	<div id="allmap">
-        <script type="text/javascript">
-            var map = new BMap.Map("allmap");
-            var point = new BMap.Point(121.483644, 31.236923);
-            map.centerAndZoom(point, 13);
-            map.enableScrollWheelZoom(true);
+<div>
+</div>
 
-            var data_info;
+  <nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+      <!-- Brand and toggle get grouped for better mobile display -->
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-9" aria-expanded="false">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand navbar-link" href="#">
+          <span class="glyphicon glyphicon-filter" aria-hidden="true"></span>筛选
+        </a>
+      </div>
+
+      <!-- Collect the nav links, forms, and other content for toggling -->
+      <div class="collapse navbar-collapse">
+        <ul class="nav navbar-nav navbar-left">
+
+          <li id="taste_tab" value="taste_score" onclick="order_by(this)" class="active"><a href="#">口味优先</a></li>
+          <li id="comment_tab" value="comment_num" onclick="order_by(this)"><a href="#">最热讨论</a></li>
+          <li id="heat_tab" value="last_week_hits" onclick="order_by(this)"><a href="#">点击为王</a></li>
+          <li id="rating_tab" value="good_rate" onclick="order_by(this)"><a href="#">好评如潮</a></li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+
+          <li><a href="#" onclick="refresh_data(true)">
+            <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>换一批
+          </a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+	<div id="map"></div>
+    <script type="text/javascript">
+        var map_center = {"lat":31.236923, "lng": 121.483644};
+        var map_layer = 13;
+        var current_page = 1;
+        var limit_num = 25;
+        var order_col;
+        init_data();
+
+        function init_data(){
+            map = init_map();
+            render_data(get_data(current_page, limit_num, "taste_score"));
+        }
+        function refresh_data(page_down){
+            if (page_down) {current_page+=1};
+            data = get_data(current_page, limit_num, order_col)
+            render_data(data);
+        }
+        function order_by(which){
+            $("#taste_tab").removeClass("active");
+            $("#comment_tab").removeClass("active");
+            $("#heat_tab").removeClass("active");
+            $("#rating_tab").removeClass("active");
+            $(which).addClass("active");
+            order_col = $(which).attr("value");
+            refresh_data(false);
+        }
+        function init_map(){
+            var map = new BMap.Map("map");
+            var point = new BMap.Point(map_center.lng, map_center.lat);
+            map.centerAndZoom(point, map_layer);
+            map.enableScrollWheelZoom(true);
+            return map;
+        }
+
+        function get_data(page, top, order_by){
+            var param = {"taste_score": 8.5, "comment_num": 500};
             $.ajax({
-               url: '/shops/50',
+               url: '/shops/'+page+'/'+top+'/order_by='+order_by,
                dataType: 'json',
                type: 'POST',
-               data: {"taste_score": 9.1, "comment_num": 500},
-               timeout: 3000,
+               data: param,
+               timeout: 2000,
                cache: false,
                crossDomain: true,
                async : false,
                error: function(){alert("rr");},  //错误执行方法
-               success: function(data){data_info = data;} //成功执行方法
+               success: function(data){result = data;} //成功执行方法
             });
+            return result;
+        }
 
+        function render_data(data_info){
+            map.clearOverlays();
+            if (data_info.length < limit_num){
+                current_page = 1
+            }
             for(var i=0;i<data_info.length;i++){
                 var marker = new BMap.Marker(new BMap.Point(data_info[i].lng,data_info[i].lat));  // 创建标注
-                var title = '<a href="http://www.dianping.com/shop/'+data_info[i].shop_id+'"target="_blank">'+
-                '<h4 style="margin:0 0 5px 0;padding:0.2em 0">'+data_info[i].name+'</h4></a></br>';
+                var brief = '<div class="panel panel-default"><div class="panel-body">'+data_info[i].name+'</div></div>';
 
-                var content ='<h4><style="margin:0 0 5px 0;padding:1em 0">'+data_info[i].category+'</h4></br>'+
-                '<div><span class="label label-info"><style="margin:0 0 6px 0;padding:1em 0">人均：'+data_info[i].avg_price+'</span></div>'+
-                '<div><span class="label label-info"><style="margin:0 0 6px 0;padding:1em 0">口味：'+data_info[i].taste_score+'</br></span></div>'
+                var detail = '<a href="http://www.dianping.com/shop/'+data_info[i].shop_id+'"target="_blank">' +
+                '<h5>'+data_info[i].name+'</h5></a>' +
+                '<div><span class="label label-default">菜系：'+data_info[i].category+'</span></div>' +
+                '<div><span class="label label-success">口味：'+data_info[i].taste_score+'</span></div>' +
+                '<div><span class="label label-info">人均：'+data_info[i].avg_price+'</span></div>';
+
                 map.addOverlay(marker);               // 将标注添加到地图中
-                //var label = new BMap.Label(data_info[i].name,{offset:new BMap.Size(20, 5)});
+                var label = new BMap.Label(data_info[i].name,{offset:new BMap.Size(20, 5)});
                 //marker.setLabel(label);
-                addClickHandler(content,title,marker);
+                var label = data_info[i].name;
+                addClickHandler(detail,brief,marker);
             }
-            function addClickHandler(content,title,marker){
-                marker.addEventListener("mouseover",function(e){
-                    openInfo(content,title,e)}
-                );
-            }
-            function openInfo(content,title,e){
-                var p = e.target;
-                var point = new BMap.Point(p.getPosition().lng, p.getPosition().lat);
-                var option = {maxWidth:700, title:title}
-                var infoWindow = new BMap.InfoWindow(content, option);  // 创建信息窗口对象
+        }
+        function addClickHandler(detail,brief,marker){
+            marker.addEventListener("click",function(e){
+                openDetailInfo(detail, e)}
+            );
+            <!--marker.addEventListener("mouseover",function(e){-->
+                <!--openBriefInfo(brief, e)}-->
+            <!--);-->
+        }
+        function openDetailInfo(detailInfo, e){
+            var p = e.target;
+            var point = new BMap.Point(p.getPosition().lng, p.getPosition().lat);
+            var infoWindow = new BMap.InfoWindow(detailInfo);  // 创建信息窗口对象
+            infoWindow.redraw();
+            map.openInfoWindow(infoWindow,point); //开启信息窗
+        }
+        <!--function openBriefInfo(briefInfo, e){-->
+            <!--var p = e.target;-->
+            <!--var point = new BMap.Point(p.getPosition().lng, p.getPosition().lat);-->
+            <!--var infoWindow = new BMapLib.SearchInfoWindow(map, briefInfo);  // 创建信息窗口对象-->
+            <!--//infoWindow.redraw();-->
+            <!--infoWindow.open(point);-->
+        <!--}-->
 
-                map.openInfoWindow(infoWindow,point); //开启信息窗
-            }
-        </script>
-    </div>
+    </script>
 </body>
 </html>
