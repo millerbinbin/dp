@@ -1,9 +1,12 @@
 # -*- coding: UTF-8 -*-
 
-from selenium import webdriver
-from filewriter import csvLib
 import json
-from crawl import load_data
+
+from selenium import webdriver
+
+import service
+from filewriter import csvLib
+
 driver = webdriver.PhantomJS()
 
 FIELD_DELIMITER = "\t"
@@ -15,7 +18,7 @@ try:
         return {i.strip().split(FIELD_DELIMITER)[0] for i in open("test.csv")}
 
     shop_list = load_all_saved_favorites()
-    for row in load_data.get_distinct_shops():
+    for row in service.get_distinct_shops():
         shop_id = str(row.shop_id)
         if shop_id in shop_list: continue
         print shop_id

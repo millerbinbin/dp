@@ -1,9 +1,12 @@
 # -*- coding:utf-8 -*-
-from crawl import crawlLib, location, load_data, SH_URL, WORK_DIR
+import json
+import os
+import re
+
+import service
+from crawl import crawlLib, location, SH_URL, WORK_DIR
 from entity import entity
 from filewriter import csvLib
-import re, json
-import os
 
 __author__ = 'hubin6'
 
@@ -169,7 +172,7 @@ def crawl_shops_routes():
     shop_list = load_all_saved_routes()
 
     public_routes = []
-    for row in load_data.get_distinct_shops():
+    for row in service.get_distinct_shops():
         shop_id = str(row.shop_id)
         if shop_id in shop_list: continue
         dest = entity.Location(lat=float(row.lat), lng=float(row.lng))
@@ -195,7 +198,7 @@ def crawl_shops_favorite_food():
     shop_list = load_all_saved_favorites()
 
     favorite_list = []
-    for row in load_data.get_distinct_shops():
+    for row in service.get_distinct_shops():
         shop_id = str(row.shop_id)
         if shop_id in shop_list: continue
         favorite_food = json.dumps(get_shop_favorite_food(shop_id), ensure_ascii=False).encode('utf8')
@@ -215,7 +218,7 @@ def crawl_shops_baidu_location():
     shop_list = load_all_saved_location()
 
     location_list = []
-    for row in load_data.get_distinct_shops():
+    for row in service.get_distinct_shops():
         shop_id = str(row.shop_id)
         shop_name = row.shop_name
         if shop_id in shop_list: continue
