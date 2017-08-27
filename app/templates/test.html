@@ -9,9 +9,13 @@
   <style>
     .div-relative{position:relative;color:#000;border:1px solid #000;width:100%;height:100%}
     .div-a{ position:absolute;left:20px;top:2px;z-index:100;width:660px;height:400px;border:10px}
+    /* div背景色为红色 */
     .div-b{ position:absolute;left:0px;top:0px;z-index:80;width:400px;height:200px}
-   </style>
-		<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=kAWXbccRXNNwQl79u9cFcV6eysiBiBeA"></script>
+    /* 背景为黄色 */
+    .div-c{ position:absolute;left:80px;top:80px;z-index:70;background:#00F;width:300px;height:300px}
+    /* 背景为蓝色 */
+  </style>
+	<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=kAWXbccRXNNwQl79u9cFcV6eysiBiBeA"></script>
 	<script type="text/javascript" src="../static/js/jquery-3.2.1.min.js"></script>
   <link href="../static/css/bootstrap.css" rel="stylesheet">
   <link href="../static/css/skins/polaris/polaris.css" rel="stylesheet">
@@ -19,9 +23,10 @@
   <script type="text/javascript" src="../static/js/icheck.js"></script>
 	<title>精品推荐</title>
 	<link rel="shortcut icon" href="../static/image/dp.jpg" >
+  <script type="text/javascript" src="../static/js/dp.js"></script>
 </head>
 <body>
-  <nav class="navbar-inverse">
+<nav class="navbar-inverse">
     <div class="container-fluid">
       <div class="navbar-header">
         <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-9" aria-expanded="false">
@@ -31,7 +36,7 @@
           <span class="icon-bar"></span>
         </button>
         <div class="navbar-brand" >
-          <a href="#" onclick="filter_hidden(false)">
+          <a href="#" class="active" onclick="test_hidden()">
             <span class="glyphicon glyphicon-filter"></span>筛选<span class="caret"></span>
           </a>
         </div>
@@ -47,17 +52,17 @@
         </ul>
         <ul class="nav navbar-nav navbar-right">
 
-          <li><a href="#" onclick="refresh_data(true)">
-            <span class="glyphicon glyphicon-refresh"></span>换一批
+          <li><a href="#" onclick="test_hidden()">
+            <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>换一批
           </a></li>
         </ul>
       </div>
     </div>
   </nav>
 <div class="div-relative">
-  <div class="panel hidden div-a" id="filter_box">
+  <div class="panel div-a" id="filter_box">
     <div class="panel-body" id="category-selection">
-      <label>菜系选择</label>
+      <label>菜系:</label>
       <div class="checkbox">
         <label><input type="checkbox" aria-label="本帮江浙菜">本帮江浙菜</label>
         <label><input type="checkbox" aria-label="日本菜">日本菜</label>
@@ -100,23 +105,26 @@
       <div class="row">
         <form class="form-inline col-md-6" role="form">
           <label class="form-label">人均不超过:&emsp;</label>
-          <input class="form-control input-sm" type="text" style="width:80px;" id="avg-price">
+          <input class="form-control input-sm" type="text" style="width:80px;">
         </form>
         <form class="form-inline col-md-6" role="form">
             <label class="form-label">评论数不少于:</label>
-            <input class="form-control input-sm" type="text" style="width:80px;" id="comment-num">
+            <input class="form-control input-sm" type="text" style="width:80px;">
         </form>
       </div>
       <br><br>
       <div class="row">
         <div class="col-md-4"></div>
-        <button class="btn btn-primary col-md-2" onclick="filter_hidden(true)" >确定</button>
+        <button class="btn btn-primary col-md-2" onclick="test_checkbox()" >确定</button>
       </div>
     </div>
+
+
   </div>
-  <div id="map" class="div-b"></div>
+  <div id="map" class="div-b">this is our map</div>
 </div>
-<script type="text/javascript">
+  <script>
+    var category_set = new Set();
     $(document).ready(function(){
       $('input').iCheck({
         checkboxClass: 'icheckbox_polaris',
@@ -124,145 +132,41 @@
         increaseArea: '-10%' // optional
       });
     });
-
-  var map_center = {"lat":31.236923, "lng": 121.483644};
-  var map_layer = 13;
-  var current_page = 1;
-  var limit_num = 40;
-  var order_col;
-  var category_set = new Set();
-  var avg_price;
-  var comment_num;
-  init_data();
-
-  function bind_category_checkbox(){
-    $('#category-selection').find("input[type=checkbox]").each(function(){
-      $(this).on('ifChecked', function(event){
-        category_name = $(this).attr("aria-label")
-        category_set.add(category_name);
-        console.log(category_set);
+    function test_checkbox(){
+      $('#category-selection').find("input[type=checkbox]").each(function(){
+        $(this).on('ifChecked', function(event){
+          category_name = $(this).attr("aria-label")
+          category_set.add(category_name);
+          console.log(category_set);
+        });
+        $(this).on('ifUnchecked', function(event){
+          category_name = $(this).attr("aria-label")
+          category_set.delete(category_name);
+          console.log(category_set);
+        });
       });
-      $(this).on('ifUnchecked', function(event){
-        category_name = $(this).attr("aria-label")
-        category_set.delete(category_name);
-        console.log(category_set);
-      });
-    });
-  }
-  function filter_hidden(refresh){
+    }
+    var map_center = {"lat":31.236923, "lng": 121.483644};
+    var map_layer = 13;
+    init_data();
+    function init_data(){
+      map = init_map();
+    }
+    function init_map(){
+      var map = new BMap.Map("map");
+      var point = new BMap.Point(map_center.lng, map_center.lat);
+      map.centerAndZoom(point, map_layer);
+      map.enableScrollWheelZoom(true);
+    }
+    function test_hidden(){
       ($("#filter_box").attr("class").indexOf("hidden")>=0)?hidden=false:hidden=true;
+      console.log(hidden);
       if (hidden == false){
         $("#filter_box").removeClass("hidden");
       }else{
         $("#filter_box").addClass("hidden");
       }
-      avg_price = $("#avg-price").val();
-      console.log(avg_price);
-      comment_num = $("#comment-num").val();
-      console.log(comment_num);
-      if (refresh === true){
-        refresh_data(false);
-      }
     }
-  function init_data(){
-    map = init_map();
-    bind_category_checkbox();
-    render_data(get_data(current_page, limit_num, "taste_score"));
-  }
-  function refresh_data(page_down){
-    if (page_down) {current_page+=1};
-    data = get_data(current_page, limit_num, order_col)
-    render_data(data);
-  }
-  function order_by(which){
-    $("#taste_tab").removeClass("active");
-    $("#comment_tab").removeClass("active");
-    $("#heat_tab").removeClass("active");
-    $("#rating_tab").removeClass("active");
-    $("#distance_tab").removeClass("active");
-    $(which).addClass("active");
-    order_col = $(which).attr("value");
-    current_page = 1;
-    refresh_data(false);
-  }
-
-  function init_map(){
-    var map = new BMap.Map("map");
-    var point = new BMap.Point(map_center.lng, map_center.lat);
-    map.centerAndZoom(point, map_layer);
-    map.enableScrollWheelZoom(true);
-    return map;
-  }
-
-  function get_data(page, top, order_by){
-    var param = {"taste_score": 8.5, "comment_num": comment_num, "avg_price": avg_price};
-    var category_str = "";
-    category_set.forEach(function (item) {
-      category_str+=item.toString() + ",";
-    });
-    param.category = category_str;
-    console.log(param);
-    $.ajax({
-       url: '/shops/'+page+'/'+top+'/order_by='+order_by,
-       dataType: 'json',
-       type: 'POST',
-       data: param,
-       timeout: 2000,
-       cache: false,
-       crossDomain: true,
-       async : false,
-       error: function(){alert("rr");},  //错误执行方法
-       success: function(data){result = data;} //成功执行方法
-    });
-    return result;
-  }
-
-  function render_data(data_info){
-    map.clearOverlays();
-    if (data_info.length < limit_num){
-      current_page = 1
-    }
-    for(var i=0;i<data_info.length;i++){
-      var marker = new BMap.Marker(new BMap.Point(data_info[i].lng,data_info[i].lat));  // 创建标注
-      var brief = '<div class="panel panel-default"><div class="panel-body">'+data_info[i].name+'</div></div>';
-
-      var detail = '<a href="http://www.dianping.com/shop/'+data_info[i].shop_id+'"target="_blank">' +
-      '<h5>'+data_info[i].name+'</h5></a>' +
-      '<div class="row"><div class="col-md-4"><span class="label label-success">菜系：'+data_info[i].category+'</span></div>' +
-      '<div class="col-md-4"><span class="label label-success">口味：'+data_info[i].taste_score+'</span></div>' +
-      '<div class="col-md-4"><span class="label label-success">人均：'+data_info[i].avg_price+'</span></div></div>' +
-      '</br>'+
-      '<div><span class="label label-primary">行程：'+data_info[i].route+'</span></div>';
-
-      map.addOverlay(marker);               // 将标注添加到地图中
-      var label = new BMap.Label(data_info[i].name,{offset:new BMap.Size(20, 5)});
-      //marker.setLabel(label);
-      var label = data_info[i].name;
-      addClickHandler(detail,brief,marker);
-    }
-  }
-  function addClickHandler(detail,brief,marker){
-    marker.addEventListener("click",function(e){
-      openDetailInfo(detail, e)}
-    );
-    <!--marker.addEventListener("mouseover",function(e){-->
-        <!--openBriefInfo(brief, e)}-->
-    <!--);-->
-  }
-  function openDetailInfo(detailInfo, e){
-    var p = e.target;
-    var point = new BMap.Point(p.getPosition().lng, p.getPosition().lat);
-    var infoWindow = new BMap.InfoWindow(detailInfo);  // 创建信息窗口对象
-    map.openInfoWindow(infoWindow,point); //开启信息窗
-    infoWindow.redraw();
-  }
-  <!--function openBriefInfo(briefInfo, e){-->
-    <!--var p = e.target;-->
-    <!--var point = new BMap.Point(p.getPosition().lng, p.getPosition().lat);-->
-    <!--var infoWindow = new BMapLib.SearchInfoWindow(map, briefInfo);  // 创建信息窗口对象-->
-    <!--//infoWindow.redraw();-->
-    <!--infoWindow.open(point);-->
-  <!--}-->
-</script>
+  </script>
 </body>
 </html>

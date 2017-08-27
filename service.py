@@ -138,12 +138,13 @@ def load_weight_details():
 
 
 def get_customized_shops(details, params, order_by):
-    bad_rate, taste_score, comment_num, avg_price = None, None, None, None
+    bad_rate, taste_score, comment_num, avg_price, category = None, None, None, None, None
     try:
         bad_rate = params['bad_rate']
         taste_score = params['taste_score']
         comment_num = params['comment_num']
         avg_price = params['avg_price']
+        category = params['category'].split(',') if params['category']!='' else None
     except:
         pass
     condition = True
@@ -155,7 +156,8 @@ def get_customized_shops(details, params, order_by):
         condition = condition & (details["comment_num"] >= comment_num)
     if avg_price is not None:
         condition = condition & (details["avg_price"] <= avg_price)
-
+    if category is not None:
+        details = details[details["category_name"].isin(category)]
     if order_by is not None and order_by in ('taste_score', 'last_week_hits', 'comment_num', 'good_rate', 'taxi_distance'):
         details = details.sort_values([order_by], ascending=[False])
     else:

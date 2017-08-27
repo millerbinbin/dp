@@ -1,8 +1,10 @@
-/* iCheck.js Polaris skin
+/* iCheck plugin Polaris skin
 ----------------------------------- */
 .icheckbox_polaris,
 .iradio_polaris {
-    display: block;
+    display: inline-block;
+    *display: inline;
+    vertical-align: middle;
     margin: 0;
     padding: 0;
     width: 29px;
@@ -12,12 +14,10 @@
     cursor: pointer;
 }
 
-.icheckbox_polaris,
-.icheckbox_polaris.static:hover {
+.icheckbox_polaris {
     background-position: 0 0;
 }
-    .icheckbox_polaris.hover,
-    .icheckbox_polaris:hover {
+    .icheckbox_polaris.hover {
         background-position: -31px 0;
     }
     .icheckbox_polaris.checked {
@@ -31,12 +31,10 @@
         background-position: -124px 0;
     }
 
-.iradio_polaris,
-.iradio_polaris.static:hover {
+.iradio_polaris {
     background-position: -155px 0;
 }
-    .iradio_polaris.hover,
-    .iradio_polaris:hover {
+    .iradio_polaris.hover {
         background-position: -186px 0;
     }
     .iradio_polaris.checked {
@@ -50,11 +48,8 @@
         background-position: -279px 0;
     }
 
-/* Retina support */
-@media only screen and (-webkit-min-device-pixel-ratio: 1.5),
-       only screen and (-moz-min-device-pixel-ratio: 1.5),
-       only screen and (-o-min-device-pixel-ratio: 3/2),
-       only screen and (min-device-pixel-ratio: 1.5) {
+/* HiDPI support */
+@media (-o-min-device-pixel-ratio: 5/4), (-webkit-min-device-pixel-ratio: 1.25), (min-resolution: 120dpi), (min-resolution: 1.25dppx) {
     .icheckbox_polaris,
     .iradio_polaris {
         background-image: url(polaris@2x.png);

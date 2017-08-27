@@ -18,7 +18,11 @@ offset = 0
 
 def get_string_param_2_number(param_name):
     value = request.values.get(param_name)
-    if value is not None: value = float(value)
+    if value is not None:
+        try:
+            value = float(value)
+        except:
+            value = str(value)
     return value
 
 
@@ -28,8 +32,9 @@ def get_default_shops(page, limit, col):
     taste_score = get_string_param_2_number("taste_score")
     avg_price = get_string_param_2_number("avg_price")
     comment_num = get_string_param_2_number("comment_num")
-    params = {"bad_rate": bad_rate, "taste_score": taste_score, "avg_price": avg_price, "comment_num": comment_num}
-    print page, params, limit, col
+    category_name = get_string_param_2_number("category")
+    params = {"bad_rate": bad_rate, "taste_score": taste_score, "avg_price": avg_price, "comment_num": comment_num, "category": category_name}
+    print page, params, limit, col, category_name
     limit_data = service.get_customized_shops(all_data_info, params=params, order_by=col)
     result = limit_data.iloc[(page-1)*limit:page*limit]
     return service.get_json_data_from_df(result)
