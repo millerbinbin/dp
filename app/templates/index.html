@@ -129,7 +129,7 @@
   var map_layer = 13;
   var current_page = 1;
   var limit_num = 40;
-  var order_col;
+  var order_col = "taste_score";
   var category_set = new Set();
   var avg_price;
   var comment_num;
@@ -150,20 +150,21 @@
     });
   }
   function filter_hidden(refresh){
-      ($("#filter_box").attr("class").indexOf("hidden")>=0)?hidden=false:hidden=true;
-      if (hidden == false){
-        $("#filter_box").removeClass("hidden");
-      }else{
-        $("#filter_box").addClass("hidden");
-      }
-      avg_price = $("#avg-price").val();
-      console.log(avg_price);
-      comment_num = $("#comment-num").val();
-      console.log(comment_num);
-      if (refresh === true){
-        refresh_data(false);
-      }
+    ($("#filter_box").attr("class").indexOf("hidden")>=0)?hidden=false:hidden=true;
+    if (hidden == false){
+      $("#filter_box").removeClass("hidden");
+    }else{
+      $("#filter_box").addClass("hidden");
     }
+    avg_price = parseInt($("#avg-price").val());
+    if (isNaN(avg_price)){avg_price = undefined;}
+    console.log(avg_price);
+    comment_num = Number($("#comment-num").val());
+    if (isNaN(comment_num)){comment_num = undefined;}
+    if (refresh === true){
+      refresh_data(false);
+    }
+  }
   function init_data(){
     map = init_map();
     bind_category_checkbox();
