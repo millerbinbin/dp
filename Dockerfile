@@ -5,6 +5,7 @@ WORKDIR /app
 ADD requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 ADD app app
+ADD crawl crawl
 ADD data data
 ADD main main
 ENV PYTHONPATH /app
