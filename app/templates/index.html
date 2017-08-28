@@ -160,7 +160,7 @@
     }else{
       $("#filter_box").addClass("hidden");
     }
-    taste_score = parseInt($("#taste-score").val());
+    taste_score = parseFloat($("#taste-score").val());
     if (isNaN(taste_score)){taste_score = undefined;}
     avg_price = parseInt($("#avg-price").val());
     if (isNaN(avg_price)){avg_price = undefined;}
