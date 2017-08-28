@@ -5,5 +5,5 @@ WORKDIR /app
 ADD requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 EXPOSE 2222
-cd main
+RUN cd main
 python web.py
