@@ -6,4 +6,4 @@ ADD requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 EXPOSE 2222
 RUN cd main
-python web.py
+RUN python web.py
