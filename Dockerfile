@@ -7,8 +7,6 @@ RUN pip install -r requirements.txt
 ADD app app
 ADD data data
 ADD main main
-EXPOSE 2222
-RUN cd main
-RUN pwd
-RUN ls
+WORKDIR /app/main
 RUN python web.py
+EXPOSE 2222
