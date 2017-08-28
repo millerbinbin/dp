@@ -201,7 +201,7 @@ def get_metro_info(public_route):
         if route["type"] == 1:
             pass
         elif route["type"] == 2:
-            metros += "{0}->{1}({2})<br>".format(route["on_station"], route["off_station"], route["name"])
+            metros += "{0}->{1}({2}),".format(route["on_station"], route["off_station"], route["name"])
     metros += " 行程耗时:{0}".format(get_time_str(duration))
     return metros
 
