@@ -10,5 +10,5 @@ ADD data data
 ADD main main
 ENV PYTHONPATH /app
 WORKDIR /app/main
-RUN python web.py
+# RUN python web.py
 EXPOSE 2222
