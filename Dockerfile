@@ -7,7 +7,6 @@ RUN pip install -r requirements.txt
 ADD app app
 ADD data data
 ADD main main
-WORKDIR /app/main
-RUN export PYTHONPATH=$PYTHON_PATH:/app
+ENV PYTHONPATH /app
 RUN python web.py
 EXPOSE 2222
