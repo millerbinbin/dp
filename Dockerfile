@@ -9,4 +9,6 @@ ADD data data
 ADD main main
 EXPOSE 2222
 RUN cd main
+RUN pwd
+RUN ls
 RUN python web.py
