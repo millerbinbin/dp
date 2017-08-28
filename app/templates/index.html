@@ -8,8 +8,8 @@
 	</style>
   <style>
     .div-relative{position:relative;color:#000;border:1px solid #000;width:100%;height:100%}
-    .div-a{ position:absolute;left:20px;top:2px;z-index:100;width:660px;height:400px;border:10px}
-    .div-b{ position:absolute;left:0px;top:0px;z-index:80;width:400px;height:200px}
+    .div-a{ position:absolute;left:20px;top:5%;z-index:100;width:45%;height:50%;border:10px}
+    .div-b{ position:absolute;left:0px;top:0px;z-index:80}
    </style>
 		<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=kAWXbccRXNNwQl79u9cFcV6eysiBiBeA"></script>
 	<script type="text/javascript" src="../static/js/jquery-3.2.1.min.js"></script>
@@ -21,7 +21,7 @@
 	<link rel="shortcut icon" href="../static/image/dp.jpg" >
 </head>
 <body>
-  <nav class="navbar-inverse">
+  <nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container-fluid">
       <div class="navbar-header">
         <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-9" aria-expanded="false">
@@ -98,11 +98,15 @@
       </div>
       <br>
       <div class="row">
-        <form class="form-inline col-md-6" role="form">
-          <label class="form-label">人均不超过:&emsp;</label>
-          <input class="form-control input-sm" type="text" style="width:80px;" id="avg-price">
+        <form class="form-inline col-md-4" role="form">
+          <label class="form-label">评分不低于:</label>
+          <input class="form-control input-sm" type="text" style="width:80px;" id="taste-score">
         </form>
-        <form class="form-inline col-md-6" role="form">
+        <form class="form-inline col-md-4" role="form">
+            <label class="form-label">人均不超过:</label>
+            <input class="form-control input-sm" type="text" style="width:80px;" id="avg-price">
+        </form>
+        <form class="form-inline col-md-4" role="form">
             <label class="form-label">评论数不少于:</label>
             <input class="form-control input-sm" type="text" style="width:80px;" id="comment-num">
         </form>
@@ -131,6 +135,7 @@
   var limit_num = 40;
   var order_col = "taste_score";
   var category_set = new Set();
+  var taste_score;
   var avg_price;
   var comment_num;
   init_data();
@@ -145,7 +150,6 @@
       $(this).on('ifUnchecked', function(event){
         category_name = $(this).attr("aria-label")
         category_set.delete(category_name);
-        console.log(category_set);
       });
     });
   }
@@ -156,10 +160,12 @@
     }else{
       $("#filter_box").addClass("hidden");
     }
+    taste_score = parseInt($("#taste-score").val());
+    if (isNaN(taste_score)){taste_score = undefined;}
     avg_price = parseInt($("#avg-price").val());
     if (isNaN(avg_price)){avg_price = undefined;}
     console.log(avg_price);
-    comment_num = Number($("#comment-num").val());
+    comment_num = parseInt($("#comment-num").val());
     if (isNaN(comment_num)){comment_num = undefined;}
     if (refresh === true){
       refresh_data(false);
@@ -196,7 +202,7 @@
   }
 
   function get_data(page, top, order_by){
-    var param = {"taste_score": 8.5, "comment_num": comment_num, "avg_price": avg_price};
+    var param = {"taste_score": taste_score, "comment_num": comment_num, "avg_price": avg_price};
     var category_str = "";
     category_set.forEach(function (item) {
       category_str+=item.toString() + ",";
@@ -229,11 +235,11 @@
 
       var detail = '<a href="http://www.dianping.com/shop/'+data_info[i].shop_id+'"target="_blank">' +
       '<h5>'+data_info[i].name+'</h5></a>' +
-      '<div class="row"><div class="col-md-4"><span class="label label-success">菜系：'+data_info[i].category+'</span></div>' +
-      '<div class="col-md-4"><span class="label label-success">口味：'+data_info[i].taste_score+'</span></div>' +
-      '<div class="col-md-4"><span class="label label-success">人均：'+data_info[i].avg_price+'</span></div></div>' +
-      '</br>'+
-      '<div><span class="label label-primary">行程：'+data_info[i].route+'</span></div>';
+      '<div class="row"><div class="col-sm-5"><span class="label label-success">菜系：'+data_info[i].category+'</span></div>' +
+      '<div class="col-sm-3"><span class="label label-success">口味：'+data_info[i].taste_score+'</span></div>' +
+      '<div class="col-sm-3"><span class="label label-success">人均：'+data_info[i].avg_price+'</span></div></div>' +
+      '<div class="col-sm-1"></div></br>'+
+      '<div><span class="label label-primary">'+data_info[i].route+'</span></div>';
 
       map.addOverlay(marker);               // 将标注添加到地图中
       var label = new BMap.Label(data_info[i].name,{offset:new BMap.Size(20, 5)});
@@ -255,7 +261,7 @@
     var point = new BMap.Point(p.getPosition().lng, p.getPosition().lat);
     var infoWindow = new BMap.InfoWindow(detailInfo);  // 创建信息窗口对象
     map.openInfoWindow(infoWindow,point); //开启信息窗
-    infoWindow.redraw();
+    //infoWindow.redraw();
   }
   <!--function openBriefInfo(briefInfo, e){-->
     <!--var p = e.target;-->

@@ -18,10 +18,9 @@ def test_split_category_segments():
 
 def test_customized_shops():
     all_data_info = service.load_weight_details()
-    params = {"taste_score": 8.8, "avg_price": None, "comment_num": None}
-    shops = service.get_customized_shops(all_data_info, params=params, order_by="comment_num")
-    shop = shops[shops.shop_id=="92817344"]
-    return service.get_json_data_from_df(shop)
+    params = {'category': '', 'comment_num': 0.0, 'bad_rate': None, 'taste_score': 8.8, 'avg_price': 0.0}
+    shops = service.get_customized_shops(all_data_info, params=params, order_by="taste_score")
+    return shops
 
 if __name__ == '__main__':
     #test_backup()

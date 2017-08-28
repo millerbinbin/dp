@@ -170,7 +170,6 @@ def get_customized_shops(details, params, order_by):
         details = details.sort_values([order_by], ascending=[False])
     else:
         details = details
-    #details['avg_price'] = details['avg_price'].apply(lambda x: 1 if x.isNaN() else x)
     details['route'] = details['public_route'].apply(get_metro_info)
     if condition is not True:
         return details[condition].loc[:, ["shop_id", "shop_name", "taste_score", "avg_price", "category_name", "lng", "lat", "route"]]
@@ -184,12 +183,12 @@ def get_distinct_shops():
 
 
 def get_json_data_from_df(df):
-    res = [{"name": row.shop_name, "lng": row.lng, "lat": row.lat, "avg_price": str(row.avg_price),
-             "taste_score": row.taste_score, "category": row.category_name, "shop_id": row.shop_id,
+    res = [{"name": row.shop_name, "lng": row.lng, "lat": row.lat,
+            "avg_price": "-" if str(row.avg_price)=="nan" else int(row.avg_price),
+            "taste_score": row.taste_score, "category": row.category_name, "shop_id": row.shop_id,
             "route": row.route
             }
             for row in df.itertuples()]
-    print res
     return json.dumps(res, ensure_ascii=False).encode("utf-8")
 
 
@@ -202,16 +201,16 @@ def get_metro_info(public_route):
         if route["type"] == 1:
             pass
         elif route["type"] == 2:
-            metros += "{0}->{1},".format(route["on_station"], route["off_station"])
-    metros += "耗时:{0}".format(get_time_str(duration))
+            metros += "{0}->{1}({2})<br>".format(route["on_station"], route["off_station"], route["name"])
+    metros += " 行程耗时:{0}".format(get_time_str(duration))
     return metros
 
 
 def get_time_str(duration):
     hour = int(duration / 3600)
-    duration -= hour*3600
+    duration -= hour * 3600
     minute = int(duration / 60)
-    return "{0}时{1}分".format(hour,minute)
+    return "{0}时{1}分".format(hour, minute)
 
 
 def test_get_json_data_from_df():
