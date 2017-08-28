@@ -2,33 +2,43 @@
 import json
 import os
 import re
+import glob
+import sys
 
-import service
 from crawl import crawlLib, location, SH_URL, WORK_DIR
 from entity import entity
 from filewriter import csvLib
+from main import service
 
 __author__ = 'hubin6'
 
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
 SHOP_DETAILS_URL = "http://www.dianping.com/ajax/json/shopfood/wizard/BasicHideInfoAjaxFP?_nr_force=1502177990602&shopId={}"
 REVIEW_URL = "http://www.dianping.com/shop/{0}/review_more"
 COMMENT_URL = "http://www.dianping.com/shop/{0}/review_more_5star?pageno={1}"
 
+TASTE_SCORE_THRESHOLD = 8.2
+CATEGORY_NUMBER_LIMIT = 400
+DEFAULT_ORDER_TYPE = "taste"
+
+BACKUP_DATA_DIR = os.path.join(WORK_DIR, "data-backup")
 DATA_DIR = os.path.join(WORK_DIR, "data")
 CATEGORY_CSV = os.path.join(DATA_DIR, "base/category.csv")
+REGION_CSV = os.path.join(DATA_DIR, "base/regions.csv")
 FAVORITE_CSV = os.path.join(DATA_DIR, "favorite/data.csv")
 LOCATION_CSV = os.path.join(DATA_DIR, "location/data.csv")
 ROUTE_CSV = os.path.join(DATA_DIR, "routes/data.csv")
 
-SHOP_DATA_DIR = os.path.join(DATA_DIR, "shops")
-COMMENT_DATA_DIR = os.path.join(DATA_DIR, "comments")
-HEAT_DATA_DIR = os.path.join(DATA_DIR, "heats")
-SCORE_DATA_DIR = os.path.join(DATA_DIR, "scores")
+SHOP_DATA_CSV = os.path.join(DATA_DIR, "shops/{0}.csv")
+COMMENT_DATA_CSV = os.path.join(DATA_DIR, "comments/{0}.csv")
+HEAT_DATA_CSV = os.path.join(DATA_DIR, "heats/{0}.csv")
+SCORE_DATA_CSV = os.path.join(DATA_DIR, "scores/{0}.csv")
 
 FIELD_DELIMITER = "\t"
-REGION_TABLE = mysql_task.get_region_table()
-HOME_LOC = entity.Location(lng=121.615539648, lat=31.2920292218)
+REGION_TABLE = service.get_region_table()
+HOME_LOC = entity.Location(lng=121.615539648, lat=31.2920292218)   #location of Chun Jiang
 
 
 def get_seq_suffix_from_type(type):
@@ -37,8 +47,10 @@ def get_seq_suffix_from_type(type):
 
 
 def crawl_all_shops_by_category(category, order_type, score_threshold, limit_num=1000):
-    category_id = category[1:]
-    url = SH_URL + "/" + category + get_seq_suffix_from_type(order_type)
+    category_id = category.category_id
+    category_code = category.category_code
+    category_name = category.category_name
+    url = SH_URL + "/" + category_code + get_seq_suffix_from_type(order_type)
     stop_flag = 0
     total_num = 0
     info_list = []
@@ -47,11 +59,12 @@ def crawl_all_shops_by_category(category, order_type, score_threshold, limit_num
     cmt_list = []
     for page in range(1, 51):
         if stop_flag == 1:
-            print "crawl finished, total records: {0}".format(len(info_list))
+            print "【{0}】爬取完成，总数据条数：{1}".format(category_name, len(info_list))
             break
         page_num = "p{0}".format(page)
         p_url = url + page_num
         print p_url
+
         content = crawlLib.Crawler(p_url).parse_content()
         for c in content.find("div", id="shop-all-list").find_all("li", class_=""):
             result = get_shop_result(c, category_id)
@@ -90,7 +103,7 @@ def get_shop_result(data, category):
     print shop_name
     region_name = data.find("div", class_="tag-addr").find(href=re.compile(".*/[^g]\d+$")).text
     try:
-        region, district = REGION_TABLE.get(region_name)
+        region, district = REGION_TABLE.get(str(region_name))
     except:
         region, district = None, None
     tmp = data.find("div", class_="comment")
@@ -100,6 +113,9 @@ def get_shop_result(data, category):
     taste_score, env_score, ser_score = get_score(tmp)
     phone_no, total_hits, today_hits, monthly_hits, weekly_hits, last_week_hits, lat, lng = get_shop_details(shop_id)
     cmt_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num = get_shop_review_star_num(shop_id)
+    # crawl again to solve the network issue sometimes
+    if cmt_num is None:
+        cmt_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num = get_shop_review_star_num(shop_id)
     return entity.Shop(shop_id, shop_name, address, lng, lat, phone_no, district, region, category,
                        avg_price, taste_score, env_score, ser_score,
                        total_hits, today_hits, monthly_hits, weekly_hits, last_week_hits,
@@ -130,12 +146,15 @@ def get_average_price(data):
 
 def get_shop_review_star_num(shop_id):
     data = crawlLib.Crawler(REVIEW_URL.format(shop_id)).parse_content(mode="complex")
-    comment_num = data.find("div", class_="comment-star").find_all("dd")[0].find("em", class_="col-exp").text[1:-1]
-    star_5_num = data.find("div", class_="comment-star").find_all("dd")[1].find("em", class_="col-exp").text[1:-1]
-    star_4_num = data.find("div", class_="comment-star").find_all("dd")[2].find("em", class_="col-exp").text[1:-1]
-    star_3_num = data.find("div", class_="comment-star").find_all("dd")[3].find("em", class_="col-exp").text[1:-1]
-    star_2_num = data.find("div", class_="comment-star").find_all("dd")[4].find("em", class_="col-exp").text[1:-1]
-    star_1_num = data.find("div", class_="comment-star").find_all("dd")[5].find("em", class_="col-exp").text[1:-1]
+    try:
+        comment_num = data.find("div", class_="comment-star").find_all("dd")[0].find("em", class_="col-exp").text[1:-1]
+        star_5_num = data.find("div", class_="comment-star").find_all("dd")[1].find("em", class_="col-exp").text[1:-1]
+        star_4_num = data.find("div", class_="comment-star").find_all("dd")[2].find("em", class_="col-exp").text[1:-1]
+        star_3_num = data.find("div", class_="comment-star").find_all("dd")[3].find("em", class_="col-exp").text[1:-1]
+        star_2_num = data.find("div", class_="comment-star").find_all("dd")[4].find("em", class_="col-exp").text[1:-1]
+        star_1_num = data.find("div", class_="comment-star").find_all("dd")[5].find("em", class_="col-exp").text[1:-1]
+    except:
+        comment_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num = None, None, None, None, None, None
     return comment_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num
 
 
@@ -154,15 +173,23 @@ def get_shop_location(shop_name):
     return pos.lng, pos.lat
 
 
-def crawl_all_shops():
-    for i in open(CATEGORY_CSV):
-        category_name, category = i.strip().split(FIELD_DELIMITER)
-        print "start to crawl: {0}...".format(category_name)
-        info_list, heat_list, score_list, cmt_list = crawl_all_shops_by_category(category, "taste", 8.2, 400)
-        csvLib.write_records_to_csv(SHOP_DATA_DIR+ "/{0}.csv".format(category), info_list, FIELD_DELIMITER)
-        csvLib.write_records_to_csv(HEAT_DATA_DIR + "/{0}.csv".format(category), heat_list, FIELD_DELIMITER)
-        csvLib.write_records_to_csv(SCORE_DATA_DIR + "/{0}.csv".format(category), score_list, FIELD_DELIMITER)
-        csvLib.write_records_to_csv(COMMENT_DATA_DIR + "/{0}.csv".format(category), cmt_list, FIELD_DELIMITER)
+def crawl_shops(category_set, ignore_data=False):
+    for category in category_set.itertuples():
+        category_name = category.category_name
+        category_id = category.category_id
+
+        if os.path.exists(COMMENT_DATA_CSV.format(category_id)) and ignore_data is False:
+            print "【{0}】 已经存在！".format(category_name)
+            continue
+        print "开始抓取【{0}】数据...".format(category_name)
+        info_list, heat_list, score_list, cmt_list = \
+            crawl_all_shops_by_category(category, DEFAULT_ORDER_TYPE, TASTE_SCORE_THRESHOLD, CATEGORY_NUMBER_LIMIT)
+
+        csvLib.write_records_to_csv(SHOP_DATA_CSV.format(category_id), info_list, FIELD_DELIMITER)
+        csvLib.write_records_to_csv(HEAT_DATA_CSV.format(category_id), heat_list, FIELD_DELIMITER)
+        csvLib.write_records_to_csv(SCORE_DATA_CSV.format(category_id), score_list, FIELD_DELIMITER)
+        csvLib.write_records_to_csv(COMMENT_DATA_CSV.format(category_id), cmt_list, FIELD_DELIMITER)
+        print "【{0}】数据写入完成！".format(category_name)
 
 
 def crawl_shops_routes():
@@ -220,10 +247,10 @@ def crawl_shops_baidu_location():
     location_list = []
     for row in service.get_distinct_shops():
         shop_id = str(row.shop_id)
-        shop_name = row.shop_name
+        address = row.address
         if shop_id in shop_list: continue
         try:
-            lng, lat = get_shop_location(shop_name)
+            lng, lat = get_shop_location(address)
         except:
             continue
         print lng, lat
@@ -235,5 +262,28 @@ def crawl_shops_baidu_location():
             location_list = []
     csvLib.write_records_to_csv(LOCATION_CSV, location_list, FIELD_DELIMITER, mode="a")
 
-if __name__ == '__main__':
-    crawl_shops_routes()
+
+def backup_data_dir():
+    import shutil
+    if os.path.exists(BACKUP_DATA_DIR) is True:
+        shutil.rmtree(BACKUP_DATA_DIR)
+    shutil.copytree(DATA_DIR, BACKUP_DATA_DIR)
+    print "数据成功备份到{0}!".format(BACKUP_DATA_DIR)
+
+
+def del_local_all_shops_data():
+    def del_local_shop_data(typed_csv):
+        for f in glob.glob(os.path.join(os.path.dirname(typed_csv), "*.csv")): os.remove(f)
+
+    del_local_shop_data(SHOP_DATA_CSV)
+    del_local_shop_data(COMMENT_DATA_CSV)
+    del_local_shop_data(SCORE_DATA_CSV)
+    del_local_shop_data(HEAT_DATA_CSV)
+    print "评论、评分、点击、基础信息历史数据删除完成!"
+
+
+def split_category_segments(category, seg_num):
+    size = len(category)
+    seg_length = int(size / seg_num)
+    category_sets = [category[i:i + seg_length] for i in range(0, size + 1, seg_length)]
+    return category_sets

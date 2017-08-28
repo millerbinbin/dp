@@ -16,32 +16,32 @@ DISTRICT_CSV = os.path.join(BASE_DATA_DIR, "districts.csv")
 
 
 def get_all_cbd(data):
-    return [(item.text, item['href'][item['href'].rfind("/") + 1:])
+    return [(item.text, item['href'][item['href'].rfind("/") + 1:], item['href'][item['href'].rfind("/") + 2:])
             for item in data.find("div", id="bussi-nav", class_="nc-items").find_all("a")]
 
 
 def get_all_metros(data):
-    return [(item.text, item['href'][item['href'].rfind("/") + 1:])
+    return [(item.text, item['href'][item['href'].rfind("/") + 1:], item['href'][item['href'].rfind("/") + 2:])
             for item in data.find("div", id="metro-nav", class_="nc-items").find_all("a")]
 
 
 def get_all_districts(data):
-    return [(item.text, item['href'][item['href'].rfind("/") + 1:]) for item in
-            data.find("div", id="region-nav", class_="nc-items").find_all("a")]
+    return [(item.text, item['href'][item['href'].rfind("/") + 1:], item['href'][item['href'].rfind("/") + 2:])
+            for item in data.find("div", id="region-nav", class_="nc-items").find_all("a")]
 
 
 def get_all_category(data):
-    return [(item.text, item['href'][item['href'].rfind("/") + 1:]) for item in
-            data.find("div", id="classfy", class_="nc-items").find_all("a")]
+    return [(item.text, item['href'][item['href'].rfind("/") + 1:], item['href'][item['href'].rfind("/") + 2:])
+            for item in data.find("div", id="classfy", class_="nc-items").find_all("a")]
 
 
 def get_all_regions_by_district(district):
-    district_name, district_id = district
-    region_url = SH_URL + "/" + district_id
+    district_name, district_code, district_id = district
+    region_url = SH_URL + "/" + district_code
     print region_url
     data = crawlLib.Crawler(region_url).parse_content()
-    return [(item.text, item['href'][item['href'].rfind("/") + 1:], district_id) for item in
-            data.find("div", id="region-nav-sub", class_="nc-items nc-sub").find_all(tag_filter)]
+    return [(item.text, item['href'][item['href'].rfind("/") + 1:], item['href'][item['href'].rfind("/") + 2:], district_id)
+            for item in data.find("div", id="region-nav-sub", class_="nc-items nc-sub").find_all(tag_filter)]
 
 
 def tag_filter(tag):

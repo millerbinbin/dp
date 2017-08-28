@@ -4,8 +4,8 @@ import json
 
 from selenium import webdriver
 
-import service
 from filewriter import csvLib
+from main import service
 
 driver = webdriver.PhantomJS()
 
