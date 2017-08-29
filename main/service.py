@@ -263,5 +263,5 @@ def save_favor_data(favor_data):
             continue
         res.append((shop_id, json.dumps(favor_list, ensure_ascii=False).encode("utf-8")))
     csvLib.write_records_to_csv(FAVOR_DATA_DIR+"/data.csv", res, FIELD_DELIMITER, mode="a")
-    time.sleep(1)
+    time.sleep(3)
     return len(res)

@@ -6,42 +6,50 @@ from selenium import webdriver
 
 from filewriter import csvLib
 from main import service
+import time
+from bs4 import BeautifulSoup
 
-driver = webdriver.PhantomJS()
+def test_phantom():
+    driver = webdriver.PhantomJS()
+    rohr_init='''
+    window.rohrdata = "";
+    window.Rohr_Opt = new Object;
+    window.Rohr_Opt.Flag = 100001,
+    window.Rohr_Opt.LogVal = "rohrdata";
+    '''
+    f = open("rohr.min.js", "r")
+    rohr = f.read()
+    f.close()
 
-FIELD_DELIMITER = "\t"
+    for item in service.get_random_favor_shops(service.load_weight_details()).head(10).itertuples():
+        shop_id = item.shop_id
+        shop_name = item.shop_name
+        token_get='''
+        var data = {{ shop_id: {0}, cityId: 1, shopName: "{1}", power: 5, mainCategoryId: 111, shopType: 10, shopCityId: 1}};
+        window.Rohr_Opt.reload(data);
+        var token = decodeURIComponent(window.rohrdata);//这就是那个token了
+        return token;
+        '''.format(shop_id, shop_name)
 
+        driver.execute_script(rohr_init)
+        driver.execute_script(rohr)
+        token = driver.execute_script(token_get)
 
-try:
-    dishes = []
-    def load_all_saved_favorites():
-        return {i.strip().split(FIELD_DELIMITER)[0] for i in open("test.csv")}
-
-    shop_list = load_all_saved_favorites()
-    for row in service.get_distinct_shops():
-        shop_id = str(row.shop_id)
-        if shop_id in shop_list: continue
-        print shop_id
-        driver.get("http://www.dianping.com/shop/{}".format(shop_id))
-
-        try:
-            shop_closed = driver.find_element_by_class_name("shop-closed")
-            continue
-        except:
-            pass
-        rec_list = driver.find_element_by_class_name("recommend-name").find_elements_by_class_name("item")
-        favors = {}
-        for rec in rec_list:
-            if rec.text == "":continue
-            dish_name, count = rec.text.split("(")
-            dish_name = dish_name[:-1]
-            count = count[:-1]
-            favors[dish_name] = count
-        dishes.append((shop_id, json.dumps(favors, ensure_ascii=False).encode('utf8')))
-        if len(dishes) % 20 == 0:
-            print "flush data to disk..."
-            csvLib.write_records_to_csv("test.csv", dishes, FIELD_DELIMITER, mode="a")
-            dishes = []
-    csvLib.write_records_to_csv("test.csv", dishes, FIELD_DELIMITER, "a")
-finally:
+        url = "http://www.dianping.com/ajax/json/shopDynamic/shopTabs?shopId={0}&cityId=1&shopName={1}" \
+              "&power=5&mainCategoryId=111&shopType=10&shopCityId=1&_token={2}".format(shop_id, shop_name, token)
+        print url
+        get_content(driver, url)
+        get_content(driver, url)
+        get_content(driver, url)
+        time.sleep(1)
     driver.close()
+
+def get_content(driver, url):
+    driver.get(url)
+    html = driver.page_source
+    soup = BeautifulSoup(html, 'lxml')
+    cc = soup.select('pre')[0]
+    print cc.string
+
+if __name__ == '__main__':
+    test_phantom()

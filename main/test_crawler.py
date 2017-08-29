@@ -34,4 +34,5 @@ def test_get_random_favor_shops():
 
 if __name__ == '__main__':
     #test_save_weight_details()
-    print test_get_random_favor_shops()
+    #print test_get_random_favor_shops()
+    print crawlLib.Crawler("http://www.dianping.com/shop/8629576").crawl()

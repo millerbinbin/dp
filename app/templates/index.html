@@ -239,8 +239,9 @@
     for(var i=0;i<data_info.length;i++){
       var marker = new BMap.Marker(new BMap.Point(data_info[i].lng,data_info[i].lat));  // 创建标注
       var shop_link = 'http://www.dianping.com/shop/' + data_info[i].shop_id;
-      var detail = '<a class="text-left" href="'+shop_link+'"><h5>'+data_info[i].name+'</h5></a>' +
-      '<div>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</div>' +
+      var detail = '<div class="row"><div class="col-xs-8"><a class="text-left" target="_blank" href="'+shop_link+'"><h5>'+data_info[i].name+'</h5></a></div></div>' +
+      '<div>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;\
+            &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</div>' +
       '<div class="row"><div class="col-xs-4"><span class="label label-default">菜&emsp;系：'+data_info[i].category+'</span></div>' +
       '<div class="col-xs-4"><span class="label label-warning">口&emsp;味：'+data_info[i].taste_score+'</span></div>' +
       '<div class="col-xs-4"><span class="label label-success">人&emsp;均：¥'+data_info[i].avg_price+'</span></div></div>' +

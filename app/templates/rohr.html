@@ -16,8 +16,8 @@
     window.Rohr_Opt = new Object;
     window.Rohr_Opt.Flag = 100001,
     window.Rohr_Opt.LogVal = "rohrdata";
-</script>
-<script type="text/javascript" src="https://awp-assets.meituan.net/hfe/rohr/1.0.2/rohr.min.js"></script>
+  </script>
+  <script type="text/javascript" src="https://awp-assets.meituan.net/hfe/rohr/1.0.2/rohr.min.js"></script>
 </head>
 <body>
 <div>
@@ -28,7 +28,7 @@
   function get_random_shops(){
     var result;
     $.ajax({
-       url: '/shops/random/100',
+       url: '/shops/random/1',
        dataType: 'json',
        type: 'GET',
        timeout: 3000,
@@ -62,7 +62,7 @@
   }
 
   function post_data_back(){
-    for(var i=0;i<50;i++){
+    for(var i=0;i<5;i++){
       favor_data = JSON.stringify(get_all_favors());
       $.ajax({
          url: '/shops/favors',
@@ -76,17 +76,18 @@
          success: function(data){console.log(data.message);}
       });
     }
-
   }
 
   function get_favorite_dishes(shop_id, shop_name, category_id){
-    // console.log(shop_name);
+
     if (shop_name.indexOf("(") >= 0){
       shop_name = shop_name.slice(0,shop_name.indexOf("("));
     }
+    console.log(shop_id + ',' + shop_name);
     var data = { shop_id: shop_id, cityId: "1", shopName: shop_name, power: "5", mainCategoryId: category_id, shopType: "10", shopCityId: "1"};
     window.Rohr_Opt.reload(data);
-    var token = decodeURIComponent(window.rohrdata);//这就是那个token了
+    var token = encodeURIComponent(window.rohrdata);//这就是那个token了
+    console.log(token);
     url = 'http://www.dianping.com/ajax/json/shopDynamic/shopTabs?shopId='+shop_id+'&cityId=1&shopName='+shop_name+'&power=5&mainCategoryId='+category_id+'&shopType=10&shopCityId=1&_token='+token;
     var result;
     $.ajax({
@@ -94,11 +95,23 @@
        dataType: 'json',
        type: 'GET',
        timeout: 2000,
-       cache: true,
+       cache: false,
        async : false,
        error: function(){console.log("get data error!"); result=[]},
        success: function(data){result=data.allDishes;}
     });
+    if (result.length==0){
+      $.ajax({
+         url: url,
+         dataType: 'json',
+         type: 'GET',
+         timeout: 2000,
+         cache: false,
+         async : false,
+         error: function(){console.log("get data error!"); result=[]},
+         success: function(data){result=data.allDishes;}
+      });
+    }
     return result;
   }
 </script>
