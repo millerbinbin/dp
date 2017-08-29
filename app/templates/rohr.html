@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<script type="text/javascript" src="../static/js/jquery-3.2.1.min.js"></script>
+  <link href="../static/css/bootstrap.css" rel="stylesheet">
+  <script type="text/javascript" src="../static/js/bootstrap.min.js"></script>
+  <link href="../static/css/skins/polaris/polaris.css" rel="stylesheet">
+
+  <script type="text/javascript" src="../static/js/icheck.js"></script>
+	<title>精品推荐</title>
+	<link rel="shortcut icon" href="../static/image/dp.jpg" >
+  <script type="text/javascript">
+    window.rohrdata = "";
+    window.Rohr_Opt = new Object;
+    window.Rohr_Opt.Flag = 100001,
+    window.Rohr_Opt.LogVal = "rohrdata";
+</script>
+<script type="text/javascript" src="https://awp-assets.meituan.net/hfe/rohr/1.0.2/rohr.min.js"></script>
+</head>
+<body>
+<div>
+  <button class="btn btn-primary" onclick="post_data_back()">show token</button>
+</div>
+
+<script>
+  function get_random_shops(){
+    var result;
+    $.ajax({
+       url: '/shops/random/100',
+       dataType: 'json',
+       type: 'GET',
+       timeout: 3000,
+       cache: false,
+       crossDomain: true,
+       async : false,
+       error: function(){alert("get data error!");},
+       success: function(data){result = data;}
+      });
+    return result;
+  }
+
+  function get_all_favors(){
+    var shops = get_random_shops();
+    var result = [];
+
+    shops.forEach(function (shop) {
+      var f = {};
+      f.shop_id = shop.shop_id;
+      f.name = shop.name;
+      var data_info = get_favorite_dishes(shop.shop_id, shop.name, shop.category_id);
+      var a = [];
+      for(var i=0;i<data_info.length;i++){
+        if (i==5) {break;}
+        a[i] = {dishTagName: data_info[i].dishTagName, tagCount: data_info[i].tagCount, finalPrice: data_info[i].finalPrice};
+      }
+      f.favor = a;
+      result.push(f);
+    });
+    return result;
+  }
+
+  function post_data_back(){
+    for(var i=0;i<50;i++){
+      favor_data = JSON.stringify(get_all_favors());
+      $.ajax({
+         url: '/shops/favors',
+         dataType: 'json',
+         type: 'POST',
+         data: {"favor_data": favor_data},
+         timeout: 2000,
+         cache: true,
+         async : false,
+         error: function(){console.log("get data error2!");},
+         success: function(data){console.log(data.message);}
+      });
+    }
+
+  }
+
+  function get_favorite_dishes(shop_id, shop_name, category_id){
+    // console.log(shop_name);
+    if (shop_name.indexOf("(") >= 0){
+      shop_name = shop_name.slice(0,shop_name.indexOf("("));
+    }
+    var data = { shop_id: shop_id, cityId: "1", shopName: shop_name, power: "5", mainCategoryId: category_id, shopType: "10", shopCityId: "1"};
+    window.Rohr_Opt.reload(data);
+    var token = decodeURIComponent(window.rohrdata);//这就是那个token了
+    url = 'http://www.dianping.com/ajax/json/shopDynamic/shopTabs?shopId='+shop_id+'&cityId=1&shopName='+shop_name+'&power=5&mainCategoryId='+category_id+'&shopType=10&shopCityId=1&_token='+token;
+    var result;
+    $.ajax({
+       url: url,
+       dataType: 'json',
+       type: 'GET',
+       timeout: 2000,
+       cache: true,
+       async : false,
+       error: function(){console.log("get data error!"); result=[]},
+       success: function(data){result=data.allDishes;}
+    });
+    return result;
+  }
+</script>
+
+</body>
+</html>

@@ -2,7 +2,8 @@
 <html lang="zh-CN">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <!--<meta name="viewport" content="width=device-width, initial-scale=1">-->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<style type="text/css">
 		html, body, #map {width: 100%;height: 100%;}
 	</style>
@@ -21,15 +22,16 @@
 	<link rel="shortcut icon" href="../static/image/dp.jpg" >
 </head>
 <body>
+<div class="container">
   <nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container-fluid">
       <div class="navbar-header">
-        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-9" aria-expanded="false">
-          <span class="sr-only">Toggle navigation</span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
+        <!--<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-9" aria-expanded="false">-->
+          <!--<span class="sr-only">Toggle navigation</span>-->
+          <!--<span class="icon-bar"></span>-->
+          <!--<span class="icon-bar"></span>-->
+          <!--<span class="icon-bar"></span>-->
+        <!--</button>-->
         <div class="navbar-brand" >
           <a href="#" onclick="filter_hidden(false)">
             <span class="glyphicon glyphicon-filter"></span>筛选<span class="caret"></span>
@@ -54,6 +56,7 @@
       </div>
     </div>
   </nav>
+</div>
 <div class="div-relative">
   <div class="panel hidden div-a" id="filter_box">
     <div class="panel-body" id="category-selection">
@@ -98,17 +101,19 @@
       </div>
       <br>
       <div class="row">
-        <form class="form-inline col-md-4" role="form">
+        <form class="form-inline col-md-4">
           <label class="form-label">评分不低于:</label>
-          <input class="form-control input-sm" type="text" style="width:80px;" id="taste-score">
+          <input class="form-control input-sm" type="number" style="width:40%;" id="taste-score">
         </form>
-        <form class="form-inline col-md-4" role="form">
-            <label class="form-label">人均不超过:</label>
-            <input class="form-control input-sm" type="text" style="width:80px;" id="avg-price">
+        <form class="form-inline col-md-4">
+            <label class="form-label">人均:</label>
+            <input class="form-control input-sm" type="number" style="width:30%;" id="avg-price-min">
+            <label class="form-label">--</label>
+            <input class="form-control input-sm" type="number" style="width:30%;" id="avg-price-max">
         </form>
-        <form class="form-inline col-md-4" role="form">
+        <form class="form-inline col-md-4">
             <label class="form-label">评论数不少于:</label>
-            <input class="form-control input-sm" type="text" style="width:80px;" id="comment-num">
+            <input class="form-control input-sm" type="number" style="width:40%;" id="comment-num">
         </form>
       </div>
       <br><br>
@@ -118,16 +123,16 @@
       </div>
     </div>
   </div>
-  <div id="map" class="div-b"></div>
+  <div id="map" class="container div-b"></div>
 </div>
 <script type="text/javascript">
-    $(document).ready(function(){
-      $('input').iCheck({
-        checkboxClass: 'icheckbox_polaris',
-        radioClass: 'iradio_polaris',
-        increaseArea: '-10%' // optional
-      });
+  $(document).ready(function(){
+    $('input').iCheck({
+      checkboxClass: 'icheckbox_polaris',
+      radioClass: 'iradio_polaris',
+      increaseArea: '-10%' // optional
     });
+  });
 
   var map_center = {"lat":31.236923, "lng": 121.483644};
   var map_layer = 13;
@@ -136,7 +141,8 @@
   var order_col = "taste_score";
   var category_set = new Set();
   var taste_score;
-  var avg_price;
+  var avg_price_min;
+  var avg_price_max;
   var comment_num;
   init_data();
 
@@ -162,9 +168,10 @@
     }
     taste_score = parseFloat($("#taste-score").val());
     if (isNaN(taste_score)){taste_score = undefined;}
-    avg_price = parseInt($("#avg-price").val());
-    if (isNaN(avg_price)){avg_price = undefined;}
-    console.log(avg_price);
+    avg_price_min = parseInt($("#avg-price-min").val());
+    if (isNaN(avg_price_min)){avg_price_min = undefined;}
+    avg_price_max = parseInt($("#avg-price-max").val());
+    if (isNaN(avg_price_max)){avg_price_max = undefined;}
     comment_num = parseInt($("#comment-num").val());
     if (isNaN(comment_num)){comment_num = undefined;}
     if (refresh === true){
@@ -202,7 +209,7 @@
   }
 
   function get_data(page, top, order_by){
-    var param = {"taste_score": taste_score, "comment_num": comment_num, "avg_price": avg_price};
+    var param = {"taste_score": taste_score, "comment_num": comment_num, "avg_price_min": avg_price_min, "avg_price_max": avg_price_max};
     var category_str = "";
     category_set.forEach(function (item) {
       category_str+=item.toString() + ",";
@@ -218,8 +225,8 @@
        cache: false,
        crossDomain: true,
        async : false,
-       error: function(){alert("get data error!");},  //错误执行方法
-       success: function(data){result = data;} //成功执行方法
+       error: function(){alert("get data error!");},
+       success: function(data){result = data;}
     });
     return result;
   }
@@ -231,18 +238,17 @@
     }
     for(var i=0;i<data_info.length;i++){
       var marker = new BMap.Marker(new BMap.Point(data_info[i].lng,data_info[i].lat));  // 创建标注
-      var detail =
-      '<div class="row"><div class="col-sm-8"><a href="http://www.dianping.com/shop/'+data_info[i].shop_id+'"target="_blank"><h5>'+data_info[i].name+'</h5></a></div></div>' +
-      '<div class="row"><div class="col-sm-4"><span class="label label-default">菜系：'+data_info[i].category+'</span></div>' +
-      '<div class="col-sm-4"><span class="label label-warning">口味：'+data_info[i].taste_score+'</span></div>' +
-      '<div class="col-sm-4"><span class="label label-success">人均：'+data_info[i].avg_price+'</span></div></div>' +
-      '</br>'+
-      '<div class="row"><div class="col-sm-4"><span class="label label-info">评论数：'+data_info[i].comment_num+'</span></div>' +
-      '<div class="col-sm-4"><span class="label label-danger">好评率：'+data_info[i].good_rate+'%</span></div>' +
-      '<div class="col-sm-4"></div></div>' +
-      '</br>'+
-      '<div><span class="label label-primary">行程：'+data_info[i].route+'</span></div>'+
-      '<div><span class="label label-primary">耗时：'+data_info[i].public_duration+'</span></div>';
+      var shop_link = 'http://www.dianping.com/shop/' + data_info[i].shop_id;
+      var detail = '<a class="text-left" href="'+shop_link+'"><h5>'+data_info[i].name+'</h5></a>' +
+      '<div>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</div>' +
+      '<div class="row"><div class="col-xs-4"><span class="label label-default">菜&emsp;系：'+data_info[i].category+'</span></div>' +
+      '<div class="col-xs-4"><span class="label label-warning">口&emsp;味：'+data_info[i].taste_score+'</span></div>' +
+      '<div class="col-xs-4"><span class="label label-success">人&emsp;均：¥'+data_info[i].avg_price+'</span></div></div>' +
+      '<div class="row"><div class="col-xs-4"><span class="label label-info">评论数：'+data_info[i].comment_num+'</span></div>' +
+      '<div class="col-xs-4"><span class="label label-danger">好评率：'+data_info[i].good_rate+'%</span></div>' +
+      '<div class="col-xs-4"></div></div><br>' +
+      '<span class="label label-primary">行程耗时：'+data_info[i].public_duration+'</span>'+
+      '<div><span class="label label-primary">'+data_info[i].route+'</span></div>';
       map.addOverlay(marker);               // 将标注添加到地图中
       addClickHandler(detail,marker);
     }
@@ -255,7 +261,8 @@
   function openDetailInfo(detailInfo, e){
     var p = e.target;
     var point = new BMap.Point(p.getPosition().lng, p.getPosition().lat);
-    var infoWindow = new BMap.InfoWindow(detailInfo);  // 创建信息窗口对象
+    var option = {};
+    var infoWindow = new BMap.InfoWindow(detailInfo, option);  // 创建信息窗口对象
     map.openInfoWindow(infoWindow,point); //开启信息窗
     //infoWindow.redraw();
   }

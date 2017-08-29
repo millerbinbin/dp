@@ -1,10 +1,12 @@
 # -*- coding:utf-8 -*-
 from crawl import WORK_DIR
+from filewriter import csvLib
 import pandas as pd
 import numpy as np
 import os
 import glob
 import json
+import time
 import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
@@ -19,6 +21,7 @@ COMMENT_DATA_DIR = os.path.join(BASE_DATA_DIR, "../comments")
 HEAT_DATA_DIR = os.path.join(BASE_DATA_DIR, "../heats")
 SCORE_DATA_DIR = os.path.join(BASE_DATA_DIR, "../scores")
 ROUTE_DATA_DIR = os.path.join(BASE_DATA_DIR, "../routes")
+FAVOR_DATA_DIR = os.path.join(BASE_DATA_DIR, "../favorite")
 DETAILS_CSV = os.path.join(BASE_DATA_DIR, "../shop_weight_details.csv")
 FIELD_DELIMITER = "\t"
 
@@ -104,6 +107,14 @@ def get_routes():
     return df[["shop_id", "verse_taxi_distance", "route", "public_duration"]]
 
 
+def get_favors():
+    all_files = glob.glob(os.path.join(FAVOR_DATA_DIR, "*.csv"))
+    df = pd.concat((pd.read_csv(f, header=None, sep=FIELD_DELIMITER, na_values="None") for f in all_files))
+    df.columns = ["shop_id", "favors"]
+    df["shop_id"] = df["shop_id"].apply(lambda x: str(x))
+    return df
+
+
 def get_all_info():
     shops = get_shops()
     comments = get_comments()
@@ -125,7 +136,7 @@ def get_weight_details():
                    "comment_num", "good_rate",
                    "avg_price", "taste_score", "env_score", "ser_score",
                    "weighted_hits",
-                   "verse_taxi_distance", "route", "public_duration", "category_name"
+                   "verse_taxi_distance", "route", "public_duration", "category_name", "category_id"
                    ]]
     return df\
         .groupby("shop_id")\
@@ -133,7 +144,8 @@ def get_weight_details():
             "comment_num": np.max, "good_rate": np.max,
             "avg_price": np.max, "taste_score": np.max, "env_score": np.max, "ser_score": np.max,
             "weighted_hits": np.max,
-            "verse_taxi_distance": np.max, "route": np.max, "public_duration": np.max, "category_name": np.max})
+            "verse_taxi_distance": np.max, "route": np.max, "public_duration": np.max,
+              "category_name": np.max, "category_id": np.max})
 
 
 def save_weight_details():
@@ -149,11 +161,13 @@ def load_weight_details():
 
 
 def get_customized_shops(details, params, order_by):
-    good_rate, taste_score, comment_num, avg_price, category = None, None, None, None, None
+    good_rate, taste_score, comment_num, avg_price_min, avg_price_max, category = None, None, None, None, None, None
     try:
+        good_rate = params['good_rate']
         taste_score = params['taste_score']
         comment_num = params['comment_num']
-        avg_price = params['avg_price']
+        avg_price_min = params['avg_price_min']
+        avg_price_max = params['avg_price_max']
         category = params['category'].split(',') if params['category'] != '' else None
     except:
         pass
@@ -165,8 +179,10 @@ def get_customized_shops(details, params, order_by):
         condition = condition & (details["taste_score"] >= taste_score)
     if comment_num is not None:
         condition = condition & (details["comment_num"] >= comment_num)
-    if avg_price is not None:
-        condition = condition & (details["avg_price"] <= avg_price)
+    if avg_price_max is not None:
+        condition = condition & (details["avg_price"] <= avg_price_max)
+    if avg_price_min is not None:
+        condition = condition & (details["avg_price"] >= avg_price_min)
     if category is not None:
         details = details[details["category_name"].isin(category)]
     if order_by is not None and order_by in ('taste_score', 'weighted_hits', 'comment_num', 'good_rate', 'verse_taxi_distance'):
@@ -174,11 +190,11 @@ def get_customized_shops(details, params, order_by):
     else:
         details = details
     if condition is not True:
-        return details[condition].loc[:, ["shop_id", "shop_name", "taste_score", 'comment_num', 'good_rate',
-                                          "avg_price", "category_name", "lng", "lat", "route", "public_duration"]]
+        return details[condition].loc[:, ["shop_id", "shop_name", "taste_score", 'comment_num', 'good_rate', "avg_price",
+                                          "category_id", "category_name", "lng", "lat", "route", "public_duration"]]
     else:
-        return details.loc[:, ["shop_id", "shop_name", "taste_score", 'comment_num', 'good_rate',
-                               "avg_price", "category_name", "lng", "lat", "route", "public_duration"]]
+        return details.loc[:, ["shop_id", "shop_name", "taste_score", 'comment_num', 'good_rate', "avg_price",
+                               "category_id", "category_name", "lng", "lat", "route", "public_duration"]]
 
 
 def get_distinct_shops():
@@ -190,7 +206,8 @@ def get_json_data_from_df(df):
     res = [{"name": row.shop_name, "lng": row.lng, "lat": row.lat,
             "avg_price": "-" if str(row.avg_price)=="nan" else int(row.avg_price),
             "taste_score": row.taste_score, "comment_num": int(row.comment_num), "good_rate": int(row.good_rate),
-            "category": row.category_name, "shop_id": row.shop_id, "route": row.route, "public_duration": row.public_duration
+            "category": row.category_name, "shop_id": row.shop_id, "route": row.route, "public_duration": row.public_duration,
+            "category_id": str(row.category_id)
             }
             for row in df.itertuples()]
     return json.dumps(res, ensure_ascii=False).encode("utf-8")
@@ -228,3 +245,23 @@ def get_time_str(duration):
         x += "{0}分".format(minute)
     return x
 
+
+def get_random_favor_shops(all_data_info):
+    favor_shops = get_favors()
+    s = pd.merge(all_data_info, favor_shops, how="left", on="shop_id")
+    return s[s.favors.isnull()][["shop_id", "shop_name", "taste_score", 'comment_num', 'good_rate', "avg_price",
+                               "category_id", "category_name", "lng", "lat", "route", "public_duration"]]
+
+
+def save_favor_data(favor_data):
+    favors = json.loads(favor_data)
+    res = []
+    for favor in favors:
+        shop_id = favor["shop_id"]
+        favor_list = favor["favor"]
+        if len(favor_list) == 0:
+            continue
+        res.append((shop_id, json.dumps(favor_list, ensure_ascii=False).encode("utf-8")))
+    csvLib.write_records_to_csv(FAVOR_DATA_DIR+"/data.csv", res, FIELD_DELIMITER, mode="a")
+    time.sleep(1)
+    return len(res)

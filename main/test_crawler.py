@@ -1,4 +1,4 @@
-from crawl import shop
+from crawl import shop, crawlLib
 import service
 
 
@@ -24,7 +24,14 @@ def test_save_weight_details():
     service.save_weight_details()
 
 
+def test_get_shop_favorite_food(shop_id):
+    return shop.get_shop_favorite_food(shop_id)
+
+
+def test_get_random_favor_shops():
+    return service.get_random_favor_shops(service.load_weight_details())
+
+
 if __name__ == '__main__':
-    #test_backup()
-    #test_del_dir()
-    test_save_weight_details()
+    #test_save_weight_details()
+    print test_get_random_favor_shops()
