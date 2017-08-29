@@ -1,6 +1,4 @@
 #!flask/bin/python
-import sys
-print sys.path
 from flask_cors import *
 from app import app
 

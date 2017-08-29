@@ -16,13 +16,15 @@ def test_split_category_segments():
     return shop.split_category_segments(category, seg_num)
 
 
-def test_customized_shops():
-    all_data_info = service.load_weight_details()
-    params = {'category': '', 'comment_num': 0.0, 'bad_rate': None, 'taste_score': 8.8, 'avg_price': 0.0}
-    shops = service.get_customized_shops(all_data_info, params=params, order_by="taste_score")
-    return shops
+def test_get_route():
+    return service.get_routes()
+
+
+def test_save_weight_details():
+    service.save_weight_details()
+
 
 if __name__ == '__main__':
     #test_backup()
     #test_del_dir()
-    print test_customized_shops()
+    test_save_weight_details()

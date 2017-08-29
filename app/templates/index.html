@@ -7,9 +7,9 @@
 		html, body, #map {width: 100%;height: 100%;}
 	</style>
   <style>
-    .div-relative{position:relative;color:#000;border:1px solid #000;width:100%;height:100%}
-    .div-a{ position:absolute;left:20px;top:5%;z-index:100;width:45%;height:50%;border:10px}
-    .div-b{ position:absolute;left:0px;top:0px;z-index:80}
+    .div-relative{position:relative;width:100%;height:100%}
+    .div-a{ position:absolute;left:0%;top:6%;z-index:100;width:45%;height:50%}
+    .div-b{ position:absolute;z-index:80;width:100%;height:100%}
    </style>
 		<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=kAWXbccRXNNwQl79u9cFcV6eysiBiBeA"></script>
 	<script type="text/javascript" src="../static/js/jquery-3.2.1.min.js"></script>
@@ -41,9 +41,9 @@
         <ul class="nav navbar-nav navbar-center">
           <li id="taste_tab" value="taste_score" onclick="order_by(this)" class="active"><a href="#">口味优先</a></li>
           <li id="comment_tab" value="comment_num" onclick="order_by(this)"><a href="#">最热讨论</a></li>
-          <li id="heat_tab" value="last_week_hits" onclick="order_by(this)"><a href="#">点击为王</a></li>
+          <li id="heat_tab" value="weighted_hits" onclick="order_by(this)"><a href="#">点击为王</a></li>
           <li id="rating_tab" value="good_rate" onclick="order_by(this)"><a href="#">好评如潮</a></li>
-          <li id="distance_tab" value="taxi_distance" onclick="order_by(this)"><a href="#">周边美食</a></li>
+          <li id="distance_tab" value="verse_taxi_distance" onclick="order_by(this)"><a href="#">周边美食</a></li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
 
@@ -218,7 +218,7 @@
        cache: false,
        crossDomain: true,
        async : false,
-       error: function(){alert("rr");},  //错误执行方法
+       error: function(){alert("get data error!");},  //错误执行方法
        success: function(data){result = data;} //成功执行方法
     });
     return result;
@@ -227,34 +227,30 @@
   function render_data(data_info){
     map.clearOverlays();
     if (data_info.length < limit_num){
-      current_page = 1
+      current_page = 0
     }
     for(var i=0;i<data_info.length;i++){
       var marker = new BMap.Marker(new BMap.Point(data_info[i].lng,data_info[i].lat));  // 创建标注
-      var brief = '<div class="panel panel-default"><div class="panel-body">'+data_info[i].name+'</div></div>';
-
-      var detail = '<a href="http://www.dianping.com/shop/'+data_info[i].shop_id+'"target="_blank">' +
-      '<h5>'+data_info[i].name+'</h5></a>' +
-      '<div class="row"><div class="col-sm-4"><span class="label label-success">菜系：'+data_info[i].category+'</span></div>' +
-      '<div class="col-sm-4"><span class="label label-success">口味：'+data_info[i].taste_score+'</span></div>' +
+      var detail =
+      '<div class="row"><div class="col-sm-8"><a href="http://www.dianping.com/shop/'+data_info[i].shop_id+'"target="_blank"><h5>'+data_info[i].name+'</h5></a></div></div>' +
+      '<div class="row"><div class="col-sm-4"><span class="label label-default">菜系：'+data_info[i].category+'</span></div>' +
+      '<div class="col-sm-4"><span class="label label-warning">口味：'+data_info[i].taste_score+'</span></div>' +
       '<div class="col-sm-4"><span class="label label-success">人均：'+data_info[i].avg_price+'</span></div></div>' +
       '</br>'+
-      '<div><span class="label label-primary">'+data_info[i].route+'</span></div>';
-
+      '<div class="row"><div class="col-sm-4"><span class="label label-info">评论数：'+data_info[i].comment_num+'</span></div>' +
+      '<div class="col-sm-4"><span class="label label-danger">好评率：'+data_info[i].good_rate+'%</span></div>' +
+      '<div class="col-sm-4"></div></div>' +
+      '</br>'+
+      '<div><span class="label label-primary">行程：'+data_info[i].route+'</span></div>'+
+      '<div><span class="label label-primary">耗时：'+data_info[i].public_duration+'</span></div>';
       map.addOverlay(marker);               // 将标注添加到地图中
-      var label = new BMap.Label(data_info[i].name,{offset:new BMap.Size(20, 5)});
-      //marker.setLabel(label);
-      var label = data_info[i].name;
-      addClickHandler(detail,brief,marker);
+      addClickHandler(detail,marker);
     }
   }
-  function addClickHandler(detail,brief,marker){
+  function addClickHandler(detail,marker){
     marker.addEventListener("click",function(e){
       openDetailInfo(detail, e)}
     );
-    <!--marker.addEventListener("mouseover",function(e){-->
-        <!--openBriefInfo(brief, e)}-->
-    <!--);-->
   }
   function openDetailInfo(detailInfo, e){
     var p = e.target;
@@ -263,13 +259,6 @@
     map.openInfoWindow(infoWindow,point); //开启信息窗
     //infoWindow.redraw();
   }
-  <!--function openBriefInfo(briefInfo, e){-->
-    <!--var p = e.target;-->
-    <!--var point = new BMap.Point(p.getPosition().lng, p.getPosition().lat);-->
-    <!--var infoWindow = new BMapLib.SearchInfoWindow(map, briefInfo);  // 创建信息窗口对象-->
-    <!--//infoWindow.redraw();-->
-    <!--infoWindow.open(point);-->
-  <!--}-->
 </script>
 </body>
 </html>
