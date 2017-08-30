@@ -6,15 +6,17 @@ __author__ = 'hubin6'
 
 
 if __name__ == '__main__':
-    base.crawl_all_base_info()
-    shop.del_local_all_shops_data()
-    category_sets = shop.split_category_segments(service.get_category().sort_values(["category_id"]), 4)
-    for category_set in category_sets:
-        threading.Thread(target=shop.crawl_shops, args=(category_set, False)).start()
-    shop.crawl_shops_favorite_food()
-    shop.crawl_shops_baidu_location()
-    shop.crawl_shops_routes()
-    #service.save_weight_details()
+    # shop.backup_data_dir()
+    # base.crawl_all_base_info()
+    # shop.del_local_all_shops_data()
+    # category_sets = shop.split_category_segments(service.get_category().sort_values(["category_id"]), 8)
+    # for category_set in category_sets:
+    #     threading.Thread(target=shop.crawl_shops, args=(category_set, False)).start()
+
+    # shop.crawl_shops_baidu_location()
+    # shop.crawl_shops_routes()
+    # shop.crawl_shops_favorite_food()
+    service.save_weight_details()
     # crawl base info: category, district, region, metros (overwrite)
     # base.crawl_all_base_info()
     # # crawl shop details: info, score, comment, heat (overwrite)

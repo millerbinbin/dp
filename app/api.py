@@ -12,7 +12,7 @@ __author__ = 'hubin6'
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
-all_data_info = service.load_weight_details()
+all_data_info = service.load_weight_details(True)
 offset = 0
 
 

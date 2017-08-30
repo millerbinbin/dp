@@ -1,5 +1,13 @@
+# -*- coding:utf-8 -*-
 from crawl import shop, crawlLib
+from phantom import favors
 import service
+import sys
+
+__author__ = 'hubin6'
+
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
 
 def test_backup_data_dir():
@@ -32,7 +40,12 @@ def test_get_random_favor_shops():
     return service.get_random_favor_shops(service.load_weight_details())
 
 
+def test_get_favors():
+    return favors.get_favors()
+
+
 if __name__ == '__main__':
-    #test_save_weight_details()
-    #print test_get_random_favor_shops()
-    print crawlLib.Crawler("http://www.dianping.com/shop/8629576").crawl()
+    test_save_weight_details()
+    # test_get_favors()
+    all_data = service.load_weight_details()
+    print all_data[all_data.group_rank<=1]

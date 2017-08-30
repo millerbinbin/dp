@@ -6,7 +6,6 @@ import numpy as np
 import os
 import glob
 import json
-import time
 import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
@@ -15,6 +14,7 @@ BASE_DATA_DIR = os.path.join(WORK_DIR, "data/base")
 REGION_CSV = os.path.join(BASE_DATA_DIR, "regions.csv")
 DISTRICT_CSV = os.path.join(BASE_DATA_DIR, "districts.csv")
 CATEGORY_CSV = os.path.join(BASE_DATA_DIR, "category.csv")
+SUBCATEGORY_CSV = os.path.join(BASE_DATA_DIR, "subcategory.csv")
 SHOP_DATA_DIR = os.path.join(BASE_DATA_DIR, "../shops")
 LOCATION_DATA_DIR = os.path.join(BASE_DATA_DIR, "../location")
 COMMENT_DATA_DIR = os.path.join(BASE_DATA_DIR, "../comments")
@@ -24,12 +24,6 @@ ROUTE_DATA_DIR = os.path.join(BASE_DATA_DIR, "../routes")
 FAVOR_DATA_DIR = os.path.join(BASE_DATA_DIR, "../favorite")
 DETAILS_CSV = os.path.join(BASE_DATA_DIR, "../shop_weight_details.csv")
 FIELD_DELIMITER = "\t"
-
-
-def get_regions():
-    df = pd.read_csv(REGION_CSV, header=None, sep=FIELD_DELIMITER)
-    df.columns = ["region_name", "region_code", "region_id", "district_id"]
-    return df
 
 
 def get_region_table():
@@ -43,9 +37,26 @@ def get_region_table():
     return region_table
 
 
+def get_category_table():
+    category = get_category()
+    subcategory = get_subcategory()
+    category_table = {}
+    for sub in subcategory.itertuples():
+        category_table[sub.subcategory_name] = (sub.subcategory_id, sub.category_id)
+    for cate in category.itertuples():
+        category_table[cate.category_name] = (None, cate.category_id)
+    return category_table
+
+
 def get_districts():
     df = pd.read_csv(DISTRICT_CSV, header=None, sep=FIELD_DELIMITER)
     df.columns = ["district_name", "district_code", "district_id"]
+    return df
+
+
+def get_regions():
+    df = pd.read_csv(REGION_CSV, header=None, sep=FIELD_DELIMITER)
+    df.columns = ["region_name", "region_code", "region_id", "district_id"]
     return df
 
 
@@ -55,16 +66,27 @@ def get_category():
     return df
 
 
+def get_subcategory():
+    df = pd.read_csv(SUBCATEGORY_CSV, header=None, sep=FIELD_DELIMITER)
+    df.columns = ["subcategory_name", "subcategory_code", "subcategory_id", "category_id"]
+    return df
+
+
 def get_shops():
     all_files = glob.glob(os.path.join(SHOP_DATA_DIR, "*.csv"))
     df = pd.concat((pd.read_csv(f, header=None, sep=FIELD_DELIMITER) for f in all_files))
-    df.columns = ["shop_id", "shop_name", "address", "lng", "lat", "phone", "district_id", "region_id", "category_id"]
-    shops = df[["shop_id", "shop_name", "address", "lng", "lat", "category_id"]]
+    df.columns = ["shop_id", "shop_name", "shop_group_name", "address", "lng", "lat", "phone", "district_id", "region_id", "category_id", "subcategory_id"]
+    shops = df[["shop_id", "shop_name", "shop_group_name", "address", "lng", "lat", "category_id", "subcategory_id"]]
     locations = get_locations()
     df = pd.merge(shops, locations, how="left", on="shop_id")
     df["lng"] = df["lng_baidu"]
     df["lat"] = df["lat_baidu"]
-    return df[["shop_id", "shop_name", "address", "lng", "lat", "category_id"]]
+    df["mainCategory_id"] = df.apply(
+        lambda x: x['category_id'] if x['subcategory_id'] == "None" else x['subcategory_id'], axis=1)
+    df["shop_group_name"] = df.apply(
+        lambda x: x['shop_name'] if x['shop_group_name'] == "None" else x['shop_group_name'], axis=1)
+
+    return df[["shop_id", "shop_name", "shop_group_name", "address", "lng", "lat", "category_id", "mainCategory_id"]]
 
 
 def get_locations():
@@ -76,7 +98,7 @@ def get_locations():
 
 def get_comments():
     all_files = glob.glob(os.path.join(COMMENT_DATA_DIR, "*.csv"))
-    df = pd.concat((pd.read_csv(f, header=None, sep=FIELD_DELIMITER) for f in all_files))
+    df = pd.concat((pd.read_csv(f, header=None, sep=FIELD_DELIMITER, na_filter=True, na_values="None") for f in all_files))
     df.columns = ["shop_id", "comment_num", "star_5_num", "star_4_num", "star_3_num", "star_2_num", "star_1_num"]
     df["good_rate"] = 100 * ((df["star_4_num"]+df["star_5_num"]) / df["comment_num"])
     return df[["shop_id", "comment_num", "good_rate"]]
@@ -122,30 +144,31 @@ def get_all_info():
     heats = get_heats()
     routes = get_routes()
     category = get_category()
-    shop_comment = pd.merge(shops, comments, how="left", on="shop_id")
-    shop_comment_score = pd.merge(shop_comment, scores, how="left", on="shop_id")
-    shop_comment_score_heat = pd.merge(shop_comment_score, heats, how="left", on="shop_id")
+    shop_comment = pd.merge(shops, comments, how="inner", on="shop_id")
+    shop_comment_score = pd.merge(shop_comment, scores, how="inner", on="shop_id")
+    shop_comment_score_heat = pd.merge(shop_comment_score, heats, how="inner", on="shop_id")
     shop_comment_score_heat_distance = pd.merge(shop_comment_score_heat, routes, how="left", on="shop_id")
-    shop_comment_score_heat_distance_category = pd.merge(shop_comment_score_heat_distance, category, how="left", on="category_id")
+    shop_comment_score_heat_distance_category = pd.merge(shop_comment_score_heat_distance, category, how="inner", on="category_id")
     return shop_comment_score_heat_distance_category
 
 
 def get_weight_details():
     all_info = get_all_info()
-    df = all_info[["shop_id", "shop_name", "lng", "lat",
+    df = all_info[["shop_id", "shop_name", "shop_group_name", "lng", "lat",
                    "comment_num", "good_rate",
                    "avg_price", "taste_score", "env_score", "ser_score",
                    "weighted_hits",
                    "verse_taxi_distance", "route", "public_duration", "category_name", "category_id"
                    ]]
-    return df\
-        .groupby("shop_id")\
-        .agg({"shop_id": np.max, "shop_name": np.max, "lng": np.max, "lat": np.max,
-            "comment_num": np.max, "good_rate": np.max,
-            "avg_price": np.max, "taste_score": np.max, "env_score": np.max, "ser_score": np.max,
-            "weighted_hits": np.max,
-            "verse_taxi_distance": np.max, "route": np.max, "public_duration": np.max,
-              "category_name": np.max, "category_id": np.max})
+    return df
+    # return df\
+    #     .groupby("shop_id")\
+    #     .agg({"shop_id": np.max, "shop_name": np.max, "shop_group_name": np.max, "lng": np.max, "lat": np.max,
+    #         "comment_num": np.max, "good_rate": np.max,
+    #         "avg_price": np.max, "taste_score": np.max, "env_score": np.max, "ser_score": np.max,
+    #         "weighted_hits": np.max,
+    #         "verse_taxi_distance": np.max, "route": np.max, "public_duration": np.max,
+    #         "category_name": np.max, "category_id": np.max})
 
 
 def save_weight_details():
@@ -154,9 +177,12 @@ def save_weight_details():
     df.to_csv(DETAILS_CSV, sep=FIELD_DELIMITER, doublequote=False, quoting=csv.QUOTE_NONE)
 
 
-def load_weight_details():
+def load_weight_details(filter_same_group):
     df = pd.read_csv(DETAILS_CSV, sep=FIELD_DELIMITER, na_values="None")
     df["shop_id"] = df["shop_id"].apply(lambda x: str(x))
+    df['group_rank'] = df['taste_score'].groupby(df['shop_group_name']).rank(ascending=False)
+    if filter_same_group:
+        return df[df.group_rank<=1]
     return df
 
 
@@ -199,7 +225,7 @@ def get_customized_shops(details, params, order_by):
 
 def get_distinct_shops():
     shops = get_shops()
-    return shops[["shop_id", "shop_name", "address", "lng", "lat"]].drop_duplicates().itertuples()
+    return shops[["shop_id", "shop_name", "address", "lng", "lat", "mainCategory_id"]].drop_duplicates().itertuples()
 
 
 def get_json_data_from_df(df):
@@ -253,15 +279,12 @@ def get_random_favor_shops(all_data_info):
                                "category_id", "category_name", "lng", "lat", "route", "public_duration"]]
 
 
-def save_favor_data(favor_data):
-    favors = json.loads(favor_data)
-    res = []
-    for favor in favors:
-        shop_id = favor["shop_id"]
-        favor_list = favor["favor"]
-        if len(favor_list) == 0:
-            continue
-        res.append((shop_id, json.dumps(favor_list, ensure_ascii=False).encode("utf-8")))
+def save_favor_data(shop_id, favor_data):
+    favors = json.loads(favor_data)["allDishes"]
+    dish_list = [{"tagCount": favors[i]["tagCount"],
+                  "dishTagName": favors[i]["dishTagName"],
+                  "finalPrice": favors[i]["finalPrice"]
+                } for i in range(min(5, len(favors)))]
+
+    res = [(shop_id, json.dumps(dish_list, ensure_ascii=False).encode("utf-8"))]
     csvLib.write_records_to_csv(FAVOR_DATA_DIR+"/data.csv", res, FIELD_DELIMITER, mode="a")
-    time.sleep(3)
-    return len(res)

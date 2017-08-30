@@ -233,9 +233,6 @@
 
   function render_data(data_info){
     map.clearOverlays();
-    if (data_info.length < limit_num){
-      current_page = 0
-    }
     for(var i=0;i<data_info.length;i++){
       var marker = new BMap.Marker(new BMap.Point(data_info[i].lng,data_info[i].lat));  // 创建标注
       var shop_link = 'http://www.dianping.com/shop/' + data_info[i].shop_id;
@@ -252,6 +249,9 @@
       '<div><span class="label label-primary">'+data_info[i].route+'</span></div>';
       map.addOverlay(marker);               // 将标注添加到地图中
       addClickHandler(detail,marker);
+    }
+    if (data_info.length < limit_num){
+      current_page = 1
     }
   }
   function addClickHandler(detail,marker){

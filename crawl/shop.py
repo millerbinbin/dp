@@ -9,6 +9,9 @@ from crawl import crawlLib, location, SH_URL, WORK_DIR
 from entity import entity
 from filewriter import csvLib
 from main import service
+from selenium import webdriver
+import time
+from bs4 import BeautifulSoup
 
 __author__ = 'hubin6'
 
@@ -18,8 +21,9 @@ sys.setdefaultencoding("utf-8")
 SHOP_DETAILS_URL = "http://www.dianping.com/ajax/json/shopfood/wizard/BasicHideInfoAjaxFP?_nr_force=1502177990602&shopId={}"
 REVIEW_URL = "http://www.dianping.com/shop/{0}/review_more"
 COMMENT_URL = "http://www.dianping.com/shop/{0}/review_more_5star?pageno={1}"
+SHOP_URL = "http://www.dianping.com/shop/{0}"
 
-TASTE_SCORE_THRESHOLD = 8.2
+TASTE_SCORE_THRESHOLD = 8
 CATEGORY_NUMBER_LIMIT = 400
 DEFAULT_ORDER_TYPE = "taste"
 
@@ -38,6 +42,7 @@ SCORE_DATA_CSV = os.path.join(DATA_DIR, "scores/{0}.csv")
 
 FIELD_DELIMITER = "\t"
 REGION_TABLE = service.get_region_table()
+CATEGORY_TABLE = service.get_category_table()
 HOME_LOC = entity.Location(lng=121.615539648, lat=31.2920292218)   #location of Chun Jiang
 
 
@@ -64,10 +69,11 @@ def crawl_all_shops_by_category(category, order_type, score_threshold, limit_num
         page_num = "p{0}".format(page)
         p_url = url + page_num
         print p_url
-
         content = crawlLib.Crawler(p_url).parse_content()
         for c in content.find("div", id="shop-all-list").find_all("li", class_=""):
             result = get_shop_result(c, category_id)
+            if result is None:
+                continue
             score = result.get_score()
             heat = result.get_heat()
             info = result.get_info()
@@ -96,11 +102,21 @@ def get_shop_details(shop_id):
     return phone_no, total_hits, today_hits, monthly_hits, weekly_hits, last_week_hits, lat, lng
 
 
-def get_shop_result(data, category):
+def get_shop_result(data, category_id):
     tmp = data.find("div", class_="pic")
     shop_id = tmp.a['href'][tmp.a['href'].rfind('/') + 1:]
+
+    content = crawlLib.Crawler(SHOP_URL.format(shop_id)).parse_content()
+    for link in content.find("div", class_="breadcrumb").find_all("a"):
+        subcategory_name = str(link.text.strip())
+
+    subcategory_id, actual_category_id = CATEGORY_TABLE.get(subcategory_name)
+    if actual_category_id != category_id:
+        return None
+
     shop_name = tmp.img['alt']
     print shop_name
+    shop_group_name = get_group_name(str(shop_name))
     region_name = data.find("div", class_="tag-addr").find(href=re.compile(".*/[^g]\d+$")).text
     try:
         region, district = REGION_TABLE.get(str(region_name))
@@ -116,10 +132,19 @@ def get_shop_result(data, category):
     # crawl again to solve the network issue sometimes
     if cmt_num is None:
         cmt_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num = get_shop_review_star_num(shop_id)
-    return entity.Shop(shop_id, shop_name, address, lng, lat, phone_no, district, region, category,
+    return entity.Shop(shop_id, shop_name, shop_group_name, address, lng, lat, phone_no, district, region, category_id, subcategory_id,
                        avg_price, taste_score, env_score, ser_score,
                        total_hits, today_hits, monthly_hits, weekly_hits, last_week_hits,
                        cmt_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num)
+
+
+def get_group_name(shop_name):
+    match = re.compile(r"\(.*店\)")
+    if len(match.findall(shop_name)) > 0:
+        shop_group_name = match.split(shop_name)[0]
+    else:
+        shop_group_name = None
+    return shop_group_name
 
 
 def get_score(data):
@@ -202,6 +227,9 @@ def crawl_shops_routes():
     for row in service.get_distinct_shops():
         shop_id = str(row.shop_id)
         if shop_id in shop_list: continue
+        if str(row.lat) == "nan":
+            print "{0} could not be found!".format(shop_id)
+            continue
         dest = entity.Location(lat=float(row.lat), lng=float(row.lng))
         routes = location.get_complete_route(HOME_LOC, dest)
         taxi = routes.get("taxi")
@@ -219,23 +247,74 @@ def crawl_shops_routes():
 
 
 def crawl_shops_favorite_food():
-    def load_all_saved_favorites():
+    def load_all_saved_favors():
         return {i.strip().split(FIELD_DELIMITER)[0] for i in open(FAVORITE_CSV)}
 
-    shop_list = load_all_saved_favorites()
+    shop_list = load_all_saved_favors()
 
-    favorite_list = []
+    driver = webdriver.PhantomJS()
+    driver_page = webdriver.PhantomJS()
+    rohr_init = '''
+        window.rohrdata = "";
+        window.Rohr_Opt = new Object;
+        window.Rohr_Opt.Flag = 100001,
+        window.Rohr_Opt.LogVal = "rohrdata";
+        '''
+    f = open(WORK_DIR + "/phantom/rohr.min.js", "r")
+    rohr = f.read()
+    f.close()
+    driver.execute_script(rohr_init)
+    driver.execute_script(rohr)
+    favor_list = []
     for row in service.get_distinct_shops():
         shop_id = str(row.shop_id)
+        shop_name = str(row.shop_name)
+        mainCategory_id = str(row.mainCategory_id)
         if shop_id in shop_list: continue
-        favorite_food = json.dumps(get_shop_favorite_food(shop_id), ensure_ascii=False).encode('utf8')
-        print favorite_food
-        favorite_list.append((shop_id, favorite_food))
-        if len(favorite_list) % 20 == 0:
+
+        get_token = '''
+        var data = {{ shop_id: {0}, cityId: 1, shopName: "{1}", power: 5, mainCategoryId: "{2}", shopType: 10, shopCityId: 1}};
+        window.Rohr_Opt.reload(data);
+        var token = decodeURIComponent(window.rohrdata);
+        return token;
+        '''.format(shop_id, shop_name, mainCategory_id)
+
+        token = driver.execute_script(get_token)
+
+        url = "http://www.dianping.com/ajax/json/shopDynamic/shopTabs?shopId={0}&cityId=1&shopName={1}" \
+              "&power=5&mainCategoryId={2}&shopType=10&shopCityId=1&_token={3}".format(shop_id, shop_name, mainCategory_id,
+                                                                                       token)
+        print url
+        content = get_content(driver_page, url)
+        if content == "":
+            content = get_content(driver_page, url)
+        print content
+        if content != "":
+            favors = json.loads(content)["allDishes"]
+            dish_list = [{"tagCount": favors[i]["tagCount"],
+                          "dishTagName": favors[i]["dishTagName"],
+                          "finalPrice": favors[i]["finalPrice"]
+                          } for i in range(min(5, len(favors)))]
+            favor_list.append((shop_id, json.dumps(dish_list, ensure_ascii=False).encode("utf-8")))
+        time.sleep(0.5)
+        if len(favor_list) % 10 == 0:
             print "flush data to disk..."
-            csvLib.write_records_to_csv(FAVORITE_CSV, favorite_list, FIELD_DELIMITER, mode="a")
-            favorite_list = []
-    csvLib.write_records_to_csv(FAVORITE_CSV, favorite_list, FIELD_DELIMITER, mode="a")
+            csvLib.write_records_to_csv(FAVORITE_CSV, favor_list, FIELD_DELIMITER, mode="a")
+            favor_list = []
+    csvLib.write_records_to_csv(FAVORITE_CSV, favor_list, FIELD_DELIMITER, mode="a")
+    driver.close()
+    driver_page.close()
+
+
+def get_content(driver, url):
+    driver.get(url)
+    html = driver.page_source
+    soup = BeautifulSoup(html, 'lxml')
+    try:
+        cc = soup.select('pre')[0]
+        return cc.string
+    except:
+        return ""
 
 
 def crawl_shops_baidu_location():
@@ -253,7 +332,6 @@ def crawl_shops_baidu_location():
             lng, lat = get_shop_location(address)
         except:
             continue
-        print lng, lat
 
         location_list.append((shop_id, lng, lat))
         if len(location_list) % 20 == 0:
