@@ -62,6 +62,3 @@ def post_shop_favors():
 def index():
     return render_template('index.html')
 
-@app.route('/rohr')
-def rohr():
-    return render_template('rohr.html')

@@ -18,6 +18,8 @@
   <link href="../static/css/skins/polaris/polaris.css" rel="stylesheet">
 	<script type="text/javascript" src="../static/js/bootstrap.min.js"></script>
   <script type="text/javascript" src="../static/js/icheck.js"></script>
+  <script type="text/javascript" src="../static/js/bootstrapSwitch.js"></script>
+  <link href="../static/css/bootstrapSwitch.css" rel="stylesheet">
 	<title>精品推荐</title>
 	<link rel="shortcut icon" href="../static/image/dp.jpg" >
 </head>
@@ -48,7 +50,6 @@
           <li id="distance_tab" value="verse_taxi_distance" onclick="order_by(this)"><a href="#">周边美食</a></li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
-
           <li><a href="#" onclick="refresh_data(true)">
             <span class="glyphicon glyphicon-refresh"></span>换一批
           </a></li>
@@ -184,7 +185,8 @@
     render_data(get_data(current_page, limit_num, "taste_score"));
   }
   function refresh_data(page_down){
-    if (page_down) {current_page+=1};
+    if (page_down) {current_page+=1;}
+    else{current_page=1;}
     data = get_data(current_page, limit_num, order_col)
     render_data(data);
   }
@@ -196,7 +198,6 @@
     $("#distance_tab").removeClass("active");
     $(which).addClass("active");
     order_col = $(which).attr("value");
-    current_page = 1;
     refresh_data(false);
   }
 
@@ -251,7 +252,8 @@
       addClickHandler(detail,marker);
     }
     if (data_info.length < limit_num){
-      current_page = 1
+      current_page = 0
+      console.log(data_info.length);
     }
   }
   function addClickHandler(detail,marker){
