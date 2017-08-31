@@ -124,7 +124,6 @@
               $(this).removeClass("label-primary");
               category_set.delete($(this)[0].innerText);
           }
-          console.log(category_set);
         }
       });
     });
@@ -189,7 +188,6 @@
       category_str+=item.toString() + ",";
     });
     param.category = category_str;
-    console.log(param);
     $.ajax({
        url: '/shops/'+page+'/'+top+'/order_by='+order_by,
        dataType: 'json',
