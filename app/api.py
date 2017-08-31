@@ -13,8 +13,6 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 
 all_data_info = service.load_weight_details(True)
-offset = 0
-
 
 def get_string_param_2_number(param_name):
     value = request.values.get(param_name)
@@ -36,19 +34,8 @@ def get_customized_shops(page, limit, col):
     category_name = get_string_param_2_number("category")
     params = {"good_rate": good_rate, "taste_score": taste_score, "avg_price_min": avg_price_min, "avg_price_max": avg_price_max,
               "comment_num": comment_num, "category": category_name}
-    print params
     limit_data = service.get_customized_shops(all_data_info, params=params, order_by=col)
     result = limit_data.iloc[(page-1)*limit:page*limit]
-    print result
-    return service.get_json_data_from_df(result)
-
-
-@app.route('/shops/random/<int:limit>', methods=['GET'])
-def get_random_shops(limit):
-    limit_data = service.get_random_favor_shops(all_data_info)
-    print len(limit_data)
-    start = int(random.random()*50)
-    result = limit_data.iloc[start:start+limit]
     return service.get_json_data_from_df(result)
 
 
