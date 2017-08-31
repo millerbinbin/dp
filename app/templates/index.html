@@ -7,19 +7,10 @@
 	<style type="text/css">
 		html, body, #map {width: 100%;height: 100%;}
 	</style>
-  <style>
-    .div-relative{position:relative;width:100%;height:100%}
-    .div-a{ position:absolute;left:0%;top:6%;z-index:100;width:45%;height:50%}
-    .div-b{ position:absolute;z-index:80;width:100%;height:100%}
-   </style>
-		<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=kAWXbccRXNNwQl79u9cFcV6eysiBiBeA"></script>
+	<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=kAWXbccRXNNwQl79u9cFcV6eysiBiBeA"></script>
 	<script type="text/javascript" src="../static/js/jquery-3.2.1.min.js"></script>
   <link href="../static/css/bootstrap.css" rel="stylesheet">
-  <link href="../static/css/skins/polaris/polaris.css" rel="stylesheet">
 	<script type="text/javascript" src="../static/js/bootstrap.min.js"></script>
-  <script type="text/javascript" src="../static/js/icheck.js"></script>
-  <script type="text/javascript" src="../static/js/bootstrapSwitch.js"></script>
-  <link href="../static/css/bootstrapSwitch.css" rel="stylesheet">
 	<title>精品推荐</title>
 	<link rel="shortcut icon" href="../static/image/dp.jpg" >
 </head>
@@ -28,19 +19,12 @@
   <nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container-fluid">
       <div class="navbar-header">
-        <!--<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-9" aria-expanded="false">-->
-          <!--<span class="sr-only">Toggle navigation</span>-->
-          <!--<span class="icon-bar"></span>-->
-          <!--<span class="icon-bar"></span>-->
-          <!--<span class="icon-bar"></span>-->
-        <!--</button>-->
         <div class="navbar-brand" >
-          <a href="#" onclick="filter_hidden(false)">
+          <a href="#" data-toggle="modal" data-target="#selection-modal"">
             <span class="glyphicon glyphicon-filter"></span>筛选<span class="caret"></span>
           </a>
         </div>
       </div>
-      <!-- Collect the nav links, forms, and other content for toggling -->
       <div class="collapse navbar-collapse">
         <ul class="nav navbar-nav navbar-center">
           <li id="taste_tab" value="taste_score" onclick="order_by(this)" class="active"><a href="#">口味优先</a></li>
@@ -58,81 +42,91 @@
     </div>
   </nav>
 </div>
-<div class="div-relative">
-  <div class="panel hidden div-a" id="filter_box">
-    <div class="panel-body" id="category-selection">
-      <label>菜系选择</label>
-      <div class="checkbox">
-        <label><input type="checkbox" aria-label="本帮江浙菜">本帮江浙菜</label>
-        <label><input type="checkbox" aria-label="日本菜">日本菜</label>
-        <label><input type="checkbox" aria-label="咖啡厅">咖啡厅</label>
-        <label><input type="checkbox" aria-label="小吃快餐">小吃快餐</label>
-        <label><input type="checkbox" aria-label="火锅">火锅&emsp;</label>
-        <label><input type="checkbox" aria-label="西餐">西餐</label>
+<div class="modal fade" id="selection-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">
+          条件筛选
+        </h4>
       </div>
-      <div class="checkbox">
-        <label><input type="checkbox" aria-label="面包甜点">面包甜点&emsp;</label>
-        <label><input type="checkbox" aria-label="自助餐">自助餐</label>
-        <label><input type="checkbox" aria-label="粤菜">粤菜&emsp;</label>
-        <label><input type="checkbox" aria-label="韩国料理">韩国料理</label>
-        <label><input type="checkbox" aria-label="小龙虾">小龙虾</label>
-        <label><input type="checkbox" aria-label="烧烤">烧烤</label>
+      <div class="modal-body" id="category-selection">
+        <label>菜系选择</label>
+        <div class="row">
+          <div class="col-xs-2"><span class="label label-default">本帮江浙菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">日本菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">咖啡厅</span></div>
+          <div class="col-xs-2"><span class="label label-default">小吃快餐</span></div>
+          <div class="col-xs-2"><span class="label label-default">火锅</span></div>
+          <div class="col-xs-2"><span class="label label-default">西餐</span></div>
+          <div class="col-xs-2"><span class="label label-default">面包甜点</span></div>
+          <div class="col-xs-2"><span class="label label-default">自助餐</span></div>
+          <div class="col-xs-2"><span class="label label-default">粤菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">韩国料理</span></div>
+          <div class="col-xs-2"><span class="label label-default">小龙虾</span></div>
+          <div class="col-xs-2"><span class="label label-default">烧烤</span></div>
+          <div class="col-xs-2"><span class="label label-default">川菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">素菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">东北菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">东南亚菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">火锅</span></div>
+          <div class="col-xs-2"><span class="label label-default">湘菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">云南菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">新疆菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">西北菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">蟹宴</span></div>
+          <div class="col-xs-2"><span class="label label-default">台湾菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">贵州菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">面馆</span></div>
+          <div class="col-xs-2"><span class="label label-default">家常菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">江西菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">其他</span></div>
+        </div><br>
+        <div class="row">
+          <form class="form-inline col-sm-4">
+            <label class="form-label">评分不低于:</label>
+            <input class="form-control input-sm" type="number" style="width:40%;" id="taste-score">
+          </form>
+          <form class="form-inline col-sm-4">
+              <label class="form-label">人均:</label>
+              <input class="form-control input-sm" type="number" style="width:30%;" id="avg-price-min">
+              <label class="form-label">-</label>
+              <input class="form-control input-sm" type="number" style="width:30%;" id="avg-price-max">
+          </form>
+          <form class="form-inline col-sm-4">
+              <label class="form-label">评论数不少于:</label>
+              <input class="form-control input-sm" type="number" style="width:40%;" id="comment-num">
+          </form>
+        </div>
       </div>
-      <div class="checkbox">
-        <label><input type="checkbox" aria-label="川菜">川菜&emsp;&emsp;&emsp;</label>
-        <label><input type="checkbox" aria-label="素菜">素菜&emsp;</label>
-        <label><input type="checkbox" aria-label="东北菜">东北菜</label>
-        <label><input type="checkbox" aria-label="东南亚菜">东南亚菜</label>
-        <label><input type="checkbox" aria-label="湘菜">湘菜&emsp;</label>
-        <label><input type="checkbox" aria-label="云南菜">云南菜</label>
-      </div>
-      <div class="checkbox">
-        <label><input type="checkbox" aria-label="新疆菜">新疆菜&emsp;&emsp;</label>
-        <label><input type="checkbox" aria-label="海鲜">海鲜&emsp;</label>
-        <label><input type="checkbox" aria-label="西北菜">西北菜</label>
-        <label><input type="checkbox" aria-label="蟹宴">蟹宴&emsp;&emsp;</label>
-        <label><input type="checkbox" aria-label="台湾菜">台湾菜</label>
-        <label><input type="checkbox" aria-label="贵州菜">贵州菜</label>
-      </div>
-      <div class="checkbox">
-        <label><input type="checkbox" aria-label="面馆">面馆&emsp;&emsp;&emsp;</label>
-        <label><input type="checkbox" aria-label="家常菜">家常菜</label>
-        <label><input type="checkbox" aria-label="江西菜">江西菜</label>
-        <label><input type="checkbox" aria-label="其他">其他</label>
-      </div>
-      <br>
-      <div class="row">
-        <form class="form-inline col-sm-4">
-          <label class="form-label">评分不低于:</label>
-          <input class="form-control input-sm" type="number" style="width:40%;" id="taste-score">
-        </form>
-        <form class="form-inline col-sm-4">
-            <label class="form-label">人均:</label>
-            <input class="form-control input-sm" type="number" style="width:30%;" id="avg-price-min">
-            <label class="form-label">--</label>
-            <input class="form-control input-sm" type="number" style="width:30%;" id="avg-price-max">
-        </form>
-        <form class="form-inline col-sm-4">
-            <label class="form-label">评论数不少于:</label>
-            <input class="form-control input-sm" type="number" style="width:40%;" id="comment-num">
-        </form>
-      </div>
-      <br><br>
-      <div class="row">
-        <div class="col-md-4"></div>
-        <button class="btn btn-primary col-sm-2" onclick="filter_hidden(true)" >确定</button>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="refresh_selection_data(false)">
+          确定
+        </button>
       </div>
     </div>
   </div>
-  <div id="map" class="container div-b"></div>
 </div>
+<div id="map" class="container"></div>
 
 <script type="text/javascript">
   $(document).ready(function(){
-    $('input').iCheck({
-      checkboxClass: 'icheckbox_polaris',
-      radioClass: 'iradio_polaris',
-      increaseArea: '-10%' // optional
+    $('#category-selection').find("span").each(function(){
+      $(this).on({
+        click: function(){
+          if ($(this).attr("class")=="label label-default"){
+            $(this).removeClass("label-default");
+            $(this).addClass("label-primary");
+            category_set.add($(this)[0].innerText);
+          }
+          else if ($(this).attr("class")=="label label-primary"){
+              $(this).addClass("label-default");
+              $(this).removeClass("label-primary");
+              category_set.delete($(this)[0].innerText);
+          }
+          console.log(category_set);
+        }
+      });
     });
     init_data();
   });
@@ -147,26 +141,8 @@
   var avg_price_min;
   var avg_price_max;
   var comment_num;
-  function bind_category_checkbox(){
-    $('#category-selection').find("input[type=checkbox]").each(function(){
-      $(this).on('ifChecked', function(event){
-        category_name = $(this).attr("aria-label")
-        category_set.add(category_name);
-        console.log(category_set);
-      });
-      $(this).on('ifUnchecked', function(event){
-        category_name = $(this).attr("aria-label")
-        category_set.delete(category_name);
-      });
-    });
-  }
-  function filter_hidden(refresh){
-    ($("#filter_box").attr("class").indexOf("hidden")>=0)?hidden=false:hidden=true;
-    if (hidden == false){
-      $("#filter_box").removeClass("hidden");
-    }else{
-      $("#filter_box").addClass("hidden");
-    }
+
+  function refresh_selection_data(){
     taste_score = parseFloat($("#taste-score").val());
     if (isNaN(taste_score)){taste_score = undefined;}
     avg_price_min = parseInt($("#avg-price-min").val());
@@ -175,13 +151,10 @@
     if (isNaN(avg_price_max)){avg_price_max = undefined;}
     comment_num = parseInt($("#comment-num").val());
     if (isNaN(comment_num)){comment_num = undefined;}
-    if (refresh === true){
-      refresh_data(false);
-    }
+    refresh_data(false);
   }
   function init_data(){
     map = init_map();
-    bind_category_checkbox();
     render_data(get_data(current_page, limit_num, "taste_score"));
   }
   function refresh_data(page_down){
@@ -235,7 +208,7 @@
   function gen_shop_title_html(item){
   	var shop_title_html = '<div class="row"><div class="col-xs-8">'+
   	  '<a class="text-left" target="_blank" href="http://www.dianping.com/shop/'+item.shop_id+'"><h5>'+item.name+'</h5></a></div>' +
-      '<div class="col-xs-4"><h4><small><b>'+item.category+'</b></small></h4></div></div>';
+      '<div class="col-xs-4"><h4><small><b>'+item.category+'</b></small></h5></div></div>';
     return shop_title_html;
   }
   function gen_blank_html(){

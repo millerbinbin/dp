@@ -26,147 +26,155 @@
   <script type="text/javascript" src="../static/js/dp.js"></script>
 </head>
 <body>
-<nav class="navbar-inverse">
-    <div class="container-fluid">
-      <div class="navbar-header">
-        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-9" aria-expanded="false">
-          <span class="sr-only">Toggle navigation</span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <div class="navbar-brand" >
-          <a href="#" class="active" onclick="test_hidden()">
-            <span class="glyphicon glyphicon-filter"></span>筛选<span class="caret"></span>
-          </a>
+<div>
+  <h4><span class="label label-default label-lg" onclick="change_selection(this)">testtesttest</span></h4>
+  <label>tttttt</label>
+</div>
+<button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+  开始演示模态框
+</button>
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">
+          条件筛选
+        </h4>
+      </div>
+      <div class="modal-body" id="category-selection-1">
+        <label>菜系选择</label>
+        <div class="row">
+          <div class="col-xs-2"><span class="label label-default">本帮江浙菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">日本菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">咖啡厅</span></div>
+          <div class="col-xs-2"><span class="label label-default">小吃快餐</span></div>
+          <div class="col-xs-2"><span class="label label-default">火锅</span></div>
+          <div class="col-xs-2"><span class="label label-default">西餐</span></div>
+          <div class="col-xs-2"><span class="label label-default">面包甜点</span></div>
+          <div class="col-xs-2"><span class="label label-default">自助餐</span></div>
+          <div class="col-xs-2"><span class="label label-default">粤菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">韩国料理</span></div>
+          <div class="col-xs-2"><span class="label label-default">小龙虾</span></div>
+          <div class="col-xs-2"><span class="label label-default">烧烤</span></div>
+          <div class="col-xs-2"><span class="label label-default">川菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">素菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">东北菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">东南亚菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">火锅</span></div>
+          <div class="col-xs-2"><span class="label label-default">湘菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">云南菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">新疆菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">西北菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">蟹宴</span></div>
+          <div class="col-xs-2"><span class="label label-default">台湾菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">贵州菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">面馆</span></div>
+          <div class="col-xs-2"><span class="label label-default">家常菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">江西菜</span></div>
+          <div class="col-xs-2"><span class="label label-default">其他</span></div>
+        </div><br>
+        <div class="row">
+          <form class="form-inline col-sm-4">
+            <label class="form-label">评分不低于:</label>
+            <input class="form-control input-sm" type="number" style="width:40%;" id="taste-score">
+          </form>
+          <form class="form-inline col-sm-4">
+              <label class="form-label">人均:</label>
+              <input class="form-control input-sm" type="number" style="width:30%;" id="avg-price-min">
+              <label class="form-label">--</label>
+              <input class="form-control input-sm" type="number" style="width:30%;" id="avg-price-max">
+          </form>
+          <form class="form-inline col-sm-4">
+              <label class="form-label">评论数不少于:</label>
+              <input class="form-control input-sm" type="number" style="width:40%;" id="comment-num">
+          </form>
         </div>
       </div>
-      <!-- Collect the nav links, forms, and other content for toggling -->
-      <div class="collapse navbar-collapse">
-        <ul class="nav navbar-nav navbar-center">
-          <li id="taste_tab" value="taste_score" onclick="order_by(this)" class="active"><a href="#">口味优先</a></li>
-          <li id="comment_tab" value="comment_num" onclick="order_by(this)"><a href="#">最热讨论</a></li>
-          <li id="heat_tab" value="last_week_hits" onclick="order_by(this)"><a href="#">点击为王</a></li>
-          <li id="rating_tab" value="good_rate" onclick="order_by(this)"><a href="#">好评如潮</a></li>
-          <li id="distance_tab" value="taxi_distance" onclick="order_by(this)"><a href="#">周边美食</a></li>
-        </ul>
-        <ul class="nav navbar-nav navbar-right">
-
-          <li><a href="#" onclick="test_hidden()">
-            <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>换一批
-          </a></li>
-        </ul>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="alert ('aaa');" data-dismiss="modal">
+          提交更改
+        </button>
       </div>
-    </div>
-  </nav>
-<div class="div-relative">
-  <div class="panel div-a" id="filter_box">
-    <div class="panel-body" id="category-selection">
-      <label>菜系:</label>
-      <div class="checkbox">
-        <label><input type="checkbox" aria-label="本帮江浙菜">本帮江浙菜</label>
-        <label><input type="checkbox" aria-label="日本菜">日本菜</label>
-        <label><input type="checkbox" aria-label="咖啡厅">咖啡厅</label>
-        <label><input type="checkbox" aria-label="小吃快餐">小吃快餐</label>
-        <label><input type="checkbox" aria-label="火锅">火锅&emsp;</label>
-        <label><input type="checkbox" aria-label="西餐">西餐</label>
-      </div>
-      <div class="checkbox">
-        <label><input type="checkbox" aria-label="面包甜点">面包甜点&emsp;</label>
-        <label><input type="checkbox" aria-label="自助餐">自助餐</label>
-        <label><input type="checkbox" aria-label="粤菜">粤菜&emsp;</label>
-        <label><input type="checkbox" aria-label="韩国料理">韩国料理</label>
-        <label><input type="checkbox" aria-label="小龙虾">小龙虾</label>
-        <label><input type="checkbox" aria-label="烧烤">烧烤</label>
-      </div>
-      <div class="checkbox">
-        <label><input type="checkbox" aria-label="川菜">川菜&emsp;&emsp;&emsp;</label>
-        <label><input type="checkbox" aria-label="素菜">素菜&emsp;</label>
-        <label><input type="checkbox" aria-label="东北菜">东北菜</label>
-        <label><input type="checkbox" aria-label="东南亚菜">东南亚菜</label>
-        <label><input type="checkbox" aria-label="湘菜">湘菜&emsp;</label>
-        <label><input type="checkbox" aria-label="云南菜">云南菜</label>
-      </div>
-      <div class="checkbox">
-        <label><input type="checkbox" aria-label="新疆菜">新疆菜&emsp;&emsp;</label>
-        <label><input type="checkbox" aria-label="海鲜">海鲜&emsp;</label>
-        <label><input type="checkbox" aria-label="西北菜">西北菜</label>
-        <label><input type="checkbox" aria-label="蟹宴">蟹宴&emsp;&emsp;</label>
-        <label><input type="checkbox" aria-label="台湾菜">台湾菜</label>
-        <label><input type="checkbox" aria-label="贵州菜">贵州菜</label>
-      </div>
-      <div class="checkbox">
-        <label><input type="checkbox" aria-label="面馆">面馆&emsp;&emsp;&emsp;</label>
-        <label><input type="checkbox" aria-label="家常菜">家常菜</label>
-        <label><input type="checkbox" aria-label="江西菜">江西菜</label>
-        <label><input type="checkbox" aria-label="其他">其他</label>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal -->
+</div>
+<div class="panel">
+    <div class="panel-body" id="category-selection" style="width:30%, height:40%">
+      <label>菜系选择</label>
+      <div class="row">
+        <div class="col-xs-2"><h4><span class="label label-default">本帮江浙菜</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">日本菜</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">咖啡厅</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">小吃快餐</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">火锅</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">西餐</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">面包甜点</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">自助餐</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">粤菜</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">韩国料理</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">小龙虾</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">烧烤</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">川菜</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">素菜</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">东北菜</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">东南亚菜</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">火锅</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">湘菜</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">云南菜</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">新疆菜</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">西北菜</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">蟹宴</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">台湾菜</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">贵州菜</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">面馆</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">家常菜</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">江西菜</span></h4></div>
+        <div class="col-xs-2"><h4><span class="label label-default">其他</span></h4></div>
       </div>
       <br>
       <div class="row">
-        <form class="form-inline col-md-6" role="form">
-          <label class="form-label">人均不超过:&emsp;</label>
-          <input class="form-control input-sm" type="text" style="width:80px;">
+        <form class="form-inline col-sm-4">
+          <label class="form-label">评分不低于:</label>
+          <input class="form-control input-sm" type="number" style="width:40%;" id="taste-score">
         </form>
-        <form class="form-inline col-md-6" role="form">
+        <form class="form-inline col-sm-4">
+            <label class="form-label">人均:</label>
+            <input class="form-control input-sm" type="number" style="width:30%;" id="avg-price-min">
+            <label class="form-label">--</label>
+            <input class="form-control input-sm" type="number" style="width:30%;" id="avg-price-max">
+        </form>
+        <form class="form-inline col-sm-4">
             <label class="form-label">评论数不少于:</label>
-            <input class="form-control input-sm" type="text" style="width:80px;">
+            <input class="form-control input-sm" type="number" style="width:40%;" id="comment-num">
         </form>
       </div>
       <br><br>
       <div class="row">
         <div class="col-md-4"></div>
-        <button class="btn btn-primary col-md-2" onclick="test_checkbox()" >确定</button>
+        <button class="btn btn-primary col-sm-2" onclick="filter_hidden(true)" >确定</button>
       </div>
     </div>
-
-
   </div>
-  <div id="map" class="div-b">this is our map</div>
-</div>
   <script>
     var category_set = new Set();
-    $(document).ready(function(){
-      $('input').iCheck({
-        checkboxClass: 'icheckbox_polaris',
-        radioClass: 'iradio_polaris',
-        increaseArea: '-10%' // optional
+    $('#category-selection-1').find("span").each(function(){
+      $(this).on({
+        click: function(){
+          if ($(this).attr("class")=="label label-default"){
+            $(this).removeClass("label-default");
+            $(this).addClass("label-primary");
+            category_set.add($(this)[0].innerText);
+          }
+          else if ($(this).attr("class")=="label label-primary"){
+              $(this).addClass("label-default");
+              $(this).removeClass("label-primary");
+              category_set.delete($(this)[0].innerText);
+          }
+          console.log(category_set);
+        }
       });
     });
-    function test_checkbox(){
-      $('#category-selection').find("input[type=checkbox]").each(function(){
-        $(this).on('ifChecked', function(event){
-          category_name = $(this).attr("aria-label")
-          category_set.add(category_name);
-          console.log(category_set);
-        });
-        $(this).on('ifUnchecked', function(event){
-          category_name = $(this).attr("aria-label")
-          category_set.delete(category_name);
-          console.log(category_set);
-        });
-      });
-    }
-    var map_center = {"lat":31.236923, "lng": 121.483644};
-    var map_layer = 13;
-    init_data();
-    function init_data(){
-      map = init_map();
-    }
-    function init_map(){
-      var map = new BMap.Map("map");
-      var point = new BMap.Point(map_center.lng, map_center.lat);
-      map.centerAndZoom(point, map_layer);
-      map.enableScrollWheelZoom(true);
-    }
-    function test_hidden(){
-      ($("#filter_box").attr("class").indexOf("hidden")>=0)?hidden=false:hidden=true;
-      console.log(hidden);
-      if (hidden == false){
-        $("#filter_box").removeClass("hidden");
-      }else{
-        $("#filter_box").addClass("hidden");
-      }
-    }
   </script>
 </body>
 </html>

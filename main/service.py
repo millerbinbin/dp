@@ -173,7 +173,7 @@ def save_weight_details():
 
 
 def load_weight_details(filter_same_group):
-    df = pd.read_csv(DETAILS_CSV, sep=FIELD_DELIMITER)
+    df = pd.read_csv(DETAILS_CSV, sep=FIELD_DELIMITER, na_values="None")
     df["shop_id"] = df["shop_id"].apply(lambda x: str(x))
     df['group_rank'] = df['taste_score'].groupby(df['shop_group_name']).rank(ascending=False)
     if filter_same_group:
@@ -192,7 +192,6 @@ def get_customized_shops(details, params, order_by):
         category = params['category'].split(',') if params['category'] != '' else None
     except:
         pass
-
     condition = True
     if good_rate is not None:
         condition = condition & (details["good_rate"] >= good_rate)
@@ -210,7 +209,7 @@ def get_customized_shops(details, params, order_by):
         details = details.sort_values([order_by], ascending=[False])
     else:
         details = details
-    details["avg_price"] = details["avg_price"].apply(lambda x: None if x == "None" else str(int(x)))
+    details["avg_price"] = details["avg_price"].apply(lambda x: None if str(x) == "nan" else int(x))
     details["favor_list"] = details["favor_list"].apply(lambda x: "" if str(x) == "nan" else x)
     if condition is not True:
         return details[condition].loc[:, ["shop_id", "shop_name", "taste_score", 'comment_num', 'good_rate', "avg_price",
@@ -227,7 +226,7 @@ def get_distinct_shops():
 
 def get_json_data_from_df(df):
     res = [{"name": row.shop_name, "lng": row.lng, "lat": row.lat,
-            "avg_price": "-" if row.avg_price is None else row.avg_price,
+            "avg_price": "-" if row.avg_price is None else str(row.avg_price),
             "taste_score": str(row.taste_score), "comment_num": int(row.comment_num), "good_rate": int(row.good_rate),
             "category": row.category_name, "shop_id": row.shop_id, "route": row.route, "public_duration": row.public_duration,
             "favor_list": row.favor_list
