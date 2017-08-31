@@ -134,8 +134,8 @@
       radioClass: 'iradio_polaris',
       increaseArea: '-10%' // optional
     });
+    init_data();
   });
-
   var map_center = {"lat":31.236923, "lng": 121.483644};
   var map_layer = 13;
   var current_page = 1;
@@ -147,8 +147,6 @@
   var avg_price_min;
   var avg_price_max;
   var comment_num;
-  init_data();
-
   function bind_category_checkbox(){
     $('#category-selection').find("input[type=checkbox]").each(function(){
       $(this).on('ifChecked', function(event){
@@ -234,55 +232,62 @@
     return result;
   }
 
+  function gen_shop_title_html(item){
+  	var shop_title_html = '<div class="row"><div class="col-xs-8">'+
+  	  '<a class="text-left" target="_blank" href="http://www.dianping.com/shop/'+item.shop_id+'"><h5>'+item.name+'</h5></a></div>' +
+      '<div class="col-xs-4"><h4><small><b>'+item.category+'</b></small></h4></div></div>';
+    return shop_title_html;
+  }
+  function gen_blank_html(){
+  	return '<div>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;\
+            &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</div>';
+  }
+  function gen_content_html(item){
+  	return '<div class="row"><div class="col-xs-4"><span class="label label-primary">口&emsp;味：'+item.taste_score+'</span></div>' +
+      '<div class="col-xs-4"><span class="label label-success">人&emsp;均：¥'+item.avg_price+'</span></div></div>' +
+      '<div class="row"><div class="col-xs-4"><span class="label label-warning">评论数：'+item.comment_num+'</span></div>' +
+      '<div class="col-xs-4"><span class="label label-danger">好评率：'+item.good_rate+'%</span></div>' +
+      '<div class="col-xs-4"><span class="label label-info" title="'+item.route+'">行程耗时：'+item.public_duration+'</span></div></div></br>';
+  }
+  function get_recommendation_html(item){
+    favors = item.favor_list.split(',')
+    var tmp = '<div class="row">';
+    for (var i=0; i<favors.length;++i){
+      tmp+='<div class="col-xs-4"><span class="label label-default">'+favors[i]+'</span></div>';
+    }
+    tmp+='</div>';
+    return tmp;
+  }
+
   function render_data(data_info){
     map.clearOverlays();
-    var icon = new BMap.Icon("http://www.dpfile.com/s/img/map/fancy/1.png", icon_size);
     for(var i=0;i<data_info.length;i++){
-      var icon = new BMap.Icon("http://www.dpfile.com/s/img/map/fancy/"+(i+1)+".png", icon_size);
-      var marker = new BMap.Marker(new BMap.Point(data_info[i].lng,data_info[i].lat));  // 创建标注
-      var shop_link = 'http://www.dianping.com/shop/' + data_info[i].shop_id;
-      var detail =
-      '<div class="row"><div class="col-xs-8"><a class="text-left" target="_blank" href="'+shop_link+'"><h5>'+data_info[i].name+'</h5></a></div>' +
-      '<div class="col-xs-4"><h4><small><b>'+data_info[i].category+'</b></small></h4></div></div>' +
-      '<div>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;\
-            &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</div>' +
-      '<div class="row"><div class="col-xs-4"><span class="label label-warning">口&emsp;味：'+data_info[i].taste_score+'</span></div>' +
-      '<div class="col-xs-4"><span class="label label-success">人&emsp;均：¥'+data_info[i].avg_price+'</span></div></div>' +
-      '<div class="row"><div class="col-xs-4"><span class="label label-info">评论数：'+data_info[i].comment_num+'</span></div>' +
-      '<div class="col-xs-4"><span class="label label-danger">好评率：'+data_info[i].good_rate+'%</span></div>' +
-      '<div class="col-xs-4"></div></div><br>' +
-      '<span class="label label-primary">行程耗时：'+data_info[i].public_duration+'</span>'+
-      '<div><span class="label label-primary">'+data_info[i].route+'</span></div>';
+      var icon = new BMap.Icon("http://www.dpfile.com/s/img/map/fancy/"+ (i+1) +".png", icon_size);
+      var marker = new BMap.Marker(new BMap.Point(data_info[i].lng,data_info[i].lat));
+      var detail = gen_shop_title_html(data_info[i]) + gen_blank_html() + gen_content_html(data_info[i]) + get_recommendation_html(data_info[i]);
       marker.setIcon(icon);
-      map.addOverlay(marker);               // 将标注添加到地图中
+      map.addOverlay(marker);               
       addClickHandler(detail,marker);
     }
     if (data_info.length < limit_num){
       current_page = 0
-      console.log(data_info.length);
     }
   }
   function addClickHandler(detail,marker){
     marker.addEventListener("click",function(e){
-      openDetailInfo(detail, e)}
+      var p = e.target;
+      var point = new BMap.Point(p.getPosition().lng, p.getPosition().lat);
+      var option = {};
+      var infoWindow = new BMap.InfoWindow(detail, option);  
+      map.openInfoWindow(infoWindow,point); 
+      }
     );
     marker.addEventListener("mouseover",function(e){
       marker.setIcon(new BMap.Icon((marker.getIcon().imageUrl.replace(".png", "-hover.png")), icon_size));
     });
     marker.addEventListener("mouseout",function(e){
-      console.log(e.target);
-      console.log(e.point);
-      console.log(e.pixel);
       marker.setIcon(new BMap.Icon((marker.getIcon().imageUrl.replace("-hover.png", ".png")), icon_size));
     });
-  }
-  function openDetailInfo(detailInfo, e){
-    var p = e.target;
-    var point = new BMap.Point(p.getPosition().lng, p.getPosition().lat);
-    var option = {};
-    var infoWindow = new BMap.InfoWindow(detailInfo, option);  // 创建信息窗口对象
-    map.openInfoWindow(infoWindow,point); //开启信息窗
-    //infoWindow.redraw();
   }
 </script>
 </body>

@@ -79,8 +79,8 @@ def get_shops():
     shops = df[["shop_id", "shop_name", "shop_group_name", "address", "lng", "lat", "category_id", "subcategory_id"]]
     locations = get_locations()
     df = pd.merge(shops, locations, how="left", on="shop_id")
-    df["lng"] = df["lng_baidu"]
-    df["lat"] = df["lat_baidu"]
+    df["lng"] = df["lng_baidu"].apply(lambda x: "{0:.6f}".format(x))
+    df["lat"] = df["lat_baidu"].apply(lambda x: "{0:.6f}".format(x))
     df["mainCategory_id"] = df.apply(
         lambda x: x['category_id'] if x['subcategory_id'] == "None" else x['subcategory_id'], axis=1)
     df["shop_group_name"] = df.apply(
@@ -101,6 +101,7 @@ def get_comments():
     df = pd.concat((pd.read_csv(f, header=None, sep=FIELD_DELIMITER, na_filter=True, na_values="None") for f in all_files))
     df.columns = ["shop_id", "comment_num", "star_5_num", "star_4_num", "star_3_num", "star_2_num", "star_1_num"]
     df["good_rate"] = 100 * ((df["star_4_num"]+df["star_5_num"]) / df["comment_num"])
+    df["good_rate"] = df["good_rate"].apply(lambda x: "{0:.1f}".format(x))
     return df[["shop_id", "comment_num", "good_rate"]]
 
 
@@ -116,6 +117,7 @@ def get_heats():
     df = pd.concat((pd.read_csv(f, header=None, sep=FIELD_DELIMITER) for f in all_files))
     df.columns = ["shop_id", "total_hits", "today_hits", "monthly_hits", "weekly_hits", "last_week_hits"]
     df["weighted_hits"] = 0.2*df["total_hits"] + 0.5*df["monthly_hits"] + 0.3*df["last_week_hits"]
+    df["weighted_hits"] = df["weighted_hits"].apply(lambda x: "{0:.1f}".format(x))
     return df[["shop_id", "total_hits", "monthly_hits", "last_week_hits", "weighted_hits"]]
 
 
@@ -133,8 +135,8 @@ def get_favors():
     all_files = glob.glob(os.path.join(FAVOR_DATA_DIR, "*.csv"))
     df = pd.concat((pd.read_csv(f, header=None, sep=FIELD_DELIMITER, na_values="None") for f in all_files))
     df.columns = ["shop_id", "favors"]
-    df["shop_id"] = df["shop_id"].apply(lambda x: str(x))
-    return df
+    df["favor_list"] = df["favors"].apply(lambda x: ",".join([item['dishTagName'] for item in json.loads(x)]))
+    return df[["shop_id", "favor_list"]]
 
 
 def get_all_info():
@@ -144,12 +146,14 @@ def get_all_info():
     heats = get_heats()
     routes = get_routes()
     category = get_category()
+    favors = get_favors()
     shop_comment = pd.merge(shops, comments, how="inner", on="shop_id")
     shop_comment_score = pd.merge(shop_comment, scores, how="inner", on="shop_id")
     shop_comment_score_heat = pd.merge(shop_comment_score, heats, how="inner", on="shop_id")
-    shop_comment_score_heat_distance = pd.merge(shop_comment_score_heat, routes, how="left", on="shop_id")
-    shop_comment_score_heat_distance_category = pd.merge(shop_comment_score_heat_distance, category, how="inner", on="category_id")
-    return shop_comment_score_heat_distance_category
+    shop_comment_score_heat_favors = pd.merge(shop_comment_score_heat, favors,how="inner",on="shop_id")
+    shop_comment_score_heat_favors_distance = pd.merge(shop_comment_score_heat_favors, routes, how="left", on="shop_id")
+    shop_comment_score_heat_favors_distance_category = pd.merge(shop_comment_score_heat_favors_distance, category, how="inner", on="category_id")
+    return shop_comment_score_heat_favors_distance_category
 
 
 def get_weight_details():
@@ -157,18 +161,10 @@ def get_weight_details():
     df = all_info[["shop_id", "shop_name", "shop_group_name", "lng", "lat",
                    "comment_num", "good_rate",
                    "avg_price", "taste_score", "env_score", "ser_score",
-                   "weighted_hits",
+                   "weighted_hits", "favor_list",
                    "verse_taxi_distance", "route", "public_duration", "category_name", "category_id"
                    ]]
     return df
-    # return df\
-    #     .groupby("shop_id")\
-    #     .agg({"shop_id": np.max, "shop_name": np.max, "shop_group_name": np.max, "lng": np.max, "lat": np.max,
-    #         "comment_num": np.max, "good_rate": np.max,
-    #         "avg_price": np.max, "taste_score": np.max, "env_score": np.max, "ser_score": np.max,
-    #         "weighted_hits": np.max,
-    #         "verse_taxi_distance": np.max, "route": np.max, "public_duration": np.max,
-    #         "category_name": np.max, "category_id": np.max})
 
 
 def save_weight_details():
@@ -217,10 +213,10 @@ def get_customized_shops(details, params, order_by):
         details = details
     if condition is not True:
         return details[condition].loc[:, ["shop_id", "shop_name", "taste_score", 'comment_num', 'good_rate', "avg_price",
-                                          "category_id", "category_name", "lng", "lat", "route", "public_duration"]]
+                                          "favor_list", "category_name", "lng", "lat", "route", "public_duration"]]
     else:
         return details.loc[:, ["shop_id", "shop_name", "taste_score", 'comment_num', 'good_rate', "avg_price",
-                               "category_id", "category_name", "lng", "lat", "route", "public_duration"]]
+                               "favor_list", "category_name", "lng", "lat", "route", "public_duration"]]
 
 
 def get_distinct_shops():
@@ -231,9 +227,9 @@ def get_distinct_shops():
 def get_json_data_from_df(df):
     res = [{"name": row.shop_name, "lng": row.lng, "lat": row.lat,
             "avg_price": "-" if str(row.avg_price)=="nan" else int(row.avg_price),
-            "taste_score": row.taste_score, "comment_num": int(row.comment_num), "good_rate": int(row.good_rate),
+            "taste_score": str(row.taste_score), "comment_num": int(row.comment_num), "good_rate": int(row.good_rate),
             "category": row.category_name, "shop_id": row.shop_id, "route": row.route, "public_duration": row.public_duration,
-            "category_id": str(row.category_id)
+            "favor_list": row.favor_list
             }
             for row in df.itertuples()]
     return json.dumps(res, ensure_ascii=False).encode("utf-8")

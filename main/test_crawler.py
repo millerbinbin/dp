@@ -41,11 +41,15 @@ def test_get_random_favor_shops():
 
 
 def test_get_favors():
-    return favors.get_favors()
+    import json
+    df = service.get_favors().head(10)
+    df["favor_list"] = df["favors"].apply(lambda x: ",".join([item['dishTagName']for item in json.loads(x)]))
+    return df
 
 
 if __name__ == '__main__':
-    test_save_weight_details()
-    # test_get_favors()
-    all_data = service.load_weight_details()
-    print all_data[all_data.group_rank<=1]
+    # test_save_weight_details()
+    # print test_get_favors()
+    # all_data = service.load_weight_details()
+    # print all_data[all_data.group_rank<=1]
+    print service.get_heats()["weighted_hits"].max(),service.get_heats()["weighted_hits"].min()

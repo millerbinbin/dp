@@ -6,7 +6,7 @@ ADD requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 ADD app app
 ADD crawl crawl
-ADD data data
+ADD data/shop_weight_details.csv data/shop_weight_details.csv
 ADD main main
 ENV PYTHONPATH /app
 WORKDIR /app/main
