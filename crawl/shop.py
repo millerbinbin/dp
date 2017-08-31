@@ -250,8 +250,6 @@ def crawl_shops_favorite_food():
     def load_all_saved_favors():
         return {i.strip().split(FIELD_DELIMITER)[0] for i in open(FAVORITE_CSV)}
 
-    shop_list = load_all_saved_favors()
-
     driver = webdriver.PhantomJS()
     driver_page = webdriver.PhantomJS()
     rohr_init = '''
@@ -265,43 +263,45 @@ def crawl_shops_favorite_food():
     f.close()
     driver.execute_script(rohr_init)
     driver.execute_script(rohr)
-    favor_list = []
-    for row in service.get_distinct_shops():
-        shop_id = str(row.shop_id)
-        shop_name = str(row.shop_name)
-        mainCategory_id = str(row.mainCategory_id)
-        if shop_id in shop_list: continue
+    for i in range(1,10):
+        shop_list = load_all_saved_favors()
+        favor_list = []
+        for row in service.get_distinct_shops():
+            shop_id = str(row.shop_id)
+            shop_name = str(row.shop_name)
+            mainCategory_id = str(row.mainCategory_id)
+            if shop_id in shop_list: continue
 
-        get_token = '''
-        var data = {{ shop_id: {0}, cityId: 1, shopName: "{1}", power: 5, mainCategoryId: "{2}", shopType: 10, shopCityId: 1}};
-        window.Rohr_Opt.reload(data);
-        var token = decodeURIComponent(window.rohrdata);
-        return token;
-        '''.format(shop_id, shop_name, mainCategory_id)
+            get_token = '''
+            var data = {{ shop_id: {0}, cityId: 1, shopName: "{1}", power: 5, mainCategoryId: "{2}", shopType: 10, shopCityId: 1}};
+            window.Rohr_Opt.reload(data);
+            var token = decodeURIComponent(window.rohrdata);
+            return token;
+            '''.format(shop_id, shop_name, mainCategory_id)
 
-        token = driver.execute_script(get_token)
+            token = driver.execute_script(get_token)
 
-        url = "http://www.dianping.com/ajax/json/shopDynamic/shopTabs?shopId={0}&cityId=1&shopName={1}" \
-              "&power=5&mainCategoryId={2}&shopType=10&shopCityId=1&_token={3}".format(shop_id, shop_name, mainCategory_id,
-                                                                                       token)
-        print url
-        content = get_content(driver_page, url)
-        if content == "":
+            url = "http://www.dianping.com/ajax/json/shopDynamic/shopTabs?shopId={0}&cityId=1&shopName={1}" \
+                  "&power=5&mainCategoryId={2}&shopType=10&shopCityId=1&_token={3}".format(shop_id, shop_name, mainCategory_id,
+                                                                                           token)
+            print url
             content = get_content(driver_page, url)
-        print content
-        if content != "":
-            favors = json.loads(content)["allDishes"]
-            dish_list = [{"tagCount": favors[i]["tagCount"],
-                          "dishTagName": favors[i]["dishTagName"],
-                          "finalPrice": favors[i]["finalPrice"]
-                          } for i in range(min(5, len(favors)))]
-            favor_list.append((shop_id, json.dumps(dish_list, ensure_ascii=False).encode("utf-8")))
-        time.sleep(0.5)
-        if len(favor_list) % 10 == 0:
-            print "flush data to disk..."
-            csvLib.write_records_to_csv(FAVORITE_CSV, favor_list, FIELD_DELIMITER, mode="a")
-            favor_list = []
-    csvLib.write_records_to_csv(FAVORITE_CSV, favor_list, FIELD_DELIMITER, mode="a")
+            if content == "":
+                content = get_content(driver_page, url)
+            print content
+            if content != "":
+                favors = json.loads(content)["allDishes"]
+                dish_list = [{"tagCount": favors[i]["tagCount"],
+                              "dishTagName": favors[i]["dishTagName"],
+                              "finalPrice": favors[i]["finalPrice"]
+                              } for i in range(min(5, len(favors)))]
+                favor_list.append((shop_id, json.dumps(dish_list, ensure_ascii=False).encode("utf-8")))
+            time.sleep(0.5)
+            if len(favor_list) % 10 == 0:
+                print "flush data to disk..."
+                csvLib.write_records_to_csv(FAVORITE_CSV, favor_list, FIELD_DELIMITER, mode="a")
+                favor_list = []
+        csvLib.write_records_to_csv(FAVORITE_CSV, favor_list, FIELD_DELIMITER, mode="a")
     driver.close()
     driver_page.close()
 
