@@ -1,6 +1,5 @@
 # -*- coding:utf-8 -*-
 from crawl import WORK_DIR
-from filewriter import csvLib
 import pandas as pd
 import numpy as np
 import os
@@ -273,14 +272,3 @@ def get_random_favor_shops(all_data_info):
     s = pd.merge(all_data_info, favor_shops, how="left", on="shop_id")
     return s[s.favors.isnull()][["shop_id", "shop_name", "taste_score", 'comment_num', 'good_rate', "avg_price",
                                "category_id", "category_name", "lng", "lat", "route", "public_duration"]]
-
-
-def save_favor_data(shop_id, favor_data):
-    favors = json.loads(favor_data)["allDishes"]
-    dish_list = [{"tagCount": favors[i]["tagCount"],
-                  "dishTagName": favors[i]["dishTagName"],
-                  "finalPrice": favors[i]["finalPrice"]
-                } for i in range(min(5, len(favors)))]
-
-    res = [(shop_id, json.dumps(dish_list, ensure_ascii=False).encode("utf-8"))]
-    csvLib.write_records_to_csv(FAVOR_DATA_DIR+"/data.csv", res, FIELD_DELIMITER, mode="a")
