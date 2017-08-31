@@ -102,17 +102,17 @@
       </div>
       <br>
       <div class="row">
-        <form class="form-inline col-md-4">
+        <form class="form-inline col-sm-4">
           <label class="form-label">评分不低于:</label>
           <input class="form-control input-sm" type="number" style="width:40%;" id="taste-score">
         </form>
-        <form class="form-inline col-md-4">
+        <form class="form-inline col-sm-4">
             <label class="form-label">人均:</label>
             <input class="form-control input-sm" type="number" style="width:30%;" id="avg-price-min">
             <label class="form-label">--</label>
             <input class="form-control input-sm" type="number" style="width:30%;" id="avg-price-max">
         </form>
-        <form class="form-inline col-md-4">
+        <form class="form-inline col-sm-4">
             <label class="form-label">评论数不少于:</label>
             <input class="form-control input-sm" type="number" style="width:40%;" id="comment-num">
         </form>
@@ -120,12 +120,13 @@
       <br><br>
       <div class="row">
         <div class="col-md-4"></div>
-        <button class="btn btn-primary col-md-2" onclick="filter_hidden(true)" >确定</button>
+        <button class="btn btn-primary col-sm-2" onclick="filter_hidden(true)" >确定</button>
       </div>
     </div>
   </div>
   <div id="map" class="container div-b"></div>
 </div>
+
 <script type="text/javascript">
   $(document).ready(function(){
     $('input').iCheck({
@@ -138,7 +139,8 @@
   var map_center = {"lat":31.236923, "lng": 121.483644};
   var map_layer = 13;
   var current_page = 1;
-  var limit_num = 40;
+  var limit_num = 20;
+  var icon_size = {"width":24, "height":34};
   var order_col = "taste_score";
   var category_set = new Set();
   var taste_score;
@@ -234,20 +236,24 @@
 
   function render_data(data_info){
     map.clearOverlays();
+    var icon = new BMap.Icon("http://www.dpfile.com/s/img/map/fancy/1.png", icon_size);
     for(var i=0;i<data_info.length;i++){
+      var icon = new BMap.Icon("http://www.dpfile.com/s/img/map/fancy/"+(i+1)+".png", icon_size);
       var marker = new BMap.Marker(new BMap.Point(data_info[i].lng,data_info[i].lat));  // 创建标注
       var shop_link = 'http://www.dianping.com/shop/' + data_info[i].shop_id;
-      var detail = '<div class="row"><div class="col-xs-8"><a class="text-left" target="_blank" href="'+shop_link+'"><h5>'+data_info[i].name+'</h5></a></div></div>' +
+      var detail =
+      '<div class="row"><div class="col-xs-8"><a class="text-left" target="_blank" href="'+shop_link+'"><h5>'+data_info[i].name+'</h5></a></div>' +
+      '<div class="col-xs-4"><h4><small><b>'+data_info[i].category+'</b></small></h4></div></div>' +
       '<div>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;\
             &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</div>' +
-      '<div class="row"><div class="col-xs-4"><span class="label label-default">菜&emsp;系：'+data_info[i].category+'</span></div>' +
-      '<div class="col-xs-4"><span class="label label-warning">口&emsp;味：'+data_info[i].taste_score+'</span></div>' +
+      '<div class="row"><div class="col-xs-4"><span class="label label-warning">口&emsp;味：'+data_info[i].taste_score+'</span></div>' +
       '<div class="col-xs-4"><span class="label label-success">人&emsp;均：¥'+data_info[i].avg_price+'</span></div></div>' +
       '<div class="row"><div class="col-xs-4"><span class="label label-info">评论数：'+data_info[i].comment_num+'</span></div>' +
       '<div class="col-xs-4"><span class="label label-danger">好评率：'+data_info[i].good_rate+'%</span></div>' +
       '<div class="col-xs-4"></div></div><br>' +
       '<span class="label label-primary">行程耗时：'+data_info[i].public_duration+'</span>'+
       '<div><span class="label label-primary">'+data_info[i].route+'</span></div>';
+      marker.setIcon(icon);
       map.addOverlay(marker);               // 将标注添加到地图中
       addClickHandler(detail,marker);
     }
@@ -260,6 +266,15 @@
     marker.addEventListener("click",function(e){
       openDetailInfo(detail, e)}
     );
+    marker.addEventListener("mouseover",function(e){
+      marker.setIcon(new BMap.Icon((marker.getIcon().imageUrl.replace(".png", "-hover.png")), icon_size));
+    });
+    marker.addEventListener("mouseout",function(e){
+      console.log(e.target);
+      console.log(e.point);
+      console.log(e.pixel);
+      marker.setIcon(new BMap.Icon((marker.getIcon().imageUrl.replace("-hover.png", ".png")), icon_size));
+    });
   }
   function openDetailInfo(detailInfo, e){
     var p = e.target;
