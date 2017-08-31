@@ -8,8 +8,7 @@ ADD app app
 ADD crawl crawl
 ADD data/shop_weight_details.csv data/
 ADD main main
-RUN ls -R
 ENV PYTHONPATH /app
 WORKDIR /app/main
 # RUN python web.py
-EXPOSE 2222
+EXPOSE 80
