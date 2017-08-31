@@ -265,6 +265,7 @@
       var icon = new BMap.Icon("http://www.dpfile.com/s/img/map/fancy/"+ (i+1) +".png", icon_size);
       var marker = new BMap.Marker(new BMap.Point(data_info[i].lng,data_info[i].lat));
       var detail = gen_shop_title_html(data_info[i]) + gen_blank_html() + gen_content_html(data_info[i]) + get_recommendation_html(data_info[i]);
+      marker.setTitle(data_info[i].name);
       marker.setIcon(icon);
       map.addOverlay(marker);               
       addClickHandler(detail,marker);
