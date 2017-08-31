@@ -21,7 +21,7 @@ HEAT_DATA_DIR = os.path.join(BASE_DATA_DIR, "../heats")
 SCORE_DATA_DIR = os.path.join(BASE_DATA_DIR, "../scores")
 ROUTE_DATA_DIR = os.path.join(BASE_DATA_DIR, "../routes")
 FAVOR_DATA_DIR = os.path.join(BASE_DATA_DIR, "../favorite")
-DETAILS_CSV = os.path.join(BASE_DATA_DIR, "../shop_weight_details.csv")
+DETAILS_CSV = os.path.join(WORK_DIR, "data/shop_weight_details.csv")
 FIELD_DELIMITER = "\t"
 
 
