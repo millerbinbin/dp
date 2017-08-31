@@ -4,11 +4,11 @@ RUN mkdir -p /app
 WORKDIR /app
 ADD requirements.txt requirements.txt
 RUN pip install -r requirements.txt
-ADD app app
-ADD crawl crawl
+EXPOSE 80
+ENV PYTHONPATH /app
+ADD crawl/__init__.py crawl/
 ADD data/shop_weight_details.csv data/
 ADD main main
-ENV PYTHONPATH /app
+ADD app app
 WORKDIR /app/main
-# RUN python web.py
-EXPOSE 80
+
