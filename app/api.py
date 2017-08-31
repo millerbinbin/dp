@@ -14,6 +14,7 @@ sys.setdefaultencoding("utf-8")
 
 all_data_info = service.load_weight_details(True)
 
+
 def get_string_param_2_number(param_name):
     value = request.values.get(param_name)
     if value is not None:
@@ -36,13 +37,8 @@ def get_customized_shops(page, limit, col):
               "comment_num": comment_num, "category": category_name}
     limit_data = service.get_customized_shops(all_data_info, params=params, order_by=col)
     result = limit_data.iloc[(page-1)*limit:page*limit]
+    print result
     return service.get_json_data_from_df(result)
-
-
-@app.route('/shops/favors', methods=['POST'])
-def post_shop_favors():
-    favor_data = get_string_param_2_number("favor_data")
-    return '{{"message": "成功导入{0}条记录"}}'.format(service.save_favor_data(favor_data))
 
 
 @app.route('/')

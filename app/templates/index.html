@@ -16,11 +16,11 @@
 </head>
 <body>
 <div class="container">
-  <nav class="navbar navbar-inverse navbar-fixed-top">
+  <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
     <div class="container-fluid">
       <div class="navbar-header">
         <div class="navbar-brand" >
-          <a href="#" data-toggle="modal" data-target="#selection-modal"">
+          <a href="#" data-toggle="modal" data-target="#selection-modal">
             <span class="glyphicon glyphicon-filter"></span>筛选<span class="caret"></span>
           </a>
         </div>
@@ -211,7 +211,7 @@
   }
   function gen_blank_html(){
   	return '<div>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;\
-            &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</div>';
+            &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</div>';
   }
   function gen_content_html(item){
   	return '<div class="row"><div class="col-xs-4"><span class="label label-primary">口&emsp;味：'+item.taste_score+'</span></div>' +

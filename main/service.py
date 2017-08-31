@@ -209,7 +209,7 @@ def get_customized_shops(details, params, order_by):
         details = details.sort_values([order_by], ascending=[False])
     else:
         details = details
-    details["avg_price"] = details["avg_price"].apply(lambda x: None if str(x) == "nan" else int(x))
+    details["avg_price"] = details["avg_price"].apply(lambda x: "" if str(x) == "nan" else int(x))
     details["favor_list"] = details["favor_list"].apply(lambda x: "" if str(x) == "nan" else x)
     if condition is not True:
         return details[condition].loc[:, ["shop_id", "shop_name", "taste_score", 'comment_num', 'good_rate', "avg_price",
@@ -226,7 +226,7 @@ def get_distinct_shops():
 
 def get_json_data_from_df(df):
     res = [{"name": row.shop_name, "lng": row.lng, "lat": row.lat,
-            "avg_price": "-" if row.avg_price is None else str(int(row.avg_price)),
+            "avg_price": "-" if row.avg_price=="" else str(int(row.avg_price)),
             "taste_score": str(row.taste_score), "comment_num": int(row.comment_num), "good_rate": int(row.good_rate),
             "category": row.category_name, "shop_id": row.shop_id, "route": row.route, "public_duration": row.public_duration,
             "favor_list": row.favor_list
