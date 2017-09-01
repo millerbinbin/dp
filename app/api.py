@@ -42,7 +42,8 @@ def get_customized_shops(page, limit, col):
 
 @app.route('/category/all', methods=['GET'])
 def get_all_categories():
-    return service.get_category_json_from_df(service.get_category())
+    df = all_data_info[["category_name"]].drop_duplicates()
+    return service.get_category_json_from_df(df)
 
 
 @app.route('/')
