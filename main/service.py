@@ -224,7 +224,7 @@ def get_distinct_shops():
     return shops[["shop_id", "shop_name", "address", "lng", "lat", "mainCategory_id"]].drop_duplicates().itertuples()
 
 
-def get_json_data_from_df(df):
+def get_shops_json_from_df(df):
     res = [{"name": row.shop_name, "lng": row.lng, "lat": row.lat,
             "avg_price": "-" if row.avg_price=="" else str(int(row.avg_price)),
             "taste_score": str(row.taste_score), "comment_num": int(row.comment_num), "good_rate": int(row.good_rate),
@@ -232,6 +232,11 @@ def get_json_data_from_df(df):
             "favor_list": row.favor_list
             }
             for row in df.itertuples()]
+    return json.dumps(res, ensure_ascii=False).encode("utf-8")
+
+
+def get_category_json_from_df(df):
+    res = [{"category": row.category_name} for row in df.itertuples()]
     return json.dumps(res, ensure_ascii=False).encode("utf-8")
 
 

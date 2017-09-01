@@ -37,8 +37,12 @@ def get_customized_shops(page, limit, col):
               "comment_num": comment_num, "category": category_name}
     limit_data = service.get_customized_shops(all_data_info, params=params, order_by=col)
     result = limit_data.iloc[(page-1)*limit:page*limit]
-    print result
-    return service.get_json_data_from_df(result)
+    return service.get_shops_json_from_df(result)
+
+
+@app.route('/category/all', methods=['GET'])
+def get_all_categories():
+    return service.get_category_json_from_df(service.get_category())
 
 
 @app.route('/')
