@@ -212,10 +212,10 @@ def get_customized_shops(details, params, order_by):
     details["avg_price"] = details["avg_price"].apply(lambda x: "" if str(x) == "nan" else int(x))
     details["favor_list"] = details["favor_list"].apply(lambda x: "" if str(x) == "nan" else x)
     if condition is not True:
-        return details[condition].loc[:, ["shop_id", "shop_name", "taste_score", 'comment_num', 'good_rate', "avg_price",
+        return details[condition].loc[:, ["shop_id", "shop_name", "taste_score", "env_score", "comment_num", "good_rate", "avg_price",
                                           "favor_list", "category_name", "lng", "lat", "route", "public_duration"]]
     else:
-        return details.loc[:, ["shop_id", "shop_name", "taste_score", 'comment_num', 'good_rate', "avg_price",
+        return details.loc[:, ["shop_id", "shop_name", "taste_score", "env_score", "comment_num", "good_rate", "avg_price",
                                "favor_list", "category_name", "lng", "lat", "route", "public_duration"]]
 
 
@@ -227,7 +227,7 @@ def get_distinct_shops():
 def get_shops_json_from_df(df):
     res = [{"name": row.shop_name, "lng": row.lng, "lat": row.lat,
             "avg_price": "-" if row.avg_price=="" else str(int(row.avg_price)),
-            "taste_score": str(row.taste_score), "comment_num": int(row.comment_num), "good_rate": int(row.good_rate),
+            "taste_score": str(row.taste_score), "env_score": str(row.env_score), "comment_num": int(row.comment_num), "good_rate": int(row.good_rate),
             "category": row.category_name, "shop_id": row.shop_id, "route": row.route, "public_duration": row.public_duration,
             "favor_list": row.favor_list
             }
@@ -267,7 +267,7 @@ def get_time_str(duration):
     minute = int(duration / 60)
     x = ""
     if hour > 0:
-        x += "{0}时".format(hour)
+        x += "{0}小时".format(hour)
     if minute > 0 :
         x += "{0}分".format(minute)
     return x
