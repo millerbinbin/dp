@@ -182,7 +182,7 @@ def load_weight_details(filter_same_group=False):
 
 
 def get_customized_shops(details, params, order_by):
-    good_rate, taste_score, comment_num, avg_price_min, avg_price_max, category = None, None, None, None, None, None
+    good_rate, taste_score, comment_num, avg_price_min, avg_price_max, category, query = None, None, None, None, None, None, None
     try:
         good_rate = params['good_rate']
         taste_score = params['taste_score']
@@ -213,7 +213,7 @@ def get_customized_shops(details, params, order_by):
     details["avg_price"] = details["avg_price"].apply(lambda x: "" if str(x) == "nan" else int(x))
     details["favor_list"] = details["favor_list"].apply(lambda x: "" if str(x) == "nan" else x)
     if query is not None:
-        details = details[details.shop_group_name.str.contains(query)]
+        details = details[details.shop_group_name.str.contains(query) | details.favor_list.str.contains(query)]
     if condition is not True:
         return details[condition].loc[:, ["shop_id", "shop_name", "taste_score", "env_score", "comment_num", "good_rate", "avg_price",
                                           "favor_list", "category_name", "lng", "lat", "route", "public_duration"]]
