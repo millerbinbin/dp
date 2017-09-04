@@ -27,17 +27,7 @@ class Crawler(object):
                    'Accept-Encoding': 'gzip, deflate',
                    'Accept-Language': 'en-US,en;q=0.8',
                    'Connection': 'keep-alive',
-                   'Cookie': '_hc.v=498e3bf3-bdf9-116d-1e26-8bf5bcffb775.1502175474; '
-                             '_lxsdk_cuid=15dcaa9f195c8-01acd2d00fe066-333f5902-168000-15dcaa9f196c8;'
-                             '_lxsdk=15dcaa9f195c8-01acd2d00fe066-333f5902-168000-15dcaa9f196c8; '
-                             'PHOENIX_ID=0a010725-15dcaad1966-497eb1d; '
-                             's_ViewType=10; '
-                             '__mta=250044345.1502343729701.1502352611764.1502352707776.6; '
-                             'JSESSIONID=1E6FAE3A93548EF549CF3047C8A2552E; '
-                             'aburl=1; '
-                             'cy=1; '
-                             'cye=shanghai; '
-                             '_lxsdk_s=15dcb31452f-3db-0ea-429%7C%7C47',
+                   'Cookie': '_hc.v=498e3bf3-bdf9-116d-1e26-8bf5bcffb775.1502175474; __utma=1.915781408.1503991937.1503991937.1503991937.1; __utmz=1.1503991937.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _lxsdk_cuid=15e3ccb3a9ac8-0c79675ea7cb2c-3a3e5f04-168000-15e3ccb3a9aad; _lxsdk=15e3ccb3a9ac8-0c79675ea7cb2c-3a3e5f04-168000-15e3ccb3a9aad; PHOENIX_ID=0a010725-15e4b85f47f-e7e0abd; s_ViewType=10; JSESSIONID=44ACA9871B277237E474D341B5B022CF; aburl=1; cy=1; cye=shanghai; __mta=46527128.1504505111749.1504505644780.1504505743169.7; _lxsdk_s=15e4b7e0d99-f36-d53-e01%7C%7C112',
                    'Host': 'www.dianping.com',
                    'Upgrade-Insecure-Requests': '1',
                    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36'

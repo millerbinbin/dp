@@ -106,20 +106,15 @@ def get_shop_details(shop_id):
 def get_shop_result(data, category_id):
     tmp = data.find("div", class_="pic")
     shop_id = tmp.a['href'][tmp.a['href'].rfind('/') + 1:]
-
-    content = crawlLib.Crawler(SHOP_URL.format(shop_id)).parse_content()
-    for link in content.find("div", class_="breadcrumb").find_all("a"):
-        subcategory_name = str(link.text.strip())
-
-    subcategory_id, actual_category_id = CATEGORY_TABLE.get(subcategory_name)
+    subcategory_name = data.find("div", class_="tag-addr").find(href=re.compile(".*/[^r]\d+$")).text.strip()
+    subcategory_id, actual_category_id = CATEGORY_TABLE.get(str(subcategory_name))
     if actual_category_id != category_id:
         return None
-
     shop_name = tmp.img['alt']
     print shop_name
     shop_group_name = get_group_name(str(shop_name))
-    region_name = data.find("div", class_="tag-addr").find(href=re.compile(".*/[^g]\d+$")).text
     try:
+        region_name = data.find("div", class_="tag-addr").find(href=re.compile(".*/[^g]\d+$")).text
         region, district = REGION_TABLE.get(str(region_name))
     except:
         region, district = None, None
@@ -264,7 +259,7 @@ def crawl_shops_favorite_food():
     f.close()
     driver.execute_script(rohr_init)
     driver.execute_script(rohr)
-    for i in range(1,10):
+    for i in range(1, 10):
         shop_list = load_all_saved_favors()
         favor_list = []
         for row in service.get_distinct_shops():

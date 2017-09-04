@@ -33,8 +33,9 @@ def get_customized_shops(page, limit, col):
     avg_price_max = get_string_param_2_number("avg_price_max")
     comment_num = get_string_param_2_number("comment_num")
     category_name = get_string_param_2_number("category")
+    query = get_string_param_2_number("query")
     params = {"good_rate": good_rate, "taste_score": taste_score, "avg_price_min": avg_price_min, "avg_price_max": avg_price_max,
-              "comment_num": comment_num, "category": category_name}
+              "comment_num": comment_num, "category": category_name, "query":query}
     limit_data = service.get_customized_shops(all_data_info, params=params, order_by=col)
     result = limit_data.iloc[(page-1)*limit:page*limit]
     return service.get_shops_json_from_df(result)

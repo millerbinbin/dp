@@ -48,8 +48,8 @@ def test_get_favors():
 
 
 if __name__ == '__main__':
-    test_save_weight_details()
+    # test_save_weight_details()
     # print test_get_favors()
-    # all_data = service.load_weight_details()
-    # print all_data[all_data.group_rank<=1]
+    all_data = service.load_weight_details(True)
+    print all_data[all_data.shop_group_name.str.contains("顺风")]
     # print service.get_heats()["weighted_hits"].max(),service.get_heats()["weighted_hits"].min()

@@ -31,11 +31,24 @@
       <ul class="nav navbar-nav navbar-left" id="nav-type-tab">
         <li id="taste_tab" value="taste_score" class="active"><a href="#">口味优先</a></li>
         <li id="comment_tab" value="comment_num"><a href="#">最热讨论</a></li>
-        <li id="heat_tab" value="weighted_hits"><a href="#">点击为王</a></li>
+<!--         <li id="heat_tab" value="weighted_hits"><a href="#">点击为王</a></li> -->
         <li id="rating_tab" value="good_rate"><a href="#">好评如潮</a></li>
         <li id="distance_tab" value="verse_taxi_distance"><a href="#">周边美食</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
+        <li>
+          <form class="navbar-form">
+            <div class="form-group" style="display:inline;">
+              <div class="input-group">
+                <span class="input-group-addon">
+                  <span class="glyphicon glyphicon-search" onclick="search_shops()"></span>
+                </span>
+                <input type="text" class="form-control" id="shop-search">
+              </div>
+            </div>
+          </form>
+          
+        </li>
         <li>
           <a href="#" onclick="refresh_shops(true)">
             <span class="glyphicon glyphicon-refresh"></span>换一批
@@ -56,34 +69,6 @@
       <div class="modal-body" id="selection">
         <label>菜系选择</label>
         <div class="row" id="category-selection">
-          <!-- <div class="col-xs-2"><span class="label label-default">本帮江浙菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">日本菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">咖啡厅</span></div>
-          <div class="col-xs-2"><span class="label label-default">小吃快餐</span></div>
-          <div class="col-xs-2"><span class="label label-default">火锅</span></div>
-          <div class="col-xs-2"><span class="label label-default">西餐</span></div>
-          <div class="col-xs-2"><span class="label label-default">面包甜点</span></div>
-          <div class="col-xs-2"><span class="label label-default">自助餐</span></div>
-          <div class="col-xs-2"><span class="label label-default">粤菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">韩国料理</span></div>
-          <div class="col-xs-2"><span class="label label-default">小龙虾</span></div>
-          <div class="col-xs-2"><span class="label label-default">烧烤</span></div>
-          <div class="col-xs-2"><span class="label label-default">川菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">素菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">东北菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">东南亚菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">火锅</span></div>
-          <div class="col-xs-2"><span class="label label-default">湘菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">云南菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">新疆菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">西北菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">蟹宴</span></div>
-          <div class="col-xs-2"><span class="label label-default">台湾菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">贵州菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">面馆</span></div>
-          <div class="col-xs-2"><span class="label label-default">家常菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">江西菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">其他</span></div> -->
         </div><br>
         <div class="row">
           <form class="form-inline col-sm-4">
@@ -144,6 +129,7 @@
 
           $(this).addClass("active");
           order_col = $(this).attr("value");
+          $("#shop-search").val("");
           refresh_shops(false);
         }
       });
@@ -184,7 +170,12 @@
     if (typeof(page_down)==='undefined') page_down = false;
     if (page_down) {current_page+=1;}
     else {current_page=1;}
-    shops = get_shops(current_page, limit_num, order_col)
+    var category_str = "";
+    category_set.forEach(function (item) {
+      category_str+=item.toString() + ",";
+    });
+    var param = {"taste_score": taste_score, "comment_num": comment_num, "avg_price_min": avg_price_min, "avg_price_max": avg_price_max, "category": category_str, "query": $("#shop-search").val()};
+    shops = get_shops(param, current_page, limit_num, order_col)
     render_shops(shops);
   }
   function init_map(){
@@ -194,13 +185,7 @@
     map.enableScrollWheelZoom(true);
     return map;
   }
-  function get_shops(page, limit, order_by){
-    var param = {"taste_score": taste_score, "comment_num": comment_num, "avg_price_min": avg_price_min, "avg_price_max": avg_price_max};
-    var category_str = "";
-    category_set.forEach(function (item) {
-      category_str+=item.toString() + ",";
-    });
-    param.category = category_str;
+  function get_shops(param, page, limit, order_by){
     $.ajax({
        url: '/shops/'+page+'/'+limit+'/order_by='+order_by,
        dataType: 'json',
@@ -214,6 +199,11 @@
        success: function(data){result = data;}
     });
     return result;
+  }
+  function search_shops(){
+    param = {"query":$("#shop-search").val()};
+    shops = get_shops(param, 1, limit_num, order_col);
+    render_shops(shops);
   }
   function get_all_category(){
     $.ajax({
