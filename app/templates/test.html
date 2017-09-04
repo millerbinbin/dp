@@ -21,12 +21,15 @@
   <link href="../static/css/skins/polaris/polaris.css" rel="stylesheet">
 	<script type="text/javascript" src="../static/js/bootstrap.min.js"></script>
   <script type="text/javascript" src="../static/js/icheck.js"></script>
+  <script src="https://cdn.bootcss.com/bootstrap-slider/9.8.1/bootstrap-slider.min.js"></script>
+  <link href="https://cdn.bootcss.com/bootstrap-slider/9.8.1/css/bootstrap-slider.min.css" rel="stylesheet">
 	<title>精品推荐</title>
 	<link rel="shortcut icon" href="../static/image/dp.jpg" >
   <script type="text/javascript" src="../static/js/dp.js"></script>
 </head>
 <body>
 <div>
+  <input id="ex1" data-slider-id='ex1Slider' type="text" data-slider-min="8.0" data-slider-max="10" data-slider-step="0.1" data-slider-value="8"/>
   <h4><span class="label label-default label-lg" onclick="change_selection(this)">testtesttest</span></h4>
   <label>tttttt</label>
 </div>
@@ -157,6 +160,11 @@
     </div>
   </div>
   <script>
+    $('#ex1').slider({
+      formatter: function(value) {
+        return 'Current value: ' + value;
+      }
+    });
     var category_set = new Set();
     $('#category-selection-1').find("span").each(function(){
       $(this).on({

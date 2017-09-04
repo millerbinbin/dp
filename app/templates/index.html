@@ -17,28 +17,44 @@
 <body>
 <div class="container">
   <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-    <div class="container-fluid">
-      <div class="navbar-header">
-        <div class="navbar-brand" >
-          <a href="#" data-toggle="modal" data-target="#selection-modal">
-            <span class="glyphicon glyphicon-filter"></span>筛选<span class="caret"></span>
-          </a>
-        </div>
-      </div>
-      <div class="collapse navbar-collapse">
-        <ul class="nav navbar-nav navbar-center">
-          <li id="taste_tab" value="taste_score" onclick="order_by(this)" class="active"><a href="#">口味优先</a></li>
-          <li id="comment_tab" value="comment_num" onclick="order_by(this)"><a href="#">最热讨论</a></li>
-          <li id="heat_tab" value="weighted_hits" onclick="order_by(this)"><a href="#">点击为王</a></li>
-          <li id="rating_tab" value="good_rate" onclick="order_by(this)"><a href="#">好评如潮</a></li>
-          <li id="distance_tab" value="verse_taxi_distance" onclick="order_by(this)"><a href="#">周边美食</a></li>
-        </ul>
-        <ul class="nav navbar-nav navbar-right">
-          <li><a href="#" onclick="refresh_data(true)">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbarCollapse">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#" data-toggle="modal" data-target="#selection-modal">
+        <span class="glyphicon glyphicon-filter"></span>筛选<span class="caret"></span>
+      </a>
+    </div>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+      <ul class="nav navbar-nav navbar-left" id="nav-type-tab">
+        <li id="taste_tab" value="taste_score" class="active"><a href="#">口味优先</a></li>
+        <li id="comment_tab" value="comment_num"><a href="#">最热讨论</a></li>
+<!--         <li id="heat_tab" value="weighted_hits"><a href="#">点击为王</a></li> -->
+        <li id="rating_tab" value="good_rate"><a href="#">好评如潮</a></li>
+        <li id="distance_tab" value="verse_taxi_distance"><a href="#">周边美食</a></li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+          <form class="navbar-form">
+            <div class="form-group" style="display:inline;">
+              <div class="input-group">
+                <span class="input-group-addon">
+                  <span class="glyphicon glyphicon-search" onclick="search_shops()"></span>
+                </span>
+                <input type="text" class="form-control" id="shop-search">
+              </div>
+            </div>
+          </form>
+          
+        </li>
+        <li>
+          <a href="#" onclick="refresh_shops(true)">
             <span class="glyphicon glyphicon-refresh"></span>换一批
-          </a></li>
-        </ul>
-      </div>
+          </a>
+        </li>
+      </ul>
     </div>
   </nav>
 </div>
@@ -50,37 +66,9 @@
           条件筛选
         </h4>
       </div>
-      <div class="modal-body" id="category-selection">
+      <div class="modal-body" id="selection">
         <label>菜系选择</label>
-        <div class="row">
-          <div class="col-xs-2"><span class="label label-default">本帮江浙菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">日本菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">咖啡厅</span></div>
-          <div class="col-xs-2"><span class="label label-default">小吃快餐</span></div>
-          <div class="col-xs-2"><span class="label label-default">火锅</span></div>
-          <div class="col-xs-2"><span class="label label-default">西餐</span></div>
-          <div class="col-xs-2"><span class="label label-default">面包甜点</span></div>
-          <div class="col-xs-2"><span class="label label-default">自助餐</span></div>
-          <div class="col-xs-2"><span class="label label-default">粤菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">韩国料理</span></div>
-          <div class="col-xs-2"><span class="label label-default">小龙虾</span></div>
-          <div class="col-xs-2"><span class="label label-default">烧烤</span></div>
-          <div class="col-xs-2"><span class="label label-default">川菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">素菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">东北菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">东南亚菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">火锅</span></div>
-          <div class="col-xs-2"><span class="label label-default">湘菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">云南菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">新疆菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">西北菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">蟹宴</span></div>
-          <div class="col-xs-2"><span class="label label-default">台湾菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">贵州菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">面馆</span></div>
-          <div class="col-xs-2"><span class="label label-default">家常菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">江西菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">其他</span></div>
+        <div class="row" id="category-selection">
         </div><br>
         <div class="row">
           <form class="form-inline col-sm-4">
@@ -111,6 +99,10 @@
 
 <script type="text/javascript">
   $(document).ready(function(){
+    get_all_category().forEach(function (item) {
+      $('#category-selection').append('<div class="col-xs-2"><span class="label label-default">'+item.category+'</span></div>');
+    });
+
     $('#category-selection').find("span").each(function(){
       $(this).on({
         click: function(){
@@ -127,7 +119,24 @@
         }
       });
     });
-    init_data();
+
+    $('#nav-type-tab').find("li").each(function(){
+      $(this).on({
+        click: function(){
+          $('#nav-type-tab').find("li").each(function(){
+            $(this).removeClass("active");
+          });
+
+          $(this).addClass("active");
+          order_col = $(this).attr("value");
+          $("#shop-search").val("");
+          refresh_shops(false);
+        }
+      });
+    });
+
+    init();
+
   });
   var map_center = {"lat":31.236923, "lng": 121.483644};
   var map_layer = 13;
@@ -150,29 +159,25 @@
     if (isNaN(avg_price_max)){avg_price_max = undefined;}
     comment_num = parseInt($("#comment-num").val());
     if (isNaN(comment_num)){comment_num = undefined;}
-    refresh_data(false);
-  }
-  function init_data(){
-    map = init_map();
-    render_data(get_data(current_page, limit_num, "taste_score"));
-  }
-  function refresh_data(page_down){
-    if (page_down) {current_page+=1;}
-    else{current_page=1;}
-    data = get_data(current_page, limit_num, order_col)
-    render_data(data);
-  }
-  function order_by(which){
-    $("#taste_tab").removeClass("active");
-    $("#comment_tab").removeClass("active");
-    $("#heat_tab").removeClass("active");
-    $("#rating_tab").removeClass("active");
-    $("#distance_tab").removeClass("active");
-    $(which).addClass("active");
-    order_col = $(which).attr("value");
-    refresh_data(false);
+    refresh_shops();
   }
 
+  function init(){
+    map = init_map();
+    refresh_shops();
+  }
+  function refresh_shops(page_down){
+    if (typeof(page_down)==='undefined') page_down = false;
+    if (page_down) {current_page+=1;}
+    else {current_page=1;}
+    var category_str = "";
+    category_set.forEach(function (item) {
+      category_str+=item.toString() + ",";
+    });
+    var param = {"taste_score": taste_score, "comment_num": comment_num, "avg_price_min": avg_price_min, "avg_price_max": avg_price_max, "category": category_str, "query": $("#shop-search").val()};
+    shops = get_shops(param, current_page, limit_num, order_col)
+    render_shops(shops);
+  }
   function init_map(){
     var map = new BMap.Map("map");
     var point = new BMap.Point(map_center.lng, map_center.lat);
@@ -180,20 +185,13 @@
     map.enableScrollWheelZoom(true);
     return map;
   }
-
-  function get_data(page, top, order_by){
-    var param = {"taste_score": taste_score, "comment_num": comment_num, "avg_price_min": avg_price_min, "avg_price_max": avg_price_max};
-    var category_str = "";
-    category_set.forEach(function (item) {
-      category_str+=item.toString() + ",";
-    });
-    param.category = category_str;
+  function get_shops(param, page, limit, order_by){
     $.ajax({
-       url: '/shops/'+page+'/'+top+'/order_by='+order_by,
+       url: '/shops/'+page+'/'+limit+'/order_by='+order_by,
        dataType: 'json',
        type: 'POST',
        data: param,
-       timeout: 2000,
+       timeout: 3000,
        cache: false,
        crossDomain: true,
        async : false,
@@ -202,7 +200,25 @@
     });
     return result;
   }
-
+  function search_shops(){
+    param = {"query":$("#shop-search").val()};
+    shops = get_shops(param, 1, limit_num, order_col);
+    render_shops(shops);
+  }
+  function get_all_category(){
+    $.ajax({
+       url: '/category/all',
+       dataType: 'json',
+       type: 'GET',
+       timeout: 3000,
+       cache: false,
+       crossDomain: true,
+       async : false,
+       error: function(){result = [];},
+       success: function(data){result = data;}
+    });
+    return result;
+  }
   function gen_shop_title_html(item){
   	var shop_title_html = '<div class="row"><div class="col-xs-8">'+
   	  '<a class="text-left" target="_blank" href="http://www.dianping.com/shop/'+item.shop_id+'"><h5>'+item.name+'</h5></a></div>' +
@@ -215,6 +231,7 @@
   }
   function gen_content_html(item){
   	return '<div class="row"><div class="col-xs-4"><span class="label label-primary">口&emsp;味：'+item.taste_score+'</span></div>' +
+      '<div class="col-xs-4"><span class="label label-primary">环&emsp;境：'+item.env_score+'</span></div>' +
       '<div class="col-xs-4"><span class="label label-success">人&emsp;均：¥'+item.avg_price+'</span></div></div>' +
       '<div class="row"><div class="col-xs-4"><span class="label label-warning">评论数：'+item.comment_num+'</span></div>' +
       '<div class="col-xs-4"><span class="label label-danger">好评率：'+item.good_rate+'%</span></div>' +
@@ -229,8 +246,7 @@
     tmp+='</div>';
     return tmp;
   }
-
-  function render_data(data_info){
+  function render_shops(data_info){
     map.clearOverlays();
     for(var i=0;i<data_info.length;i++){
       var icon = new BMap.Icon("http://www.dpfile.com/s/img/map/fancy/"+ (i+1) +".png", icon_size);

@@ -172,7 +172,7 @@ def save_weight_details():
     df.to_csv(DETAILS_CSV, sep=FIELD_DELIMITER, doublequote=False, quoting=csv.QUOTE_NONE)
 
 
-def load_weight_details(filter_same_group):
+def load_weight_details(filter_same_group=False):
     df = pd.read_csv(DETAILS_CSV, sep=FIELD_DELIMITER, na_values="None")
     df["shop_id"] = df["shop_id"].apply(lambda x: str(x))
     df['group_rank'] = df['taste_score'].groupby(df['shop_group_name']).rank(ascending=False)
@@ -189,6 +189,7 @@ def get_customized_shops(details, params, order_by):
         comment_num = params['comment_num']
         avg_price_min = params['avg_price_min']
         avg_price_max = params['avg_price_max']
+        query = params['query']
         category = params['category'].split(',') if params['category'] != '' else None
     except:
         pass
@@ -211,11 +212,13 @@ def get_customized_shops(details, params, order_by):
         details = details
     details["avg_price"] = details["avg_price"].apply(lambda x: "" if str(x) == "nan" else int(x))
     details["favor_list"] = details["favor_list"].apply(lambda x: "" if str(x) == "nan" else x)
+    if query is not None:
+        details = details[details.shop_group_name.str.contains(query)]
     if condition is not True:
-        return details[condition].loc[:, ["shop_id", "shop_name", "taste_score", 'comment_num', 'good_rate', "avg_price",
+        return details[condition].loc[:, ["shop_id", "shop_name", "taste_score", "env_score", "comment_num", "good_rate", "avg_price",
                                           "favor_list", "category_name", "lng", "lat", "route", "public_duration"]]
     else:
-        return details.loc[:, ["shop_id", "shop_name", "taste_score", 'comment_num', 'good_rate', "avg_price",
+        return details.loc[:, ["shop_id", "shop_name", "taste_score", "env_score", "comment_num", "good_rate", "avg_price",
                                "favor_list", "category_name", "lng", "lat", "route", "public_duration"]]
 
 
@@ -224,14 +227,19 @@ def get_distinct_shops():
     return shops[["shop_id", "shop_name", "address", "lng", "lat", "mainCategory_id"]].drop_duplicates().itertuples()
 
 
-def get_json_data_from_df(df):
+def get_shops_json_from_df(df):
     res = [{"name": row.shop_name, "lng": row.lng, "lat": row.lat,
             "avg_price": "-" if row.avg_price=="" else str(int(row.avg_price)),
-            "taste_score": str(row.taste_score), "comment_num": int(row.comment_num), "good_rate": int(row.good_rate),
+            "taste_score": str(row.taste_score), "env_score": str(row.env_score), "comment_num": int(row.comment_num), "good_rate": int(row.good_rate),
             "category": row.category_name, "shop_id": row.shop_id, "route": row.route, "public_duration": row.public_duration,
             "favor_list": row.favor_list
             }
             for row in df.itertuples()]
+    return json.dumps(res, ensure_ascii=False).encode("utf-8")
+
+
+def get_category_json_from_df(df):
+    res = [{"category": row.category_name} for row in df.itertuples()]
     return json.dumps(res, ensure_ascii=False).encode("utf-8")
 
 
@@ -262,7 +270,7 @@ def get_time_str(duration):
     minute = int(duration / 60)
     x = ""
     if hour > 0:
-        x += "{0}时".format(hour)
+        x += "{0}小时".format(hour)
     if minute > 0 :
         x += "{0}分".format(minute)
     return x
