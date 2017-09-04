@@ -43,7 +43,7 @@ if __name__ == '__main__':
     # backup_data()
     # crawl_base_data()
     # delete_shop_data()
-    crawl_shop_data()
+    # crawl_shop_data()
     crawl_shop_additional_info()
     save_shop_data()
 
