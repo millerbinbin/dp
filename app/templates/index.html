@@ -98,6 +98,17 @@
 <div id="map" class="container"></div>
 
 <script type="text/javascript">
+  var current_page = 1;
+  var limit_num = 20;
+  var icon_size = {"width":24, "height":34};
+  var order_col = "taste_score";
+  var category_set = new Set();
+  var taste_score;
+  var avg_price_min;
+  var avg_price_max;
+  var comment_num;
+  var shop_link = "http://www.dianping.com/shop/";
+
   $(document).ready(function(){
     get_all_category().forEach(function (item) {
       $('#category-selection').append('<div class="col-xs-2"><span class="label label-default">'+item.category+'</span></div>');
@@ -134,21 +145,14 @@
         }
       });
     });
-
+    
+    if (navigator.userAgent.toLowerCase().indexOf("iphone")>=0 || navigator.userAgent.toLowerCase().indexOf("andriod") >=0){
+    	shop_link ="http://m.dianping.com/shop/";
+    }
     init();
 
   });
-  var map_center = {"lat":31.236923, "lng": 121.483644};
-  var map_layer = 13;
-  var current_page = 1;
-  var limit_num = 20;
-  var icon_size = {"width":24, "height":34};
-  var order_col = "taste_score";
-  var category_set = new Set();
-  var taste_score;
-  var avg_price_min;
-  var avg_price_max;
-  var comment_num;
+  
 
   function refresh_selection_data(){
     taste_score = parseFloat($("#taste-score").val());
@@ -179,6 +183,8 @@
     render_shops(shops);
   }
   function init_map(){
+  	var map_center = {"lat":31.236923, "lng": 121.483644};
+  	var map_layer = 13;
     var map = new BMap.Map("map");
     var point = new BMap.Point(map_center.lng, map_center.lat);
     map.centerAndZoom(point, map_layer);
@@ -221,7 +227,7 @@
   }
   function gen_shop_title_html(item){
   	var shop_title_html = '<div class="row"><div class="col-xs-8">'+
-  	  '<a class="text-left" target="_blank" href="http://www.dianping.com/shop/'+item.shop_id+'"><h5>'+item.name+'</h5></a></div>' +
+  	  '<a class="text-left" target="_blank" href="'+shop_link+item.shop_id+'"><h5>'+item.name+'</h5></a></div>' +
       '<div class="col-xs-4"><h4><small><b>'+item.category+'</b></small></h5></div></div>';
     return shop_title_html;
   }
