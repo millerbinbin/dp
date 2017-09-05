@@ -299,5 +299,4 @@ def calc_earth_distance(origin, dest):
     R = 6371.004
     Pi = 3.1415926
     distance = R * math.acos(C) * Pi / 180
-    print distance
     return float("{0:.2f}".format(distance))
