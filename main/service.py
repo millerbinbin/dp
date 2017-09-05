@@ -265,6 +265,7 @@ def get_route_info(public_route):
 
 
 def get_time_str(duration):
+    duration = int(duration)
     hour = int(duration / 3600)
     duration -= hour * 3600
     minute = int(duration / 60)
@@ -273,6 +274,8 @@ def get_time_str(duration):
         x += "{0}小时".format(hour)
     if minute > 0 :
         x += "{0}分".format(minute)
+    if hour==0 and minute==0:
+        return "{0}秒".format(duration)
     return x
 
 

@@ -31,19 +31,27 @@ def crawl_shop_data():
 
 
 def crawl_shop_additional_info():
-    shop.crawl_shops_baidu_location()
-    shop.crawl_shops_routes()
+    print "开始抓取位置数据..."
+    #shop.crawl_shops_baidu_location()
+    print "开始抓取行程数据..."
+    #shop.crawl_shops_routes()
+    print "开始抓取推荐菜品数据..."
     shop.crawl_shops_favorite_food()
 
 
 def save_shop_data():
+    print "保存爬取数据..."
     service.save_weight_details()
 
 if __name__ == '__main__':
+    import time
+    start = time.time()
     # backup_data()
     # crawl_base_data()
     # delete_shop_data()
     # crawl_shop_data()
     crawl_shop_additional_info()
     save_shop_data()
+    end = time.time()
+    print "任务结束，共耗时{0}".format(service.get_time_str(end-start))
 

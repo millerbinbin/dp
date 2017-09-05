@@ -236,7 +236,6 @@ def crawl_shops_routes():
         else:
             public_routes.append((shop_id, taxi.to_json(), public.to_json(),))
         if len(public_routes) % 10 == 0:
-            print "flush data to disk..."
             csvLib.write_records_to_csv(ROUTE_CSV, public_routes, FIELD_DELIMITER, mode="a")
             public_routes = []
     csvLib.write_records_to_csv(ROUTE_CSV, public_routes, FIELD_DELIMITER, mode="a")
@@ -246,7 +245,7 @@ def crawl_shops_favorite_food():
     def load_all_saved_favors():
         return {i.strip().split(FIELD_DELIMITER)[0] for i in open(FAVORITE_CSV)}
 
-    driver = webdriver.PhantomJS()
+    driver = webdriver.Chrome()
     driver_page = webdriver.PhantomJS()
     rohr_init = '''
         window.rohrdata = "";
@@ -260,13 +259,15 @@ def crawl_shops_favorite_food():
     driver.execute_script(rohr_init)
     driver.execute_script(rohr)
     for i in range(1, 10):
+        print i
         shop_list = load_all_saved_favors()
         favor_list = []
         for row in service.get_distinct_shops():
             shop_id = str(row.shop_id)
-            shop_name = str(row.shop_name)
-            mainCategory_id = str(row.mainCategory_id)
             if shop_id in shop_list: continue
+            shop_name = str(row.shop_name)
+            print shop_name
+            mainCategory_id = str(row.mainCategory_id)
 
             get_token = '''
             var data = {{ shop_id: {0}, cityId: 1, shopName: "{1}", power: 5, mainCategoryId: "{2}", shopType: 10, shopCityId: 1}};
@@ -331,7 +332,6 @@ def crawl_shops_baidu_location():
 
         location_list.append((shop_id, lng, lat))
         if len(location_list) % 20 == 0:
-            print "flush data to disk..."
             csvLib.write_records_to_csv(LOCATION_CSV, location_list, FIELD_DELIMITER, mode="a")
             location_list = []
     csvLib.write_records_to_csv(LOCATION_CSV, location_list, FIELD_DELIMITER, mode="a")
