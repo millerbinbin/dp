@@ -1,6 +1,5 @@
 # -*- coding:utf-8 -*-
 import sys
-import random
 
 from flask import render_template, request
 

@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-from crawl import WORK_DIR
+from main import WORK_DIR
 import pandas as pd
 import numpy as np
 import os
@@ -21,7 +21,7 @@ HEAT_DATA_DIR = os.path.join(BASE_DATA_DIR, "../heats")
 SCORE_DATA_DIR = os.path.join(BASE_DATA_DIR, "../scores")
 ROUTE_DATA_DIR = os.path.join(BASE_DATA_DIR, "../routes")
 FAVOR_DATA_DIR = os.path.join(BASE_DATA_DIR, "../favorite")
-DETAILS_CSV = os.path.join(WORK_DIR, "data/shop_weight_details.csv")
+DETAILS_CSV_ZIP = os.path.join(WORK_DIR, "data/shop_details.gz")
 FIELD_DELIMITER = "\t"
 
 
@@ -169,11 +169,11 @@ def get_weight_details():
 def save_weight_details():
     df = get_weight_details()
     import csv
-    df.to_csv(DETAILS_CSV, sep=FIELD_DELIMITER, doublequote=False, quoting=csv.QUOTE_NONE)
+    df.to_csv(DETAILS_CSV_ZIP, sep=FIELD_DELIMITER, doublequote=False, quoting=csv.QUOTE_NONE, compression="gzip")
 
 
 def load_weight_details(filter_same_group=False):
-    df = pd.read_csv(DETAILS_CSV, sep=FIELD_DELIMITER, na_values="None")
+    df = pd.read_csv(DETAILS_CSV_ZIP, sep=FIELD_DELIMITER, na_values="None", compression="gzip")
     df["shop_id"] = df["shop_id"].apply(lambda x: str(x))
     df['group_rank'] = df['taste_score'].groupby(df['shop_group_name']).rank(ascending=False)
     if filter_same_group:

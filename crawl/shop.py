@@ -21,8 +21,8 @@ sys.setdefaultencoding("utf-8")
 
 SHOP_DETAILS_URL = "http://www.dianping.com/ajax/json/shopfood/wizard/BasicHideInfoAjaxFP?_nr_force=1502177990602&shopId={}"
 REVIEW_URL = "http://www.dianping.com/shop/{0}/review_more"
-COMMENT_URL = "http://www.dianping.com/shop/{0}/review_more_5star?pageno={1}"
-SHOP_URL = "http://www.dianping.com/shop/{0}"
+# COMMENT_URL = "http://www.dianping.com/shop/{0}/review_more_5star?pageno={1}"
+# SHOP_URL = "http://www.dianping.com/shop/{0}"
 
 TASTE_SCORE_THRESHOLD = 8
 CATEGORY_NUMBER_LIMIT = 400
@@ -179,14 +179,14 @@ def get_shop_review_star_num(shop_id):
     return comment_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num
 
 
-def get_shop_favorite_food(shop_id):
-    dish_list = {}
-    for pageno in range(1, 11):
-        data = crawlLib.Crawler(COMMENT_URL.format(shop_id, pageno)).parse_content(mode="complex")
-        for comment in data.find_all("div", class_="comment-recommend"):
-            for dish in comment.find_all("a", class_="col-exp", target="_blank"):
-                dish_list[dish.text] = 1 if dish_list.get(dish.text) is None else 1 + dish_list.get(dish.text)
-    return dish_list
+# def get_shop_favorite_food(shop_id):
+#     dish_list = {}
+#     for pageno in range(1, 11):
+#         data = crawlLib.Crawler(COMMENT_URL.format(shop_id, pageno)).parse_content(mode="complex")
+#         for comment in data.find_all("div", class_="comment-recommend"):
+#             for dish in comment.find_all("a", class_="col-exp", target="_blank"):
+#                 dish_list[dish.text] = 1 if dish_list.get(dish.text) is None else 1 + dish_list.get(dish.text)
+#     return dish_list
 
 
 def get_shop_location(shop_name):
