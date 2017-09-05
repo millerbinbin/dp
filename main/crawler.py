@@ -21,7 +21,7 @@ def crawl_shop_data():
     category_sets = shop.split_category_segments(service.get_category().sort_values(["category_id"]), 8)
     crawl_jobs = []
     for category_set in category_sets:
-        thread = threading.Thread(target=shop.crawl_shops, args=(category_set, False))
+        thread = threading.Thread(target=shop.crawl_shops, args=(category_set, True))
         thread.setDaemon(True)
         thread.start()
         crawl_jobs.append(thread)
@@ -32,9 +32,9 @@ def crawl_shop_data():
 
 def crawl_shop_additional_info():
     print "开始抓取位置数据..."
-    #shop.crawl_shops_baidu_location()
+    shop.crawl_shops_baidu_location()
     print "开始抓取行程数据..."
-    #shop.crawl_shops_routes()
+    shop.crawl_shops_routes()
     print "开始抓取推荐菜品数据..."
     shop.crawl_shops_favorite_food()
 
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     # backup_data()
     # crawl_base_data()
     # delete_shop_data()
-    # crawl_shop_data()
+    crawl_shop_data()
     crawl_shop_additional_info()
     save_shop_data()
     end = time.time()

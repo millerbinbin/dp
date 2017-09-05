@@ -190,7 +190,6 @@
       category_str+=item.toString() + ",";
     });
     var param = {"taste_score": taste_score, "comment_num": comment_num, "avg_price_min": avg_price_min, "avg_price_max": avg_price_max, "category": category_str, "query": $("#shop-search").val()};
-    console.log($("#nearby-tab").attr("class"));
     if ($("#nearby-tab").attr("class")!=undefined && $("#nearby-tab").attr("class")!=""){
       param.position = existing_star.point.lat+','+existing_star.point.lng;
       order_col = "taste_score";
@@ -292,11 +291,11 @@
           text:'到这里去',
           callback:function(e){
             var transit = new BMap.TransitRoute(map, {    
-              //renderOptions: {map: map},
+              renderOptions: {map: map},
               TransitPolicy: BMAP_TRANSIT_POLICY_LEAST_TIME,
               onSearchComplete: function(res){
                 var firstPlan = res.getPlan(0);
-                console.log(firstPlan);
+                console.log(firstPlan.getDuration(true));
                 // 绘制步行线路
                 for (var i = 0; i < firstPlan.getNumRoutes(); i++){
                   var walk = firstPlan.getRoute(i);
@@ -312,7 +311,7 @@
                 }
               }
             });
-            //transit.disableAutoViewport();
+            transit.disableAutoViewport();
             transit.search(new BMap.Point(existing_star.point.lng,existing_star.point.lat), new BMap.Point(e.lng,e.lat));
           }
         };

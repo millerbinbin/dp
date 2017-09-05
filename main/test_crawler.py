@@ -80,11 +80,22 @@ def filter_months(rec):
     return months, amount, link
 
 
+def test_crawl_one_cateogry():
+    category = service.get_category()
+    category_set = category[category.category_id==114]
+    TASTE_SCORE_THRESHOLD = 8
+    CATEGORY_NUMBER_LIMIT = 400
+    DEFAULT_ORDER_TYPE = "taste"
+    for category in category_set.itertuples():
+        shop.crawl_all_shops_by_category(order_type=DEFAULT_ORDER_TYPE, category=category,
+                                     score_threshold=TASTE_SCORE_THRESHOLD, limit_num=CATEGORY_NUMBER_LIMIT)
+
 if __name__ == '__main__':
     # test_save_weight_details()
     # print test_get_favors()
-    all_data = service.load_weight_details(filter_same_group=True)
-    df = service.get_customized_shops(all_data, params=None, order_by="taste_score")
+    # all_data = service.load_weight_details(filter_same_group=True)
+    # df = service.get_customized_shops(all_data, params=None, order_by="taste_score")
 
     # print service.get_heats()["weighted_hits"].max(),service.get_heats()["weighted_hits"].min()
-    #print crawlLib.Crawler("https://www.yingzt.com/invest/apiList?app_ver=2&loanGroup=101&period=ALL&interest=ALL&repay=ALL&order=DESC&orderBy=available&p1=1&_fromAjax_=1&_csrfToken_=ae942ad0094cba2e68a98d188b4eb09b&_=1504338085211").crawl()
+    # print crawlLib.Crawler("http://www.dianping.com/search/category/1/10/g114o5p1").crawl()
+    test_crawl_one_cateogry()

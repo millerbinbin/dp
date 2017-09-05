@@ -111,6 +111,8 @@ def get_shop_result(data, category_id):
     if actual_category_id != category_id:
         return None
     shop_name = tmp.img['alt']
+    if data.find("div", class_="tit").find("span", class_="istopTrade")!=None:
+        return None
     print shop_name
     shop_group_name = get_group_name(str(shop_name))
     try:
