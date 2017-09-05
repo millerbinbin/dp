@@ -5,6 +5,7 @@ import numpy as np
 import os
 import glob
 import json
+import math
 import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
@@ -182,7 +183,8 @@ def load_weight_details(filter_same_group=False):
 
 
 def get_customized_shops(details, params, order_by):
-    good_rate, taste_score, comment_num, avg_price_min, avg_price_max, category, query = None, None, None, None, None, None, None
+    good_rate, taste_score, comment_num, avg_price_min, avg_price_max, category, position, query = \
+        None, None, None, None, None, None, None, None
     try:
         good_rate = params['good_rate']
         taste_score = params['taste_score']
@@ -190,6 +192,7 @@ def get_customized_shops(details, params, order_by):
         avg_price_min = params['avg_price_min']
         avg_price_max = params['avg_price_max']
         query = params['query']
+        position = params["position"]
         category = params['category'].split(',') if params['category'] != '' else None
     except:
         pass
@@ -205,21 +208,25 @@ def get_customized_shops(details, params, order_by):
     if avg_price_min is not None:
         condition = condition & (details["avg_price"] >= avg_price_min)
     if category is not None:
-        details = details[details["category_name"].isin(category)]
-    if order_by is not None and order_by in ('taste_score', 'weighted_hits', 'comment_num', 'good_rate', 'verse_taxi_distance'):
-        details = details.sort_values([order_by], ascending=[False])
-    else:
-        details = details
-    details["avg_price"] = details["avg_price"].apply(lambda x: "" if str(x) == "nan" else int(x))
+        condition = condition & (details["category_name"].isin(category))
+    if condition is not True:
+        details = details[condition]
+    details["avg_price"] = details["avg_price"].apply(lambda x: "" if str(x) == "nan" or str(x) == "" else int(x))
     details["favor_list"] = details["favor_list"].apply(lambda x: "" if str(x) == "nan" else x)
     if query is not None:
         details = details[details.shop_group_name.str.contains(query) | details.favor_list.str.contains(query)]
-    if condition is not True:
-        return details[condition].loc[:, ["shop_id", "shop_name", "taste_score", "env_score", "comment_num", "good_rate", "avg_price",
+    if position is not None:
+        lat = float(position.split(",")[0])
+        lng = float(position.split(",")[1])
+        print lat, lng
+        details["distance"] = details.apply(
+            lambda x: calc_earth_distance({"lat": x["lat"], "lng": x["lng"]}, {"lat": lat, "lng": lng}),
+            axis=1)
+        details = details[details.distance <= 5]
+    if order_by is not None and order_by in ('taste_score', 'weighted_hits', 'comment_num', 'good_rate', 'verse_taxi_distance'):
+        details = details.sort_values([order_by], ascending=[False])
+    return details.loc[:, ["shop_id", "shop_name", "taste_score", "env_score", "comment_num", "good_rate", "avg_price",
                                           "favor_list", "category_name", "lng", "lat", "route", "public_duration"]]
-    else:
-        return details.loc[:, ["shop_id", "shop_name", "taste_score", "env_score", "comment_num", "good_rate", "avg_price",
-                               "favor_list", "category_name", "lng", "lat", "route", "public_duration"]]
 
 
 def get_distinct_shops():
@@ -284,3 +291,13 @@ def get_random_favor_shops(all_data_info):
     s = pd.merge(all_data_info, favor_shops, how="left", on="shop_id")
     return s[s.favors.isnull()][["shop_id", "shop_name", "taste_score", 'comment_num', 'good_rate', "avg_price",
                                "category_id", "category_name", "lng", "lat", "route", "public_duration"]]
+
+
+def calc_earth_distance(origin, dest):
+    C = math.sin(origin['lat']) * math.sin(dest['lat']) + math.cos(origin['lng'] - dest['lng']) * math.cos(origin['lat']) * math.cos(
+        dest['lat'])
+    R = 6371.004
+    Pi = 3.1415926
+    distance = R * math.acos(C) * Pi / 180
+    print distance
+    return float("{0:.2f}".format(distance))

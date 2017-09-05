@@ -33,7 +33,7 @@
         <li id="comment_tab" value="comment_num"><a href="#">最热讨论</a></li>
 <!--         <li id="heat_tab" value="weighted_hits"><a href="#">点击为王</a></li> -->
         <li id="rating_tab" value="good_rate"><a href="#">好评如潮</a></li>
-        <li id="distance_tab" value="verse_taxi_distance"><a href="#">周边美食</a></li>
+        <li id="nearby-tab" value="verse_taxi_distance"><a href="#">周边美食</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
@@ -108,7 +108,8 @@
   var avg_price_max;
   var comment_num;
   var shop_link = "http://www.dianping.com/shop/";
-
+  var existing_star;
+  var existing_route;
   $(document).ready(function(){
     get_all_category().forEach(function (item) {
       $('#category-selection').append('<div class="col-xs-2"><span class="label label-default">'+item.category+'</span></div>');
@@ -168,6 +169,7 @@
 
   function init(){
     map = init_map();
+    add_star(121.615539,31.292029);
     refresh_shops();
   }
   function refresh_shops(page_down){
@@ -179,16 +181,29 @@
       category_str+=item.toString() + ",";
     });
     var param = {"taste_score": taste_score, "comment_num": comment_num, "avg_price_min": avg_price_min, "avg_price_max": avg_price_max, "category": category_str, "query": $("#shop-search").val()};
+    console.log($("#nearby-tab").attr("class"));
+    if ($("#nearby-tab").attr("class")!=undefined && $("#nearby-tab").attr("class")!=""){
+      param.position = existing_star.point.lat+','+existing_star.point.lng;
+      order_col = "taste_score";
+    }
     shops = get_shops(param, current_page, limit_num, order_col)
     render_shops(shops);
   }
   function init_map(){
   	var map_center = {"lat":31.236923, "lng": 121.483644};
   	var map_layer = 13;
-    var map = new BMap.Map("map");
+    var map = new BMap.Map("map",{enableMapClick:false});
     var point = new BMap.Point(map_center.lng, map_center.lat);
     map.centerAndZoom(point, map_layer);
     map.enableScrollWheelZoom(true);
+    var mapMenu = new BMap.ContextMenu();
+    var mapMenuItem = 
+      {
+        text:'设为星标',
+        callback:function(e){add_star(e.lng, e.lat);}
+      };
+    mapMenu.addItem(new BMap.MenuItem(mapMenuItem.text,mapMenuItem.callback,100));
+    map.addContextMenu(mapMenu);
     return map;
   }
   function get_shops(param, page, limit, order_by){
@@ -241,7 +256,8 @@
       '<div class="col-xs-4"><span class="label label-success">人&emsp;均：¥'+item.avg_price+'</span></div></div>' +
       '<div class="row"><div class="col-xs-4"><span class="label label-warning">评论数：'+item.comment_num+'</span></div>' +
       '<div class="col-xs-4"><span class="label label-danger">好评率：'+item.good_rate+'%</span></div>' +
-      '<div class="col-xs-4"><span class="label label-info" title="'+item.route+'">行程耗时：'+item.public_duration+'</span></div></div></br>';
+      // '<div class="col-xs-4"><span class="label label-info" title="'+item.route+'">行程耗时：'+item.public_duration+'</span></div>
+      '</div></br>';
   }
   function get_recommendation_html(item){
     favors = item.favor_list.split(',')
@@ -252,6 +268,14 @@
     tmp+='</div>';
     return tmp;
   }
+  function add_star(lng, lat){
+    if (existing_star != undefined){map.removeOverlay(existing_star);}
+    var marker = new BMap.Marker(new BMap.Point(lng, lat));
+    marker.disableMassClear();
+    existing_star = marker;
+    //console.log(existing_star.point);
+    map.addOverlay(marker);
+  }
   function render_shops(data_info){
     map.clearOverlays();
     for(var i=0;i<data_info.length;i++){
@@ -260,7 +284,28 @@
       var detail = gen_shop_title_html(data_info[i]) + gen_blank_html() + gen_content_html(data_info[i]) + get_recommendation_html(data_info[i]);
       marker.setTitle(data_info[i].name);
       marker.setIcon(icon);
-      map.addOverlay(marker);               
+      var markerMenu = new BMap.ContextMenu();
+      var markerMenuItem = 
+        {
+          text:'到这里去',
+          callback:function(e){
+            // var overlays = map.getOverlays(); 
+
+            // for(var i=0; i<overlays.length;++i){
+            //   console.log(overlays[i].V);
+            // }
+            // if (existing_route != undefined){map.removeOverlay(existing_route);}
+            var transit = new BMap.TransitRoute(map, {    
+              renderOptions: {map: map},
+              TransitPolicy: BMAP_TRANSIT_POLICY_LEAST_TIME
+            });
+            transit.disableAutoViewport();
+            existing_route = transit.search(new BMap.Point(existing_star.point.lng,existing_star.point.lat), new BMap.Point(e.lng,e.lat));
+          }
+        };
+      markerMenu.addItem(new BMap.MenuItem(markerMenuItem.text,markerMenuItem.callback,100));
+      marker.addContextMenu(markerMenu);
+      map.addOverlay(marker);             
       addClickHandler(detail,marker);
     }
     if (data_info.length < limit_num){

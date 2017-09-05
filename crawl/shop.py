@@ -259,7 +259,6 @@ def crawl_shops_favorite_food():
     driver.execute_script(rohr_init)
     driver.execute_script(rohr)
     for i in range(1, 10):
-        print i
         shop_list = load_all_saved_favors()
         favor_list = []
         for row in service.get_distinct_shops():

@@ -79,10 +79,12 @@ def filter_months(rec):
     if amount<10: amount*=10000
     return months, amount, link
 
+
 if __name__ == '__main__':
-    test_save_weight_details()
+    # test_save_weight_details()
     # print test_get_favors()
-    all_data = service.load_weight_details()
-    print all_data[all_data.group_rank<=1]
+    all_data = service.load_weight_details(filter_same_group=True)
+    df = service.get_customized_shops(all_data, params=None, order_by="taste_score")
+
     # print service.get_heats()["weighted_hits"].max(),service.get_heats()["weighted_hits"].min()
     #print crawlLib.Crawler("https://www.yingzt.com/invest/apiList?app_ver=2&loanGroup=101&period=ALL&interest=ALL&repay=ALL&order=DESC&orderBy=available&p1=1&_fromAjax_=1&_csrfToken_=ae942ad0094cba2e68a98d188b4eb09b&_=1504338085211").crawl()
