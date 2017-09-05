@@ -85,10 +85,3 @@ def get_complete_route(origin, destination):
     return {"taxi": taxi, "public": public}
 
 
-def calc_earth_distance(origin, dest):
-    C = math.sin(origin.lat) * math.sin(dest.lat) + math.cos(origin.lng - dest.lng) * math.cos(origin.lat) * math.cos(
-        dest.lat)
-    R = 6371.004
-    Pi = 3.1415926
-    distance = R * math.acos(C) * Pi / 180
-    return "{0:.2f}".format(distance)

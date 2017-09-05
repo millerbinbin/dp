@@ -110,6 +110,7 @@
   var shop_link = "http://www.dianping.com/shop/";
   var existing_star;
   var existing_route;
+  var mapMenu = new BMap.ContextMenu();
   $(document).ready(function(){
     get_all_category().forEach(function (item) {
       $('#category-selection').append('<div class="col-xs-2"><span class="label label-default">'+item.category+'</span></div>');
@@ -168,7 +169,15 @@
   }
 
   function init(){
+    
+    var mapMenuItem = 
+      {
+        text:'设为星标',
+        callback:function(e){add_star(e.lng, e.lat);}
+      };
+    mapMenu.addItem(new BMap.MenuItem(mapMenuItem.text,mapMenuItem.callback,100));    
     map = init_map();
+    map.addContextMenu(mapMenu);
     add_star(121.615539,31.292029);
     refresh_shops();
   }
@@ -196,14 +205,7 @@
     var point = new BMap.Point(map_center.lng, map_center.lat);
     map.centerAndZoom(point, map_layer);
     map.enableScrollWheelZoom(true);
-    var mapMenu = new BMap.ContextMenu();
-    var mapMenuItem = 
-      {
-        text:'设为星标',
-        callback:function(e){add_star(e.lng, e.lat);}
-      };
-    mapMenu.addItem(new BMap.MenuItem(mapMenuItem.text,mapMenuItem.callback,100));
-    map.addContextMenu(mapMenu);
+
     return map;
   }
   function get_shops(param, page, limit, order_by){
@@ -289,23 +291,35 @@
         {
           text:'到这里去',
           callback:function(e){
-            // var overlays = map.getOverlays(); 
-
-            // for(var i=0; i<overlays.length;++i){
-            //   console.log(overlays[i].V);
-            // }
-            // if (existing_route != undefined){map.removeOverlay(existing_route);}
             var transit = new BMap.TransitRoute(map, {    
-              renderOptions: {map: map},
-              TransitPolicy: BMAP_TRANSIT_POLICY_LEAST_TIME
+              //renderOptions: {map: map},
+              TransitPolicy: BMAP_TRANSIT_POLICY_LEAST_TIME,
+              onSearchComplete: function(res){
+                var firstPlan = res.getPlan(0);
+                console.log(firstPlan);
+                // 绘制步行线路
+                for (var i = 0; i < firstPlan.getNumRoutes(); i++){
+                  var walk = firstPlan.getRoute(i);
+                  if (walk.getDistance(false) > 0){
+                    // 步行线路有可能为0
+                    map.addOverlay(new BMap.Polyline(walk.getPath(), {lineColor: "green"}));
+                  }
+                }
+                // 绘制公交线路
+                for (i = 0; i < firstPlan.getNumLines(); i++){
+                  var line = firstPlan.getLine(i);
+                  map.addOverlay(new BMap.Polyline(line.getPath()));
+                }
+              }
             });
-            transit.disableAutoViewport();
-            existing_route = transit.search(new BMap.Point(existing_star.point.lng,existing_star.point.lat), new BMap.Point(e.lng,e.lat));
+            //transit.disableAutoViewport();
+            transit.search(new BMap.Point(existing_star.point.lng,existing_star.point.lat), new BMap.Point(e.lng,e.lat));
           }
         };
       markerMenu.addItem(new BMap.MenuItem(markerMenuItem.text,markerMenuItem.callback,100));
       marker.addContextMenu(markerMenu);
-      map.addOverlay(marker);             
+      map.addOverlay(marker);           
+      map.addContextMenu(mapMenu);  
       addClickHandler(detail,marker);
     }
     if (data_info.length < limit_num){
