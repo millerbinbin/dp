@@ -139,7 +139,7 @@
   var comment_num;
   var shop_link = "http://www.dianping.com/shop/";
   var existing_star;
-  var existing_routes = new Set();
+  var existing_shops = new Set();
   var mode = "transit";
   $(document).ready(function(){
     // get all category
@@ -285,14 +285,21 @@
       async : true,
       error: function(){alert("get data error!");},
       success: function(data){
+      	existing_shops.forEach(function (item){
+      		item.enableMassClear();
+      		existing_shops.delete(item);
+      	});
         map.clearOverlays();
+
         for(var i=0;i<data.length;i++){
           var icon = new BMap.Icon("http://www.dpfile.com/s/img/map/fancy/"+ (i+1) +".png", icon_size);
           var marker = new BMap.Marker(new BMap.Point(data[i].lng,data[i].lat));
           var detail = gen_shop_title_html(data[i]) + gen_blank_html() + gen_content_html(data[i]) + get_recommendation_html(data[i]);
           marker.setTitle(data[i].name);
           marker.setIcon(icon);
-          map.addOverlay(marker);           
+          marker.disableMassClear();
+          map.addOverlay(marker);
+          existing_shops.add(marker);       
           addClickHandler(detail,marker);
         }
         if (data.length < limit_num){
@@ -308,11 +315,11 @@
       	renderOptions: {map: map},
         TransitPolicy: BMAP_TRANSIT_POLICY_LEAST_TIME,
         onSearchComplete: function(res){
+          map.clearOverlays();
           var firstPlan = res.getPlan(0);
           for (var i = 0; i < firstPlan.getNumRoutes(); i++){
             var walk = firstPlan.getRoute(i);
             var path = new BMap.Polyline(walk.getPath(), {strokeColor: "blue",strokeWeight: "6"});
-            existing_routes.add(path);
             map.addOverlay(path);
           }
           console.log("共约耗时:"+firstPlan.getDuration(true));
@@ -324,14 +331,13 @@
         renderOptions: {map: map},
         TransitPolicy: BMAP_TRANSIT_POLICY_LEAST_TIME,
         onSearchComplete: function(res){
+          map.clearOverlays();
           var firstPlan = res.getPlan(0);
-          
           // 绘制步行线路
           for (var i = 0; i < firstPlan.getNumRoutes(); i++){
             var walk = firstPlan.getRoute(i);
             if (walk.getDistance(false) > 0){
               var path = new BMap.Polyline(walk.getPath(), {strokeColor: "green",strokeWeight: "6"});
-              existing_routes.add(path);
               map.addOverlay(path);
             }
           }
@@ -340,7 +346,6 @@
             var line = firstPlan.getLine(i);
             console.log('▷'+line.getGetOnStop().title+'->'+line.getGetOffStop().title+'['+line.title+']'+',共'+line.getNumViaStops()+'站');
             var path = new BMap.Polyline(line.getPath(), {strokeWeight: "6"});
-            existing_routes.add(path);
             map.addOverlay(path);
           }
           console.log("共约耗时:"+firstPlan.getDuration(true));
@@ -386,19 +391,6 @@
     marker.disableMassClear();
     existing_star = marker;
     map.addOverlay(marker);
-    existing_routes.forEach(function (item) {
-      existing_routes.delete(item);
-      map.removeOverlay(item);
-    });
-  }
-  function get_all_overlays(){
-    //var overlays = map.getOverlays();
-    console.log(existing_routes);
-    existing_routes.forEach(function (item) {
-      console.log(item);
-      existing_routes.delete(item);
-      map.removeOverlay(item);
-    });
   }
 
   function addClickHandler(detail,marker){
