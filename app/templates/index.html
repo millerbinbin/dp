@@ -30,7 +30,7 @@
       <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbarCollapse">
         <span class="sr-only">Toggle navigation</span>
       </button>
-      <a class="navbar-brand" href="#">Best</a>
+      <a class="navbar-brand" href="#">沪上精选</a>
     </div>
     <div class="collapse navbar-collapse" id="navbarCollapse">
       <ul class="nav navbar-nav" id="nav-type-tab">
@@ -281,6 +281,7 @@
       data: param,
       timeout: 3000,
       crossDomain: true,
+      cache:true,
       async : true,
       error: function(){alert("get data error!");},
       success: function(data){
@@ -303,7 +304,8 @@
   function show_route(lng, lat, mode){
     var transit;
     if (mode==="driving"){
-      var transit = new BMap.DrivingRoute(map, {    
+      var transit = new BMap.DrivingRoute(map, {
+      	renderOptions: {map: map},
         TransitPolicy: BMAP_TRANSIT_POLICY_LEAST_TIME,
         onSearchComplete: function(res){
           var firstPlan = res.getPlan(0);
@@ -319,7 +321,7 @@
     }
     else if (mode==="transit"){
       var transit = new BMap.TransitRoute(map, {    
-        //renderOptions: {map: map},
+        renderOptions: {map: map},
         TransitPolicy: BMAP_TRANSIT_POLICY_LEAST_TIME,
         onSearchComplete: function(res){
           var firstPlan = res.getPlan(0);

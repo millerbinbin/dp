@@ -217,7 +217,6 @@ def get_customized_shops(details, params, order_by):
     if position is not None:
         lat = float(position.split(",")[0])
         lng = float(position.split(",")[1])
-        print lat, lng
         details["distance"] = details.apply(
             lambda x: calc_earth_distance({"lat": x["lat"], "lng": x["lng"]}, {"lat": lat, "lng": lng}),
             axis=1)
