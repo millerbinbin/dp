@@ -8,18 +8,10 @@
   <style type="text/css">
     html, body, #map {width: 100%;height: 100%;}
   </style>
-  <!-- Loading Bootstrap -->
-  <link href="../static/css/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
   <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=kAWXbccRXNNwQl79u9cFcV6eysiBiBeA"></script>
-
-
-  <!-- jQuery (necessary for Flat UI's JavaScript plugins) -->
   <script src="../static/js/jquery.min.js"></script>
-  <!-- Include all compiled plugins (below), or include individual files as needed -->
-  <!-- <script src="../dist/js/vendor/video.js"></script> -->
   <script src="../static/js/flat-ui.min.js"></script>
-
-  <!-- Loading Flat UI -->
+  <link href="../static/css/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
   <link href="../static/css/flat-ui.min.css" rel="stylesheet">
 
   
@@ -36,16 +28,12 @@
   <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
     <div class="navbar-header">
       <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbarCollapse">
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
+        <span class="sr-only">Toggle navigation</span>
       </button>
-      <a class="navbar-brand" href="#">
-        
-      </a>
+      <a class="navbar-brand" href="#">Best</a>
     </div>
     <div class="collapse navbar-collapse" id="navbarCollapse">
-      <ul class="nav navbar-nav navbar-left" id="nav-type-tab">
+      <ul class="nav navbar-nav" id="nav-type-tab">
         <li id="taste_tab" value="taste_score" class="active"><a href="#">口味优先</a></li>
         <li id="comment_tab" value="comment_num"><a href="#">最热讨论</a></li>
 <!--         <li id="heat_tab" value="weighted_hits"><a href="#">点击为王</a></li> -->
@@ -53,15 +41,16 @@
         <li id="nearby-tab" value="verse_taxi_distance"><a href="#">周边美食</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        
         <li>
-          <form class="navbar-form">
-              <div class="input-group input-group-rounded">
-                <span class="input-group-addon">
-                  <span class="fui-search" onclick="refresh_shops(false)"></span>
+          <form class="navbar-form " role="search">
+            <div class="form-group">
+              <div class="input-group">
+                <input class="form-control" id="shop-search" type="search" placeholder="搜一搜">
+                <span class="input-group-btn">
+                  <button class="btn" onclick="refresh_shops(false)"><span class="fui-search"></span></button>
                 </span>
-                <input type="text" class="form-control" id="shop-search" >
               </div>
+            </div>
           </form>
         </li>
         <li>
@@ -73,12 +62,7 @@
           <a href="#" data-toggle="modal" data-target="#selection-modal">
             <span class="fui-gear"></span>设置
           </a>
-        </li>
-        <!-- <li>
-          <a href="#" onclick="get_all_overlays()">test
-          </a>
-        </li> -->
-        
+        </li>        
       </ul>
     </div>
   </nav>
@@ -117,7 +101,7 @@
           <form class="form-inline col-xs-6">
             <label class="form-label">出行方式: </label>
             <span class="bootstrap-switch-square">
-              <input type="checkbox" checked data-toggle="switch" data-on-text="公交" data-off-text="驾车" id="switch-10" />
+              <input type="checkbox" checked data-toggle="switch" data-on-text="公交" data-off-text="驾车" id="switch-mode" />
             </span>
           </form>
         </div>
@@ -131,7 +115,18 @@
   </div>
 </div>
 <div id="map" class="container"></div>
+<script type="text/javascript">
 
+  $('.input-group').on('focus', '.form-control', function () {
+    $(this).closest('.input-group, .form-group').addClass('focus');
+  }).on('blur', '.form-control', function () {
+    $(this).closest('.input-group, .form-group').removeClass('focus');
+  });
+
+  if ($('[data-toggle="switch"]').length) {
+    $('[data-toggle="switch"]').bootstrapSwitch();
+  }
+</script>
 <script type="text/javascript">
   var current_page = 1;
   var limit_num = 20;
@@ -195,11 +190,7 @@
       });
     });
     
-    if ($('[data-toggle="switch"]').length) {
-      $('[data-toggle="switch"]').bootstrapSwitch();
-    }
-
-    $('#switch-10').on('switchChange.bootstrapSwitch', function (e, state) {
+    $('#switch-mode').on('switchChange.bootstrapSwitch', function (e, state) {
         if (state===false){
           mode = "driving";
         }
