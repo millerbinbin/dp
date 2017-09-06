@@ -43,14 +43,15 @@ def save_shop_data():
     print "保存爬取数据..."
     service.save_weight_details()
 
+
 if __name__ == '__main__':
     import time
     start = time.time()
     # backup_data()
     # crawl_base_data()
     # delete_shop_data()
-    crawl_shop_data()
-    crawl_shop_additional_info()
+    # crawl_shop_data()
+    # crawl_shop_additional_info()
     save_shop_data()
     end = time.time()
     print "任务结束，共耗时{0}".format(service.get_time_str(end-start))

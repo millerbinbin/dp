@@ -151,8 +151,8 @@ def get_all_info():
     shop_comment_score = pd.merge(shop_comment, scores, how="inner", on="shop_id")
     shop_comment_score_heat = pd.merge(shop_comment_score, heats, how="inner", on="shop_id")
     shop_comment_score_heat_favors = pd.merge(shop_comment_score_heat, favors,how="inner",on="shop_id")
-    shop_comment_score_heat_favors_distance = pd.merge(shop_comment_score_heat_favors, routes, how="left", on="shop_id")
-    shop_comment_score_heat_favors_distance_category = pd.merge(shop_comment_score_heat_favors_distance, category, how="inner", on="category_id")
+    # shop_comment_score_heat_favors_distance = pd.merge(shop_comment_score_heat_favors, routes, how="left", on="shop_id")
+    shop_comment_score_heat_favors_distance_category = pd.merge(shop_comment_score_heat_favors, category, how="inner", on="category_id")
     return shop_comment_score_heat_favors_distance_category
 
 
@@ -161,8 +161,7 @@ def get_weight_details():
     df = all_info[["shop_id", "shop_name", "shop_group_name", "lng", "lat",
                    "comment_num", "good_rate",
                    "avg_price", "taste_score", "env_score", "ser_score",
-                   "weighted_hits", "favor_list",
-                   "verse_taxi_distance", "route", "public_duration", "category_name", "category_id"
+                   "weighted_hits", "favor_list","category_name", "category_id"
                    ]]
     return df
 
@@ -223,10 +222,10 @@ def get_customized_shops(details, params, order_by):
             lambda x: calc_earth_distance({"lat": x["lat"], "lng": x["lng"]}, {"lat": lat, "lng": lng}),
             axis=1)
         details = details[details.distance <= 5]
-    if order_by is not None and order_by in ('taste_score', 'weighted_hits', 'comment_num', 'good_rate', 'verse_taxi_distance'):
+    if order_by is not None and order_by in ('taste_score', 'weighted_hits', 'comment_num', 'good_rate'):
         details = details.sort_values([order_by], ascending=[False])
     return details.loc[:, ["shop_id", "shop_name", "taste_score", "env_score", "comment_num", "good_rate", "avg_price",
-                                          "favor_list", "category_name", "lng", "lat", "route", "public_duration"]]
+                                          "favor_list", "category_name", "lng", "lat"]]
 
 
 def get_distinct_shops():
@@ -238,8 +237,7 @@ def get_shops_json_from_df(df):
     res = [{"name": row.shop_name, "lng": row.lng, "lat": row.lat,
             "avg_price": "-" if row.avg_price=="" else str(int(row.avg_price)),
             "taste_score": str(row.taste_score), "env_score": str(row.env_score), "comment_num": int(row.comment_num), "good_rate": int(row.good_rate),
-            "category": row.category_name, "shop_id": row.shop_id, "route": row.route, "public_duration": row.public_duration,
-            "favor_list": row.favor_list
+            "category": row.category_name, "shop_id": row.shop_id, "favor_list": row.favor_list
             }
             for row in df.itertuples()]
     return json.dumps(res, ensure_ascii=False).encode("utf-8")
@@ -290,7 +288,7 @@ def get_random_favor_shops(all_data_info):
     favor_shops = get_favors()
     s = pd.merge(all_data_info, favor_shops, how="left", on="shop_id")
     return s[s.favors.isnull()][["shop_id", "shop_name", "taste_score", 'comment_num', 'good_rate', "avg_price",
-                               "category_id", "category_name", "lng", "lat", "route", "public_duration"]]
+                               "category_id", "category_name", "lng", "lat"]]
 
 
 def calc_earth_distance(origin, dest):

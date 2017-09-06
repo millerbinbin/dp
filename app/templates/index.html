@@ -1,18 +1,35 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <title>精品推荐</title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<style type="text/css">
-		html, body, #map {width: 100%;height: 100%;}
-	</style>
-	<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=kAWXbccRXNNwQl79u9cFcV6eysiBiBeA"></script>
-	<script type="text/javascript" src="../static/js/jquery-3.2.1.min.js"></script>
-  <link href="../static/css/bootstrap.css" rel="stylesheet">
-	<script type="text/javascript" src="../static/js/bootstrap.min.js"></script>
-	<title>精品推荐</title>
-	<link rel="shortcut icon" href="../static/image/dp.jpg" >
+  <style type="text/css">
+    html, body, #map {width: 100%;height: 100%;}
+  </style>
+  <!-- Loading Bootstrap -->
+  <link href="../static/css/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=kAWXbccRXNNwQl79u9cFcV6eysiBiBeA"></script>
+
+
+  <!-- jQuery (necessary for Flat UI's JavaScript plugins) -->
+  <script src="../static/js/jquery.min.js"></script>
+  <!-- Include all compiled plugins (below), or include individual files as needed -->
+  <!-- <script src="../dist/js/vendor/video.js"></script> -->
+  <script src="../static/js/flat-ui.min.js"></script>
+
+  <!-- Loading Flat UI -->
+  <link href="../static/css/flat-ui.min.css" rel="stylesheet">
+
+  
+  <link rel="shortcut icon" href="../static/img/dp.jpg" >
+
+  <!-- HTML5 shim, for IE6-8 support of HTML5 elements. All other JS at the end of file. -->
+  <!--[if lt IE 9]>
+    <script src="js/vendor/html5shiv.js"></script>
+    <script src="js/vendor/respond.min.js"></script>
+  <![endif]-->
 </head>
 <body>
 <div class="container">
@@ -23,8 +40,8 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="#" data-toggle="modal" data-target="#selection-modal">
-        <span class="glyphicon glyphicon-filter"></span>筛选<span class="caret"></span>
+      <a class="navbar-brand" href="#">
+        
       </a>
     </div>
     <div class="collapse navbar-collapse" id="navbarCollapse">
@@ -36,29 +53,37 @@
         <li id="nearby-tab" value="verse_taxi_distance"><a href="#">周边美食</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
+        
         <li>
           <form class="navbar-form">
-            <div class="form-group" style="display:inline;">
-              <div class="input-group">
+              <div class="input-group input-group-rounded">
                 <span class="input-group-addon">
-                  <span class="glyphicon glyphicon-search" onclick="search_shops()"></span>
+                  <span class="fui-search" onclick="refresh_shops(false)"></span>
                 </span>
-                <input type="text" class="form-control" id="shop-search">
+                <input type="text" class="form-control" id="shop-search" >
               </div>
-            </div>
           </form>
-          
         </li>
         <li>
           <a href="#" onclick="refresh_shops(true)">
             <span class="glyphicon glyphicon-refresh"></span>换一批
           </a>
         </li>
+        <li>
+          <a href="#" data-toggle="modal" data-target="#selection-modal">
+            <span class="fui-gear"></span>设置
+          </a>
+        </li>
+        <li>
+          <a href="#" onclick="get_all_overlays()">test
+          </a>
+        </li>
+        
       </ul>
     </div>
   </nav>
 </div>
-<div class="modal fade" id="selection-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="selection-modal" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -68,22 +93,29 @@
       </div>
       <div class="modal-body" id="selection">
         <label>菜系选择</label>
-        <div class="row" id="category-selection">
-        </div><br>
+        <div class="row" id="category-selection"></div><br>
         <div class="row">
-          <form class="form-inline col-sm-4">
+          <form class="form-inline col-xs-4">
             <label class="form-label">评分不低于:</label>
-            <input class="form-control input-sm" type="number" style="width:40%;" id="taste-score">
+            <input class="form-control input-sm" type="number" style="width:40%;" id="taste-score" placeholder="8.0">
           </form>
-          <form class="form-inline col-sm-4">
+          <form class="form-inline col-xs-4">
               <label class="form-label">人均:</label>
               <input class="form-control input-sm" type="number" style="width:35%;" id="avg-price-min">
               <label class="form-label">-</label>
               <input class="form-control input-sm" type="number" style="width:35%;" id="avg-price-max">
           </form>
-          <form class="form-inline col-sm-4">
-              <label class="form-label">评论数不少于:</label>
-              <input class="form-control input-sm" type="number" style="width:40%;" id="comment-num">
+          <form class="form-inline col-xs-4">
+              <label class="form-label">评论不少于:</label>
+              <input class="form-control input-sm" type="number" style="width:40%;" id="comment-num" placeholder="200">
+          </form>
+        </div><br>
+        <div class="row">
+          <form class="form-inline col-xs-6">
+            <label class="form-label">出行方式: </label>
+            <span class="bootstrap-switch-square">
+              <input type="checkbox" checked data-toggle="switch" data-on-text="公交" data-off-text="驾车" id="switch-10" />
+            </span>
           </form>
         </div>
       </div>
@@ -109,30 +141,40 @@
   var comment_num;
   var shop_link = "http://www.dianping.com/shop/";
   var existing_star;
-  var existing_route;
-  var mapMenu = new BMap.ContextMenu();
+  var existing_routes = new Set();
   $(document).ready(function(){
-    get_all_category().forEach(function (item) {
-      $('#category-selection').append('<div class="col-xs-2"><span class="label label-default">'+item.category+'</span></div>');
+    $.ajax({
+      url: '/category/all',
+      dataType: 'json',
+      type: 'GET',
+      timeout: 3000,
+      cache: false,
+      crossDomain: true,
+      async : true,
+      error: function(){result = [];},
+      success: function(data){
+        data.forEach(function (item) {
+         $('#category-selection').append('<div class="col-xs-2"><span class="label label-default">'+item.category+'</span></div>');
+        });
+        $('#category-selection').find("span").each(function(){
+          $(this).on({
+            click: function(){
+              if ($(this).attr("class")=="label label-default"){
+                $(this).removeClass("label-default");
+                $(this).addClass("label-primary");
+                category_set.add($(this)[0].innerText);
+              }
+              else if ($(this).attr("class")=="label label-primary"){
+                  $(this).addClass("label-default");
+                  $(this).removeClass("label-primary");
+                  category_set.delete($(this)[0].innerText);
+              }
+            }
+          });
+        });
+      }
     });
-
-    $('#category-selection').find("span").each(function(){
-      $(this).on({
-        click: function(){
-          if ($(this).attr("class")=="label label-default"){
-            $(this).removeClass("label-default");
-            $(this).addClass("label-primary");
-            category_set.add($(this)[0].innerText);
-          }
-          else if ($(this).attr("class")=="label label-primary"){
-              $(this).addClass("label-default");
-              $(this).removeClass("label-primary");
-              category_set.delete($(this)[0].innerText);
-          }
-        }
-      });
-    });
-
+    
     $('#nav-type-tab').find("li").each(function(){
       $(this).on({
         click: function(){
@@ -148,6 +190,10 @@
       });
     });
     
+    if ($('[data-toggle="switch"]').length) {
+      $('[data-toggle="switch"]').bootstrapSwitch();
+    }
+
     if (navigator.userAgent.toLowerCase().indexOf("iphone")>=0 || navigator.userAgent.toLowerCase().indexOf("andriod") >=0){
     	shop_link ="http://m.dianping.com/shop/";
     }
@@ -168,19 +214,12 @@
     refresh_shops();
   }
 
-  function init(){
-    
-    var mapMenuItem = 
-      {
-        text:'设为星标',
-        callback:function(e){add_star(e.lng, e.lat);}
-      };
-    mapMenu.addItem(new BMap.MenuItem(mapMenuItem.text,mapMenuItem.callback,100));    
+  function init(){  
     map = init_map();
-    map.addContextMenu(mapMenu);
     add_star(121.615539,31.292029);
     refresh_shops();
   }
+
   function refresh_shops(page_down){
     if (typeof(page_down)==='undefined') page_down = false;
     if (page_down) {current_page+=1;}
@@ -194,8 +233,7 @@
       param.position = existing_star.point.lat+','+existing_star.point.lng;
       order_col = "taste_score";
     }
-    shops = get_shops(param, current_page, limit_num, order_col)
-    render_shops(shops);
+    get_shops(param, current_page, limit_num, order_col)
   }
   function init_map(){
   	var map_center = {"lat":31.236923, "lng": 121.483644};
@@ -204,47 +242,80 @@
     var point = new BMap.Point(map_center.lng, map_center.lat);
     map.centerAndZoom(point, map_layer);
     map.enableScrollWheelZoom(true);
-
+    map.disableDoubleClickZoom();
+    map.addEventListener("dblclick",function(e){
+      add_star(e.point.lng, e.point.lat);
+    });
+    map.addEventListener("longpress",function(e){
+      add_star(e.point.lng, e.point.lat);
+    });
     return map;
   }
   function get_shops(param, page, limit, order_by){
     $.ajax({
-       url: '/shops/'+page+'/'+limit+'/order_by='+order_by,
-       dataType: 'json',
-       type: 'POST',
-       data: param,
-       timeout: 3000,
-       cache: false,
-       crossDomain: true,
-       async : false,
-       error: function(){alert("get data error!");},
-       success: function(data){result = data;}
+      url: '/shops/'+page+'/'+limit+'/order_by='+order_by,
+      dataType: 'json',
+      type: 'POST',
+      data: param,
+      timeout: 3000,
+      cache: false,
+      crossDomain: true,
+      async : true,
+      error: function(){alert("get data error!");},
+      success: function(data){
+        map.clearOverlays();
+        for(var i=0;i<data.length;i++){
+          var icon = new BMap.Icon("http://www.dpfile.com/s/img/map/fancy/"+ (i+1) +".png", icon_size);
+          var marker = new BMap.Marker(new BMap.Point(data[i].lng,data[i].lat));
+          var detail = gen_shop_title_html(data[i]) + gen_blank_html() + gen_content_html(data[i]) + get_recommendation_html(data[i]);
+          marker.setTitle(data[i].name);
+          marker.setIcon(icon);
+          map.addOverlay(marker);           
+          addClickHandler(detail,marker);
+        }
+        if (data.length < limit_num){
+          current_page = 0
+        }
+      }
     });
-    return result;
   }
-  function search_shops(){
-    param = {"query":$("#shop-search").val()};
-    shops = get_shops(param, 1, limit_num, order_col);
-    render_shops(shops);
-  }
-  function get_all_category(){
-    $.ajax({
-       url: '/category/all',
-       dataType: 'json',
-       type: 'GET',
-       timeout: 3000,
-       cache: false,
-       crossDomain: true,
-       async : false,
-       error: function(){result = [];},
-       success: function(data){result = data;}
+  function show_route(lng, lat){
+    var transit = new BMap.TransitRoute(map, {    
+      //renderOptions: {map: map},
+      TransitPolicy: BMAP_TRANSIT_POLICY_LEAST_TIME,
+      onSearchComplete: function(res){
+        var firstPlan = res.getPlan(0);
+        
+        // 绘制步行线路
+        for (var i = 0; i < firstPlan.getNumRoutes(); i++){
+          var walk = firstPlan.getRoute(i);
+          if (walk.getDistance(false) > 0){
+            var path = new BMap.Polyline(walk.getPath(), {strokeColor: "green",strokeWeight: "6"});
+            existing_routes.add(path);
+            map.addOverlay(path);
+          }
+        }
+        // 绘制公交线路
+        for (i = 0; i < firstPlan.getNumLines(); i++){
+          var line = firstPlan.getLine(i);
+          console.log('▷'+line.getGetOnStop().title+'->'+line.getGetOffStop().title+'['+line.title+']'+',共'+line.getNumViaStops()+'站');
+          var path = new BMap.Polyline(line.getPath(), {strokeWeight: "6"});
+          existing_routes.add(path);
+          map.addOverlay(path);
+        }
+        console.log("共约耗时:"+firstPlan.getDuration(true));
+        console.log("路线:"+firstPlan.getDescription(false));
+      }
     });
-    return result;
+    transit.disableAutoViewport();
+    transit.search(new BMap.Point(existing_star.point.lng,existing_star.point.lat), new BMap.Point(lng,lat));
   }
   function gen_shop_title_html(item){
   	var shop_title_html = '<div class="row"><div class="col-xs-8">'+
-  	  '<a class="text-left" target="_blank" href="'+shop_link+item.shop_id+'"><h5>'+item.name+'</h5></a></div>' +
-      '<div class="col-xs-4"><h4><small><b>'+item.category+'</b></small></h5></div></div>';
+  	  '<a class="text-left" target="_blank" href="'+shop_link+item.shop_id+'"><h6><b>'+item.name+'</b></h6></a></div>' +
+      '<div class="col-xs-3"><h6><button class="btn btn-embossed btn-inverse" onclick="' +
+      'show_route('+item.lng+','+item.lat+')' +
+      '"><b>到这里!</b></button></h6></div></div>';
     return shop_title_html;
   }
   function gen_blank_html(){
@@ -254,11 +325,10 @@
   function gen_content_html(item){
   	return '<div class="row"><div class="col-xs-4"><span class="label label-primary">口&emsp;味：'+item.taste_score+'</span></div>' +
       '<div class="col-xs-4"><span class="label label-primary">环&emsp;境：'+item.env_score+'</span></div>' +
-      '<div class="col-xs-4"><span class="label label-success">人&emsp;均：¥'+item.avg_price+'</span></div></div>' +
-      '<div class="row"><div class="col-xs-4"><span class="label label-warning">评论数：'+item.comment_num+'</span></div>' +
+      '<div class="col-xs-4"><span class="label label-primary">菜&emsp;系：'+item.category+'</span></div></div>' +
+      '<div class="row"><div class="col-xs-4"><span class="label label-danger">评论数：'+item.comment_num+'</span></div>' +
       '<div class="col-xs-4"><span class="label label-danger">好评率：'+item.good_rate+'%</span></div>' +
-      // '<div class="col-xs-4"><span class="label label-info" title="'+item.route+'">行程耗时：'+item.public_duration+'</span></div>
-      '</div></br>';
+      '<div class="col-xs-4"><span class="label label-danger">人&emsp;均：¥'+item.avg_price+'</span></div></div><br>';
   }
   function get_recommendation_html(item){
     favors = item.favor_list.split(',')
@@ -274,57 +344,18 @@
     var marker = new BMap.Marker(new BMap.Point(lng, lat));
     marker.disableMassClear();
     existing_star = marker;
-    //console.log(existing_star.point);
     map.addOverlay(marker);
   }
-  function render_shops(data_info){
-    map.clearOverlays();
-    for(var i=0;i<data_info.length;i++){
-      var icon = new BMap.Icon("http://www.dpfile.com/s/img/map/fancy/"+ (i+1) +".png", icon_size);
-      var marker = new BMap.Marker(new BMap.Point(data_info[i].lng,data_info[i].lat));
-      var detail = gen_shop_title_html(data_info[i]) + gen_blank_html() + gen_content_html(data_info[i]) + get_recommendation_html(data_info[i]);
-      marker.setTitle(data_info[i].name);
-      marker.setIcon(icon);
-      var markerMenu = new BMap.ContextMenu();
-      var markerMenuItem = 
-        {
-          text:'到这里去',
-          callback:function(e){
-            var transit = new BMap.TransitRoute(map, {    
-              renderOptions: {map: map},
-              TransitPolicy: BMAP_TRANSIT_POLICY_LEAST_TIME,
-              onSearchComplete: function(res){
-                var firstPlan = res.getPlan(0);
-                console.log(firstPlan.getDuration(true));
-                // 绘制步行线路
-                for (var i = 0; i < firstPlan.getNumRoutes(); i++){
-                  var walk = firstPlan.getRoute(i);
-                  if (walk.getDistance(false) > 0){
-                    // 步行线路有可能为0
-                    map.addOverlay(new BMap.Polyline(walk.getPath(), {lineColor: "green"}));
-                  }
-                }
-                // 绘制公交线路
-                for (i = 0; i < firstPlan.getNumLines(); i++){
-                  var line = firstPlan.getLine(i);
-                  map.addOverlay(new BMap.Polyline(line.getPath()));
-                }
-              }
-            });
-            transit.disableAutoViewport();
-            transit.search(new BMap.Point(existing_star.point.lng,existing_star.point.lat), new BMap.Point(e.lng,e.lat));
-          }
-        };
-      markerMenu.addItem(new BMap.MenuItem(markerMenuItem.text,markerMenuItem.callback,100));
-      marker.addContextMenu(markerMenu);
-      map.addOverlay(marker);           
-      map.addContextMenu(mapMenu);  
-      addClickHandler(detail,marker);
-    }
-    if (data_info.length < limit_num){
-      current_page = 0
-    }
+  function get_all_overlays(){
+    //var overlays = map.getOverlays();
+    console.log(existing_routes);
+    existing_routes.forEach(function (item) {
+      console.log(item);
+      existing_routes.delete(item);
+      map.removeOverlay(item);
+    });
   }
+
   function addClickHandler(detail,marker){
     marker.addEventListener("click",function(e){
       var p = e.target;
