@@ -92,7 +92,10 @@
         </h4>
       </div>
       <div class="modal-body" id="selection">
-        <label>菜系选择</label>
+        <form class="form-inline">
+        <label>菜系选择&emsp;&emsp;&emsp;</label>
+        <label class="checkbox"><input type="checkbox" checked="" class="custom-checkbox"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>全选/全不选</label>
+        </form>
         <div class="row" id="category-selection"></div><br>
         <div class="row">
           <form class="form-inline col-xs-4">
@@ -142,13 +145,14 @@
   var shop_link = "http://www.dianping.com/shop/";
   var existing_star;
   var existing_routes = new Set();
+  var mode = "transit";
   $(document).ready(function(){
+    // get all category
     $.ajax({
       url: '/category/all',
       dataType: 'json',
       type: 'GET',
       timeout: 3000,
-      cache: false,
       crossDomain: true,
       async : true,
       error: function(){result = [];},
@@ -171,6 +175,7 @@
               }
             }
           });
+          $(this).click();
         });
       }
     });
@@ -193,6 +198,32 @@
     if ($('[data-toggle="switch"]').length) {
       $('[data-toggle="switch"]').bootstrapSwitch();
     }
+
+    $('#switch-10').on('switchChange.bootstrapSwitch', function (e, state) {
+        if (state===false){
+          mode = "driving";
+        }
+        else {
+          mode = "transit";
+        }
+    });
+
+    $(':checkbox').on('change.radiocheck', function(e) {
+      if ($(this).is(':checked')){
+        $('#category-selection').find("span").each(function(){
+          $(this).removeClass("label-default");
+          $(this).addClass("label-primary");
+          category_set.add($(this)[0].innerText);
+        });
+      }
+      else {
+        $('#category-selection').find("span").each(function(){
+          $(this).addClass("label-default");
+          $(this).removeClass("label-primary");
+          category_set.delete($(this)[0].innerText);
+        });
+      }
+    });
 
     if (navigator.userAgent.toLowerCase().indexOf("iphone")>=0 || navigator.userAgent.toLowerCase().indexOf("andriod") >=0){
     	shop_link ="http://m.dianping.com/shop/";
@@ -258,7 +289,6 @@
       type: 'POST',
       data: param,
       timeout: 3000,
-      cache: false,
       crossDomain: true,
       async : true,
       error: function(){alert("get data error!");},
@@ -279,34 +309,52 @@
       }
     });
   }
-  function show_route(lng, lat){
-    var transit = new BMap.TransitRoute(map, {    
-      //renderOptions: {map: map},
-      TransitPolicy: BMAP_TRANSIT_POLICY_LEAST_TIME,
-      onSearchComplete: function(res){
-        var firstPlan = res.getPlan(0);
-        
-        // 绘制步行线路
-        for (var i = 0; i < firstPlan.getNumRoutes(); i++){
-          var walk = firstPlan.getRoute(i);
-          if (walk.getDistance(false) > 0){
-            var path = new BMap.Polyline(walk.getPath(), {strokeColor: "green",strokeWeight: "6"});
+  function show_route(lng, lat, mode){
+    var transit;
+    if (mode==="driving"){
+      var transit = new BMap.DrivingRoute(map, {    
+        TransitPolicy: BMAP_TRANSIT_POLICY_LEAST_TIME,
+        onSearchComplete: function(res){
+          var firstPlan = res.getPlan(0);
+          for (var i = 0; i < firstPlan.getNumRoutes(); i++){
+            var walk = firstPlan.getRoute(i);
+            var path = new BMap.Polyline(walk.getPath(), {strokeColor: "blue",strokeWeight: "6"});
             existing_routes.add(path);
             map.addOverlay(path);
           }
+          console.log("共约耗时:"+firstPlan.getDuration(true));
         }
-        // 绘制公交线路
-        for (i = 0; i < firstPlan.getNumLines(); i++){
-          var line = firstPlan.getLine(i);
-          console.log('▷'+line.getGetOnStop().title+'->'+line.getGetOffStop().title+'['+line.title+']'+',共'+line.getNumViaStops()+'站');
-          var path = new BMap.Polyline(line.getPath(), {strokeWeight: "6"});
-          existing_routes.add(path);
-          map.addOverlay(path);
+      });
+    }
+    else if (mode==="transit"){
+      var transit = new BMap.TransitRoute(map, {    
+        //renderOptions: {map: map},
+        TransitPolicy: BMAP_TRANSIT_POLICY_LEAST_TIME,
+        onSearchComplete: function(res){
+          var firstPlan = res.getPlan(0);
+          
+          // 绘制步行线路
+          for (var i = 0; i < firstPlan.getNumRoutes(); i++){
+            var walk = firstPlan.getRoute(i);
+            if (walk.getDistance(false) > 0){
+              var path = new BMap.Polyline(walk.getPath(), {strokeColor: "green",strokeWeight: "6"});
+              existing_routes.add(path);
+              map.addOverlay(path);
+            }
+          }
+          // 绘制公交线路
+          for (i = 0; i < firstPlan.getNumLines(); i++){
+            var line = firstPlan.getLine(i);
+            console.log('▷'+line.getGetOnStop().title+'->'+line.getGetOffStop().title+'['+line.title+']'+',共'+line.getNumViaStops()+'站');
+            var path = new BMap.Polyline(line.getPath(), {strokeWeight: "6"});
+            existing_routes.add(path);
+            map.addOverlay(path);
+          }
+          console.log("共约耗时:"+firstPlan.getDuration(true));
+          console.log("路线:"+firstPlan.getDescription(false));
         }
-        console.log("共约耗时:"+firstPlan.getDuration(true));
-        console.log("路线:"+firstPlan.getDescription(false));
-      }
-    });
+      });
+    }
     transit.disableAutoViewport();
     transit.search(new BMap.Point(existing_star.point.lng,existing_star.point.lat), new BMap.Point(lng,lat));
   }
@@ -314,7 +362,7 @@
   	var shop_title_html = '<div class="row"><div class="col-xs-8">'+
   	  '<a class="text-left" target="_blank" href="'+shop_link+item.shop_id+'"><h6><b>'+item.name+'</b></h6></a></div>' +
       '<div class="col-xs-3"><h6><button class="btn btn-embossed btn-inverse" onclick="' +
-      'show_route('+item.lng+','+item.lat+')' +
+      'show_route('+item.lng+','+item.lat+', mode)' +
       '"><b>到这里!</b></button></h6></div></div>';
     return shop_title_html;
   }
@@ -345,6 +393,10 @@
     marker.disableMassClear();
     existing_star = marker;
     map.addOverlay(marker);
+    existing_routes.forEach(function (item) {
+      existing_routes.delete(item);
+      map.removeOverlay(item);
+    });
   }
   function get_all_overlays(){
     //var overlays = map.getOverlays();
