@@ -1,188 +1,69 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <title>精品推荐</title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-	<style type="text/css">
-		html, body, #map {width: 100%;height: 100%;}
-	</style>
-  <style>
-    .div-relative{position:relative;color:#000;border:1px solid #000;width:100%;height:100%}
-    .div-a{ position:absolute;left:20px;top:2px;z-index:100;width:660px;height:400px;border:10px}
-    /* div背景色为红色 */
-    .div-b{ position:absolute;left:0px;top:0px;z-index:80;width:400px;height:200px}
-    /* 背景为黄色 */
-    .div-c{ position:absolute;left:80px;top:80px;z-index:70;background:#00F;width:300px;height:300px}
-    /* 背景为蓝色 */
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <style type="text/css">
+    html, body, #map {width: 100%;height: 100%;}
   </style>
-	<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=kAWXbccRXNNwQl79u9cFcV6eysiBiBeA"></script>
-	<script type="text/javascript" src="../static/js/jquery-3.2.1.min.js"></script>
-  <link href="../static/css/bootstrap.css" rel="stylesheet">
-  <link href="../static/css/skins/polaris/polaris.css" rel="stylesheet">
-	<script type="text/javascript" src="../static/js/bootstrap.min.js"></script>
-  <script type="text/javascript" src="../static/js/icheck.js"></script>
-  <script src="https://cdn.bootcss.com/bootstrap-slider/9.8.1/bootstrap-slider.min.js"></script>
-  <link href="https://cdn.bootcss.com/bootstrap-slider/9.8.1/css/bootstrap-slider.min.css" rel="stylesheet">
-	<title>精品推荐</title>
-	<link rel="shortcut icon" href="../static/image/dp.jpg" >
-  <script type="text/javascript" src="../static/js/dp.js"></script>
+  <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=kAWXbccRXNNwQl79u9cFcV6eysiBiBeA"></script>
+  <script src="../static/js/jquery.min.js"></script>
+  <script src="../static/js/flat-ui.min.js"></script>
+  <script src="../static/js/custom.js"></script>
+  <link href="../static/css/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../static/css/flat-ui.min.css" rel="stylesheet">
+
+  
+  <link rel="shortcut icon" href="../static/img/dp.jpg" >
+
+  <!-- HTML5 shim, for IE6-8 support of HTML5 elements. All other JS at the end of file. -->
+  <!--[if lt IE 9]>
+    <script src="js/vendor/html5shiv.js"></script>
+    <script src="js/vendor/respond.min.js"></script>
+  <![endif]-->
 </head>
 <body>
-<div>
-  <input id="ex1" data-slider-id='ex1Slider' type="text" data-slider-min="8.0" data-slider-max="10" data-slider-step="0.1" data-slider-value="8"/>
-  <h4><span class="label label-default label-lg" onclick="change_selection(this)">testtesttest</span></h4>
-  <label>tttttt</label>
-</div>
-<button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+<button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#myModal">
   开始演示模态框
 </button>
 <!-- 模态框（Modal） -->
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title">
-          条件筛选
-        </h4>
-      </div>
-      <div class="modal-body" id="category-selection-1">
-        <label>菜系选择</label>
-        <div class="row">
-          <div class="col-xs-2"><span class="label label-default">本帮江浙菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">日本菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">咖啡厅</span></div>
-          <div class="col-xs-2"><span class="label label-default">小吃快餐</span></div>
-          <div class="col-xs-2"><span class="label label-default">火锅</span></div>
-          <div class="col-xs-2"><span class="label label-default">西餐</span></div>
-          <div class="col-xs-2"><span class="label label-default">面包甜点</span></div>
-          <div class="col-xs-2"><span class="label label-default">自助餐</span></div>
-          <div class="col-xs-2"><span class="label label-default">粤菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">韩国料理</span></div>
-          <div class="col-xs-2"><span class="label label-default">小龙虾</span></div>
-          <div class="col-xs-2"><span class="label label-default">烧烤</span></div>
-          <div class="col-xs-2"><span class="label label-default">川菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">素菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">东北菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">东南亚菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">火锅</span></div>
-          <div class="col-xs-2"><span class="label label-default">湘菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">云南菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">新疆菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">西北菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">蟹宴</span></div>
-          <div class="col-xs-2"><span class="label label-default">台湾菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">贵州菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">面馆</span></div>
-          <div class="col-xs-2"><span class="label label-default">家常菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">江西菜</span></div>
-          <div class="col-xs-2"><span class="label label-default">其他</span></div>
-        </div><br>
-        <div class="row">
-          <form class="form-inline col-sm-4">
-            <label class="form-label">评分不低于:</label>
-            <input class="form-control input-sm" type="number" style="width:40%;" id="taste-score">
-          </form>
-          <form class="form-inline col-sm-4">
-              <label class="form-label">人均:</label>
-              <input class="form-control input-sm" type="number" style="width:30%;" id="avg-price-min">
-              <label class="form-label">--</label>
-              <input class="form-control input-sm" type="number" style="width:30%;" id="avg-price-max">
-          </form>
-          <form class="form-inline col-sm-4">
-              <label class="form-label">评论数不少于:</label>
-              <input class="form-control input-sm" type="number" style="width:40%;" id="comment-num">
-          </form>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" onclick="alert ('aaa');" data-dismiss="modal">
-          提交更改
-        </button>
-      </div>
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal -->
-</div>
-<div class="panel">
-    <div class="panel-body" id="category-selection" style="width:30%, height:40%">
-      <label>菜系选择</label>
-      <div class="row">
-        <div class="col-xs-2"><h4><span class="label label-default">本帮江浙菜</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">日本菜</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">咖啡厅</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">小吃快餐</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">火锅</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">西餐</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">面包甜点</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">自助餐</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">粤菜</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">韩国料理</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">小龙虾</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">烧烤</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">川菜</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">素菜</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">东北菜</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">东南亚菜</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">火锅</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">湘菜</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">云南菜</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">新疆菜</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">西北菜</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">蟹宴</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">台湾菜</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">贵州菜</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">面馆</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">家常菜</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">江西菜</span></h4></div>
-        <div class="col-xs-2"><h4><span class="label label-default">其他</span></h4></div>
-      </div>
-      <br>
-      <div class="row">
-        <form class="form-inline col-sm-4">
-          <label class="form-label">评分不低于:</label>
-          <input class="form-control input-sm" type="number" style="width:40%;" id="taste-score">
-        </form>
-        <form class="form-inline col-sm-4">
-            <label class="form-label">人均:</label>
-            <input class="form-control input-sm" type="number" style="width:30%;" id="avg-price-min">
-            <label class="form-label">--</label>
-            <input class="form-control input-sm" type="number" style="width:30%;" id="avg-price-max">
-        </form>
-        <form class="form-inline col-sm-4">
-            <label class="form-label">评论数不少于:</label>
-            <input class="form-control input-sm" type="number" style="width:40%;" id="comment-num">
-        </form>
-      </div>
-      <br><br>
-      <div class="row">
-        <div class="col-md-4"></div>
-        <button class="btn btn-primary col-sm-2" onclick="filter_hidden(true)" >确定</button>
-      </div>
-    </div>
-  </div>
+<table class='trans-plan-content'>
+<tr>
+  <td><span class='navtrans-bus-icon walk'></span><div class='navtrans-bus-desc'>步行约620米，到达<span class='navtrans-busstation'>金高路巨峰路</span></div></td>
+</tr>
+<tr>
+  <td><span class='navtrans-bus-icon bus'></span><div class='navtrans-bus-desc'>乘坐<span class='navtrans-busstation'>181路</span>，经过16站，到达<span class='navtrans-busstation'>浦东南路张杨路</span></div></td>
+</tr>
+<tr>
+  <td><span class='navtrans-bus-icon walk'></span><div class='navtrans-bus-desc'>步行约610米，到达<span class='navtrans-busstation'>终点</span></div></td>
+</tr>
+</table>
+<div id="map" class="container"></div>
   <script>
-    $('#ex1').slider({
-      formatter: function(value) {
-        return 'Current value: ' + value;
-      }
+    var map_center = {"lat":31.236923, "lng": 121.483644};
+    var map_layer = 13;
+    var map = new BMap.Map("map",{enableMapClick:false});
+    var point = new BMap.Point(map_center.lng, map_center.lat);
+    map.centerAndZoom(point, map_layer);
+    map.enableScrollWheelZoom(true);
+    map.disableDoubleClickZoom();
+    map.addEventListener("dblclick",function(e){
+      add_star(e.point.lng, e.point.lat);
     });
-    var category_set = new Set();
-    $('#category-selection-1').find("span").each(function(){
-      $(this).on({
-        click: function(){
-          if ($(this).attr("class")=="label label-default"){
-            $(this).removeClass("label-default");
-            $(this).addClass("label-primary");
-            category_set.add($(this)[0].innerText);
-          }
-          else if ($(this).attr("class")=="label label-primary"){
-              $(this).addClass("label-default");
-              $(this).removeClass("label-primary");
-              category_set.delete($(this)[0].innerText);
-          }
-          console.log(category_set);
-        }
-      });
+    map.addEventListener("longpress",function(e){
+      add_star(e.point.lng, e.point.lat);
     });
+    map.setMapStyle({style:"midnight"});
+    var marker = new BMap.Marker(new BMap.Point(map_center.lng, map_center.lat));
+    marker.disableMassClear();
+    map.addOverlay(marker);
+    marker.addEventListener("click",function(e){
+      var m = new BusUnclickedOverlay(map_center,100,200);
+      map.addOverlay(m);
+    });
+    
   </script>
 </body>
 </html>

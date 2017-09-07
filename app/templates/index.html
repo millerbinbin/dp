@@ -7,7 +7,11 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <style type="text/css">
     html, body, #map {width: 100%;height: 100%;}
+    .baidu-maps label {
+      max-width: none;
+    }
   </style>
+
   <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=kAWXbccRXNNwQl79u9cFcV6eysiBiBeA"></script>
   <script src="../static/js/jquery.min.js"></script>
   <script src="../static/js/flat-ui.min.js"></script>
@@ -114,7 +118,7 @@
     </div>
   </div>
 </div>
-<div id="map" class="container"></div>
+<div id="map" class="baidu-maps"></div>
 <script type="text/javascript">
 
   $('.input-group').on('focus', '.form-control', function () {
@@ -130,7 +134,7 @@
 <script type="text/javascript">
   var current_page = 1;
   var limit_num = 20;
-  var icon_size = {"width":24, "height":34};
+  var icon_size = {"width":42, "height":34};
   var order_col = "taste_score";
   var category_set = new Set();
   var taste_score;
@@ -219,6 +223,7 @@
     if (navigator.userAgent.toLowerCase().indexOf("iphone")>=0 || navigator.userAgent.toLowerCase().indexOf("andriod") >=0){
     	shop_link ="http://m.dianping.com/shop/";
     }
+    console.log(shop_link);
     init();
 
   });
@@ -268,9 +273,7 @@
     map.addEventListener("dblclick",function(e){
       add_star(e.point.lng, e.point.lat);
     });
-    map.addEventListener("longpress",function(e){
-      add_star(e.point.lng, e.point.lat);
-    });
+    map.setMapStyle({style:"midnight"});
     return map;
   }
   function get_shops(param, page, limit, order_by){
@@ -296,6 +299,7 @@
           var marker = new BMap.Marker(new BMap.Point(data[i].lng,data[i].lat));
           var detail = gen_shop_title_html(data[i]) + gen_blank_html() + gen_content_html(data[i]) + get_recommendation_html(data[i]);
           marker.setTitle(data[i].name);
+          marker.setLabel(new BMap.Label(data[i].name,{offset:new BMap.Size(20, 15)}));
           marker.setIcon(icon);
           marker.disableMassClear();
           map.addOverlay(marker);
@@ -310,26 +314,38 @@
   }
   function show_route(lng, lat, mode){
     var transit;
+    var pathInfo="";
     if (mode==="driving"){
       var transit = new BMap.DrivingRoute(map, {
-      	renderOptions: {map: map},
         TransitPolicy: BMAP_TRANSIT_POLICY_LEAST_TIME,
         onSearchComplete: function(res){
           map.clearOverlays();
           var firstPlan = res.getPlan(0);
           for (var i = 0; i < firstPlan.getNumRoutes(); i++){
             var walk = firstPlan.getRoute(i);
-            var path = new BMap.Polyline(walk.getPath(), {strokeColor: "blue",strokeWeight: "6"});
+            var path = new BMap.Polyline(walk.getPath(), {strokeColor: "Lime", strokeWeight: "6"});
             map.addOverlay(path);
+            for (var j = 0; j < walk.getNumSteps(); j++){
+              var step = walk.getStep(j);
+              pathInfo+=step.getDescription(true);
+            }
           }
-          console.log("共约耗时:"+firstPlan.getDuration(true));
+          pathInfo += "<p class='text-info'>共耗时"+firstPlan.getDuration(true)+"</p>";
+          end = res.getEnd();
+          var m = new BMap.Marker(new BMap.Point(end.point.lng,end.point.lat));
+          m.setIcon(new BMap.Icon("http://api0.map.bdimg.com/images/dest_markers.png", icon_size, {imageOffset:{"width": 0, "height": -34}}));
+          m.addEventListener("click", function(e){
+            var point = new BMap.Point(m.point.lng, m.point.lat);
+            var infoWindow = new BMap.InfoWindow(pathInfo);  
+            map.openInfoWindow(infoWindow,point); 
+          });
+          map.addOverlay(m);
         }
       });
     }
     else if (mode==="transit"){
       var transit = new BMap.TransitRoute(map, {    
-        renderOptions: {map: map},
-        TransitPolicy: BMAP_TRANSIT_POLICY_LEAST_TIME,
+        //renderOptions: {map: map},
         onSearchComplete: function(res){
           map.clearOverlays();
           var firstPlan = res.getPlan(0);
@@ -337,19 +353,26 @@
           for (var i = 0; i < firstPlan.getNumRoutes(); i++){
             var walk = firstPlan.getRoute(i);
             if (walk.getDistance(false) > 0){
-              var path = new BMap.Polyline(walk.getPath(), {strokeColor: "green",strokeWeight: "6"});
+              var path = new BMap.Polyline(walk.getPath(), {strokeColor: "blue", strokeWeight: "6"});
               map.addOverlay(path);
             }
           }
           // 绘制公交线路
           for (i = 0; i < firstPlan.getNumLines(); i++){
             var line = firstPlan.getLine(i);
-            console.log('▷'+line.getGetOnStop().title+'->'+line.getGetOffStop().title+'['+line.title+']'+',共'+line.getNumViaStops()+'站');
-            var path = new BMap.Polyline(line.getPath(), {strokeWeight: "6"});
+            var path = new BMap.Polyline(line.getPath(), {strokeColor: "Lime", strokeWeight: "6"});
             map.addOverlay(path);
           }
-          console.log("共约耗时:"+firstPlan.getDuration(true));
-          console.log("路线:"+firstPlan.getDescription(false));
+          pathInfo = firstPlan.getDescription(true)+"<p class='text-info'>共耗时"+firstPlan.getDuration(true)+"</p>";
+          end = res.getEnd();
+          var m = new BMap.Marker(new BMap.Point(end.point.lng,end.point.lat));
+          m.setIcon(new BMap.Icon("http://api0.map.bdimg.com/images/dest_markers.png", icon_size, {imageOffset:{"width": 0, "height": -34}}));
+          m.addEventListener("click", function(e){
+            var point = new BMap.Point(m.point.lng, m.point.lat);
+            var infoWindow = new BMap.InfoWindow(pathInfo);  
+            map.openInfoWindow(infoWindow,point); 
+          });
+          map.addOverlay(m);
         }
       });
     }
