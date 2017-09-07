@@ -1,7 +1,9 @@
 # -*- coding:utf-8 -*-
 from crawl import base, shop
+from filewriter import csvLib
 import threading
 import service
+import datetime, time
 __author__ = 'hubin6'
 
 
@@ -43,14 +45,22 @@ def save_shop_data():
     service.save_weight_details()
 
 
+def upload_data():
+    current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    zip_file = current_date+'.zip'
+    csvLib.zip_dir("../data", current_date)
+    csvLib.upload(zip_file)
+    csvLib.del_local_file(zip_file)
+
+
 if __name__ == '__main__':
-    import time
     start = time.time()
-    backup_data()
-    crawl_base_data()
-    delete_shop_data()
-    crawl_shop_data()
-    crawl_shop_additional_info()
+    # backup_data()
+    # crawl_base_data()
+    # delete_shop_data()
+    # crawl_shop_data()
+    # crawl_shop_additional_info()
+    upload_data()
     save_shop_data()
     end = time.time()
     print "任务结束，共耗时{0}".format(service.get_time_str(end-start))

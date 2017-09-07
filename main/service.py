@@ -22,7 +22,7 @@ HEAT_DATA_DIR = os.path.join(BASE_DATA_DIR, "../heats")
 SCORE_DATA_DIR = os.path.join(BASE_DATA_DIR, "../scores")
 ROUTE_DATA_DIR = os.path.join(BASE_DATA_DIR, "../routes")
 FAVOR_DATA_DIR = os.path.join(BASE_DATA_DIR, "../favorite")
-DETAILS_CSV_ZIP = os.path.join(WORK_DIR, "data/shop_details.gz")
+DETAILS_CSV_ZIP = os.path.join(WORK_DIR, "main/shop_details.gz")
 FIELD_DELIMITER = "\t"
 
 
