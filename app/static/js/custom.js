@@ -11,13 +11,14 @@ BusUnclickedOverlay.prototype.initialize = function(map) {
     this._map = map;  
     var div = this._div = document.createElement("div");  
     div.setAttribute("id", "busUnclickedoverLay" + this._id);  
-    div.setAttribute("class", "btn btn-primary btn-sm");
+    //div.setAttribute("class", "btn btn-primary btn-sm");
+    div.setAttribute("class", "tile");
     div.style.position = "absolute";  
-    div.style.zIndex = BMap.Overlay.getZIndex(this._point.lat);   
-    // div.style.fontSize = "42px";
-    div.innerHTML = "￥" + this._pay;
-    map.getPanes().labelPane.appendChild(div); //将自定义窗口插入到地图样式内部，宠儿达到覆盖默认样式的效果  
-  
+    div.style.zIndex = BMap.Overlay.getZIndex(this._point.lat);
+    //div.innerHTML = "￥" + this._pay;
+    div.innerHTML = "<p>100% convertable to HTML/CSS layout.</p>";
+    map.getPanes().floatPane.appendChild(div); //将自定义窗口插入到地图样式内部，宠儿达到覆盖默认样式的效果  
+    console.log(div);
     return div;
   
 }  
@@ -27,4 +28,5 @@ BusUnclickedOverlay.prototype.draw = function() {
     var pixel = map.pointToOverlayPixel(this._point);  
     this._div.style.left = pixel.x + "px"; //控制这个信息窗口针对标注物原点的偏移量，这也是前面div要设置样式position:absolute;  
     this._div.style.top = pixel.y - 60 + "px";
-}  
+}
+

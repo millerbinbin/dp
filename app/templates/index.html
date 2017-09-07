@@ -223,7 +223,6 @@
     if (navigator.userAgent.toLowerCase().indexOf("iphone")>=0 || navigator.userAgent.toLowerCase().indexOf("andriod") >=0){
     	shop_link ="http://m.dianping.com/shop/";
     }
-    console.log(shop_link);
     init();
 
   });
@@ -299,7 +298,7 @@
           var marker = new BMap.Marker(new BMap.Point(data[i].lng,data[i].lat));
           var detail = gen_shop_title_html(data[i]) + gen_blank_html() + gen_content_html(data[i]) + get_recommendation_html(data[i]);
           marker.setTitle(data[i].name);
-          marker.setLabel(new BMap.Label(data[i].name,{offset:new BMap.Size(20, 15)}));
+          //marker.setLabel(new BMap.Label(data[i].name,{offset:new BMap.Size(20, 15)}));
           marker.setIcon(icon);
           marker.disableMassClear();
           map.addOverlay(marker);
@@ -364,6 +363,7 @@
             map.addOverlay(path);
           }
           pathInfo = firstPlan.getDescription(true)+"<p class='text-info'>共耗时"+firstPlan.getDuration(true)+"</p>";
+          console.log(pathInfo);
           end = res.getEnd();
           var m = new BMap.Marker(new BMap.Point(end.point.lng,end.point.lat));
           m.setIcon(new BMap.Icon("http://api0.map.bdimg.com/images/dest_markers.png", icon_size, {imageOffset:{"width": 0, "height": -34}}));

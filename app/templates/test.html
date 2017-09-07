@@ -25,9 +25,6 @@
   <![endif]-->
 </head>
 <body>
-<button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#myModal">
-  开始演示模态框
-</button>
 <!-- 模态框（Modal） -->
 <table class='trans-plan-content'>
 <tr>
@@ -40,6 +37,7 @@
   <td><span class='navtrans-bus-icon walk'></span><div class='navtrans-bus-desc'>步行约610米，到达<span class='navtrans-busstation'>终点</span></div></td>
 </tr>
 </table>
+                    
 <div id="map" class="container"></div>
   <script>
     var map_center = {"lat":31.236923, "lng": 121.483644};
@@ -63,7 +61,6 @@
       var m = new BusUnclickedOverlay(map_center,100,200);
       map.addOverlay(m);
     });
-    
   </script>
 </body>
 </html>
