@@ -268,6 +268,7 @@
     map.centerAndZoom(point, map_layer);
     map.enableScrollWheelZoom(true);
     map.disableDoubleClickZoom();
+    map.highResolutionEnabled(true);
     map.addEventListener("dblclick",function(e){
       add_star(e.point.lng, e.point.lat);
     });
@@ -292,18 +293,23 @@
       	});
         map.clearOverlays();
 
+        var g=0;
+        var t=0;
         for(var i=0;i<data.length;i++){
           var icon = new BMap.Icon("http://www.dpfile.com/s/img/map/fancy/"+ (i+1) +".png", icon_size);
-          var marker = new BMap.Marker(new BMap.Point(data[i].lng,data[i].lat));
-          var detail = gen_shop_title_html(data[i]) + gen_content_html(data[i]) + get_recommendation_html(data[i]);
-          marker.setTitle(data[i].name);
-          //marker.setTop(true);
+          var point = new BMap.Point(data[i].lng,data[i].lat);
+          var marker = new BMap.Marker(point);
           marker.setIcon(icon);
           marker.disableMassClear();
           map.addOverlay(marker);
-          existing_shops.add(marker);       
+          g+=data[i].lng;
+          t+=data[i].lat;
+          marker.setTitle(data[i].name);
+          existing_shops.add(marker);
+          var detail = gen_shop_title_html(data[i]) + gen_content_html(data[i]) + get_recommendation_html(data[i]);
           addClickHandler(detail,marker);
         }
+        map.centerAndZoom(new BMap.Point(g/data.length, t/data.length), 13);
         if (data.length < limit_num){
           current_page = 0
         }

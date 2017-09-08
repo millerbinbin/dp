@@ -177,7 +177,7 @@ def load_weight_details(filter_same_group=False):
     df["shop_id"] = df["shop_id"].apply(lambda x: str(x))
     df['group_rank'] = df['taste_score'].groupby(df['shop_group_name']).rank(ascending=False)
     if filter_same_group:
-        return df[df.group_rank<=1]
+        return df[df.group_rank<2]
     return df
 
 
