@@ -20,7 +20,7 @@ def delete_shop_data():
 
 
 def crawl_shop_data():
-    category_sets = shop.split_category_segments(service.get_category().sort_values(["category_id"]), 8)
+    category_sets = shop.split_category_segments(service.get_category().sort_values(["category_id"]), 20)
     crawl_jobs = []
     for category_set in category_sets:
         thread = threading.Thread(target=shop.crawl_shops, args=(category_set, False))
@@ -58,8 +58,8 @@ if __name__ == '__main__':
     # backup_data()
     # crawl_base_data()
     # delete_shop_data()
-    # crawl_shop_data()
-    # crawl_shop_additional_info()
+    crawl_shop_data()
+    crawl_shop_additional_info()
     upload_data()
     save_shop_data()
     end = time.time()

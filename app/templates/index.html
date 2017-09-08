@@ -5,19 +5,14 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <style type="text/css">
-    html, body, #map {width: 100%;height: 100%;}
-    .baidu-maps label {
-      max-width: none;
-    }
-  </style>
 
   <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=kAWXbccRXNNwQl79u9cFcV6eysiBiBeA"></script>
   <script src="../static/js/jquery.min.js"></script>
   <script src="../static/js/flat-ui.min.js"></script>
   <link href="../static/css/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
   <link href="../static/css/flat-ui.min.css" rel="stylesheet">
-
+  <script src="../static/js/custom.js"></script>
+  <link href="../static/css/custom.css" rel="stylesheet">  
   
   <link rel="shortcut icon" href="../static/img/dp.jpg" >
 
@@ -75,9 +70,9 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h4 class="modal-title">
+        <h6 class="modal-title">
           条件筛选
-        </h4>
+        </h6>
       </div>
       <div class="modal-body" id="selection">
         <form class="form-inline">
@@ -145,6 +140,10 @@
   var existing_star;
   var existing_shops = new Set();
   var mode = "transit";
+  var infoTile;
+  var routeTile;
+  var pathOverlays = new Set();
+  var destOverlays = new Set();
   $(document).ready(function(){
     // get all category
     $.ajax({
@@ -157,7 +156,7 @@
       error: function(){result = [];},
       success: function(data){
         data.forEach(function (item) {
-         $('#category-selection').append('<div class="col-xs-2"><span class="label label-default">'+item.category+'</span></div>');
+          $('#category-selection').append('<div class="col-xs-2"><span class="label label-default">'+item.category+'</span></div>');
         });
         $('#category-selection').find("span").each(function(){
           $(this).on({
@@ -296,9 +295,9 @@
         for(var i=0;i<data.length;i++){
           var icon = new BMap.Icon("http://www.dpfile.com/s/img/map/fancy/"+ (i+1) +".png", icon_size);
           var marker = new BMap.Marker(new BMap.Point(data[i].lng,data[i].lat));
-          var detail = gen_shop_title_html(data[i]) + gen_blank_html() + gen_content_html(data[i]) + get_recommendation_html(data[i]);
+          var detail = gen_shop_title_html(data[i]) + gen_content_html(data[i]) + get_recommendation_html(data[i]);
           marker.setTitle(data[i].name);
-          //marker.setLabel(new BMap.Label(data[i].name,{offset:new BMap.Size(20, 15)}));
+          //marker.setTop(true);
           marker.setIcon(icon);
           marker.disableMassClear();
           map.addOverlay(marker);
@@ -313,83 +312,104 @@
   }
   function show_route(lng, lat, mode){
     var transit;
-    var pathInfo="";
+    var pathInfo='';
     if (mode==="driving"){
       var transit = new BMap.DrivingRoute(map, {
         TransitPolicy: BMAP_TRANSIT_POLICY_LEAST_TIME,
         onSearchComplete: function(res){
-          map.clearOverlays();
+          clear_path_overlays();
+          var distance = Math.round(res.taxiFare.distance/1000) +"公里";
+          var totalFee = res.taxiFare.day.totalFare + "元";
           var firstPlan = res.getPlan(0);
           for (var i = 0; i < firstPlan.getNumRoutes(); i++){
             var walk = firstPlan.getRoute(i);
             var path = new BMap.Polyline(walk.getPath(), {strokeColor: "Lime", strokeWeight: "6"});
-            map.addOverlay(path);
-            for (var j = 0; j < walk.getNumSteps(); j++){
-              var step = walk.getStep(j);
-              pathInfo+=step.getDescription(true);
-            }
+            add_path_overlay(path);
           }
-          pathInfo += "<p class='text-info'>共耗时"+firstPlan.getDuration(true)+"</p>";
-          end = res.getEnd();
-          var m = new BMap.Marker(new BMap.Point(end.point.lng,end.point.lat));
-          m.setIcon(new BMap.Icon("http://api0.map.bdimg.com/images/dest_markers.png", icon_size, {imageOffset:{"width": 0, "height": -34}}));
-          m.addEventListener("click", function(e){
-            var point = new BMap.Point(m.point.lng, m.point.lat);
-            var infoWindow = new BMap.InfoWindow(pathInfo);  
-            map.openInfoWindow(infoWindow,point); 
-          });
-          map.addOverlay(m);
+          pathInfo = "<table class='trans-plan-content'>" +
+            "<tr><td><span class='navtrans-bus-icon car'></span>" +
+            "<div class='navtrans-bus-desc'>总距离<span class='navtrans-busstation'>" + distance + "</span>,&emsp;车费约<span class='navtrans-busstation'>" + totalFee + "</span></div></td></tr>" +
+            "<tr><td><span class='navtrans-bus-icon loc'></span>" +
+            "<div class='navtrans-bus-desc'>共耗时<span class='navtrans-busstation'>" + firstPlan.getDuration(true) + "</span></div></td></tr>"
+            "</table>";
+          dest_point = res.getEnd().point;
+          gen_dest_marker(dest_point, pathInfo);
         }
       });
     }
     else if (mode==="transit"){
       var transit = new BMap.TransitRoute(map, {    
-        //renderOptions: {map: map},
         onSearchComplete: function(res){
-          map.clearOverlays();
+          clear_path_overlays();
           var firstPlan = res.getPlan(0);
           // 绘制步行线路
           for (var i = 0; i < firstPlan.getNumRoutes(); i++){
             var walk = firstPlan.getRoute(i);
             if (walk.getDistance(false) > 0){
               var path = new BMap.Polyline(walk.getPath(), {strokeColor: "blue", strokeWeight: "6"});
-              map.addOverlay(path);
+              add_path_overlay(path);
             }
           }
           // 绘制公交线路
           for (i = 0; i < firstPlan.getNumLines(); i++){
             var line = firstPlan.getLine(i);
             var path = new BMap.Polyline(line.getPath(), {strokeColor: "Lime", strokeWeight: "6"});
-            map.addOverlay(path);
+            add_path_overlay(path);
           }
-          pathInfo = firstPlan.getDescription(true)+"<p class='text-info'>共耗时"+firstPlan.getDuration(true)+"</p>";
-          console.log(pathInfo);
-          end = res.getEnd();
-          var m = new BMap.Marker(new BMap.Point(end.point.lng,end.point.lat));
-          m.setIcon(new BMap.Icon("http://api0.map.bdimg.com/images/dest_markers.png", icon_size, {imageOffset:{"width": 0, "height": -34}}));
-          m.addEventListener("click", function(e){
-            var point = new BMap.Point(m.point.lng, m.point.lat);
-            var infoWindow = new BMap.InfoWindow(pathInfo);  
-            map.openInfoWindow(infoWindow,point); 
-          });
-          map.addOverlay(m);
+          pathInfo = firstPlan.getDescription(true).replace("</table>","") +
+            "<tr><td><span class='navtrans-bus-icon loc'></span><div class='navtrans-bus-desc'>共耗时<span class='navtrans-busstation'>" +
+            firstPlan.getDuration(true) +
+            "</span></div></td></tr></table>";
+          dest_point = res.getEnd().point;
+          gen_dest_marker(dest_point, pathInfo);
         }
       });
     }
     transit.disableAutoViewport();
     transit.search(new BMap.Point(existing_star.point.lng,existing_star.point.lat), new BMap.Point(lng,lat));
   }
+  function clear_path_overlays(){
+    pathOverlays.forEach(function (item){
+      map.removeOverlay(item);
+    });
+  }
+  function add_path_overlay(path){
+    pathOverlays.add(path);
+    map.addOverlay(path);
+  }
+  function gen_dest_marker(dest_point, content){
+    var marker_offset = {"width": 5, "height": -20};
+    var image_offset = {"width": 0, "height": -34};
+    var m = new BMap.Marker(new BMap.Point(dest_point.lng,dest_point.lat), {offset:marker_offset});
+    m.setIcon(new BMap.Icon("http://api0.map.bdimg.com/images/dest_markers.png", icon_size, {imageOffset:image_offset}));
+    m.addEventListener("click", function(e){
+      show_routeTile(m, content);
+    });
+    show_routeTile(m, content);
+    add_dest_overlay(m);
+  }
+  function add_dest_overlay(dest){
+    destOverlays.add(dest);
+    map.addOverlay(dest);
+  }
+  function clear_dest_overlays(){
+    destOverlays.forEach(function (item){
+      map.removeOverlay(item);
+    });
+  }
+  function show_routeTile(marker, content){
+    if (routeTile!='undefined'){map.removeOverlay(routeTile);}
+    i = new RouteInfoOverlay(new BMap.Point(marker.point.lng, marker.point.lat), content);
+    routeTile = i;
+    map.addOverlay(i);
+  }
   function gen_shop_title_html(item){
   	var shop_title_html = '<div class="row"><div class="col-xs-8">'+
-  	  '<a class="text-left" target="_blank" href="'+shop_link+item.shop_id+'"><h6><b>'+item.name+'</b></h6></a></div>' +
+  	  '<a class="text-left" target="_blank" href="'+shop_link+item.shop_id+'"><h6>'+item.name+'</h6></a></div>' +
       '<div class="col-xs-3"><h6><button class="btn btn-embossed btn-inverse" onclick="' +
       'show_route('+item.lng+','+item.lat+', mode)' +
-      '"><b>到这里!</b></button></h6></div></div>';
+      '"><b>到这里!</b></button></h6></div></div><br>';
     return shop_title_html;
-  }
-  function gen_blank_html(){
-  	return '<div>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;\
-            &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</div>';
   }
   function gen_content_html(item){
   	return '<div class="row"><div class="col-xs-4"><span class="label label-primary">口&emsp;味：'+item.taste_score+'</span></div>' +
@@ -410,6 +430,8 @@
   }
   function add_star(lng, lat){
     if (existing_star != undefined){map.removeOverlay(existing_star);}
+    clear_dest_overlays();
+    clear_path_overlays();
     var marker = new BMap.Marker(new BMap.Point(lng, lat));
     marker.disableMassClear();
     existing_star = marker;
@@ -418,11 +440,12 @@
 
   function addClickHandler(detail,marker){
     marker.addEventListener("click",function(e){
+      if (infoTile != 'undefined'){map.removeOverlay(infoTile);}
       var p = e.target;
       var point = new BMap.Point(p.getPosition().lng, p.getPosition().lat);
-      var option = {};
-      var infoWindow = new BMap.InfoWindow(detail, option);  
-      map.openInfoWindow(infoWindow,point); 
+      var i = new ShopInfoOverlay(point, detail);
+      infoTile = i;
+      map.addOverlay(i);
       }
     );
     marker.addEventListener("mouseover",function(e){

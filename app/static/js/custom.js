@@ -1,32 +1,66 @@
-//----------------复杂的自定义覆盖物-----------------------------------------------  
-//还未点击的覆盖物  
-//初始化，提供一下主要改变的参数  
-function BusUnclickedOverlay(point, pay, id) {  
-    this._point = point;  
-    this._pay = pay;  
-    this._id = id;  
+function RouteInfoOverlay(point, html_content) {  
+    this._point = point;
+    this._content = html_content;
 }  
-BusUnclickedOverlay.prototype = new BMap.Overlay(); //继承百度地图提供的覆盖物的类  
-BusUnclickedOverlay.prototype.initialize = function(map) {  
-    this._map = map;  
+RouteInfoOverlay.prototype = new BMap.Overlay(); 
+RouteInfoOverlay.prototype.initialize = function(map) {  
+    this._map = map;
     var div = this._div = document.createElement("div");  
-    div.setAttribute("id", "busUnclickedoverLay" + this._id);  
-    //div.setAttribute("class", "btn btn-primary btn-sm");
-    div.setAttribute("class", "tile");
-    div.style.position = "absolute";  
+    div.setAttribute("class", "alert alert-info alert-dismissible");
+    div.setAttribute("role", "alert");
+    div.style.position = "absolute";
+    div.style.width = "310px";
+    var btn = document.createElement("button");
+    btn.setAttribute("type", "button");
+    btn.setAttribute("class", "close");
+    btn.setAttribute("data-dismiss", "alert");
+    btn.setAttribute("aria-label", "Close");
+    btn.innerHTML = '<span aria-hidden="true">×</span>';
+    div.appendChild(btn);
     div.style.zIndex = BMap.Overlay.getZIndex(this._point.lat);
-    //div.innerHTML = "￥" + this._pay;
-    div.innerHTML = "<p>100% convertable to HTML/CSS layout.</p>";
-    map.getPanes().floatPane.appendChild(div); //将自定义窗口插入到地图样式内部，宠儿达到覆盖默认样式的效果  
-    console.log(div);
+    div.innerHTML += this._content;
+    map.getPanes().floatPane.appendChild(div); 
     return div;
   
 }  
   
-BusUnclickedOverlay.prototype.draw = function() {  
+RouteInfoOverlay.prototype.draw = function() {  
     var map = this._map;  
     var pixel = map.pointToOverlayPixel(this._point);  
-    this._div.style.left = pixel.x + "px"; //控制这个信息窗口针对标注物原点的偏移量，这也是前面div要设置样式position:absolute;  
-    this._div.style.top = pixel.y - 60 + "px";
+    this._div.style.left = pixel.x + "px";
+    this._div.style.top = pixel.y + "px";
+}
+
+function ShopInfoOverlay(point, html_content) {  
+    this._point = point;
+    this._content = html_content;
+}  
+ShopInfoOverlay.prototype = new BMap.Overlay(); 
+ShopInfoOverlay.prototype.initialize = function(map) {  
+    this._map = map;
+    var div = this._div = document.createElement("div");  
+    div.setAttribute("class", "alert alert-info alert-dismissible");
+    div.setAttribute("role", "alert");
+    div.style.position = "absolute";
+    div.style.width = "400px";
+    div.style.height = "260px";
+    var btn = document.createElement("button");
+    btn.setAttribute("type", "button");
+    btn.setAttribute("class", "close");
+    btn.setAttribute("data-dismiss", "alert");
+    btn.setAttribute("aria-label", "Close");
+    btn.innerHTML = '<span aria-hidden="true">×</span>';
+    div.appendChild(btn);
+    div.style.zIndex = BMap.Overlay.getZIndex(this._point.lat);
+    div.innerHTML += this._content;
+    map.getPanes().floatPane.appendChild(div); 
+    return div;
+}  
+  
+ShopInfoOverlay.prototype.draw = function() {  
+    var map = this._map;
+    var pixel = map.pointToOverlayPixel(this._point);  
+    this._div.style.left = pixel.x -200 + "px";
+    this._div.style.top = pixel.y -280 + "px";
 }
 

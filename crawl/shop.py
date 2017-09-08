@@ -124,7 +124,10 @@ def get_shop_result(data, category_id):
     avg_price = get_average_price(tmp)
     address = data.find("div", class_="tag-addr").find("span", class_="addr").text
     tmp = data.find("span", class_="comment-list")
-    taste_score, env_score, ser_score = get_score(tmp)
+    try:
+        taste_score, env_score, ser_score = get_score(tmp)
+    except:
+        return None
     phone_no, total_hits, today_hits, monthly_hits, weekly_hits, last_week_hits, lat, lng = get_shop_details(shop_id)
     cmt_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num = get_shop_review_star_num(shop_id)
     # crawl again to solve the network issue sometimes
@@ -255,7 +258,7 @@ def crawl_shops_favorite_food():
         window.Rohr_Opt.Flag = 100001,
         window.Rohr_Opt.LogVal = "rohrdata";
         '''
-    f = open(WORK_DIR + "/phantom/rohr.min.js", "r")
+    f = open(WORK_DIR + "/app/static/js/rohr.min.js", "r")
     rohr = f.read()
     f.close()
     driver.execute_script(rohr_init)

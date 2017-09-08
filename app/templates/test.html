@@ -5,14 +5,61 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link href="../static/css/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
   <style type="text/css">
     html, body, #map {width: 100%;height: 100%;}
+    .custom_tile {
+      display: block;
+      background-color: #baf0f2;
+      border-radius: 6px;
+      padding: 14px;
+      margin-bottom: 20px;
+      position: relative;
+      text-align: left;
+      opacity: 0.9
+    }
+    .custom_tile p {
+      font-size: 12px;
+      margin-bottom: 33px;
+    }
+    .custom_tile:hover,
+    .trans-plan-content {
+      font-size: 11px;
+    }
+    .navtrans-bus-icon.loc {
+      width:12px;
+      height:16px;
+      background-position:-13px -309px;
+      position:relative;
+      top:2px;
+      left:-2px
+    }
+    .trans-plan-content tr td:hover .loc {
+      background-position:-13px -325px
+    }
+    .alert-info{
+      color: #31708f;
+      background-color: #f3f1ee;
+      border-color: #f3f1ee;
+      opacity: 0.9
+    }
+    .navtrans-bus-icon.car {
+      width:16px;
+      height:16px;
+      background-position:-29px -194px;
+      position:relative;
+      top:2px;
+      left:-2px
+    }
+    .trans-plan-content tr td:hover .car {
+      background-position:-45px -194px
+    }
   </style>
   <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=kAWXbccRXNNwQl79u9cFcV6eysiBiBeA"></script>
   <script src="../static/js/jquery.min.js"></script>
   <script src="../static/js/flat-ui.min.js"></script>
   <script src="../static/js/custom.js"></script>
-  <link href="../static/css/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  
   <link href="../static/css/flat-ui.min.css" rel="stylesheet">
 
   
@@ -25,10 +72,13 @@
   <![endif]-->
 </head>
 <body>
+<div class="btn btn-primary">testdd</div>
 <!-- 模态框（Modal） -->
+<div class="alert alert-info" role="alert">
+
 <table class='trans-plan-content'>
 <tr>
-  <td><span class='navtrans-bus-icon walk'></span><div class='navtrans-bus-desc'>步行约620米，到达<span class='navtrans-busstation'>金高路巨峰路</span></div></td>
+  <td><span class='navtrans-bus-icon car'></span><div class='navtrans-bus-desc'>步行约620米，到达<span class='navtrans-busstation'>金高路巨峰路</span></div></td>
 </tr>
 <tr>
   <td><span class='navtrans-bus-icon bus'></span><div class='navtrans-bus-desc'>乘坐<span class='navtrans-busstation'>181路</span>，经过16站，到达<span class='navtrans-busstation'>浦东南路张杨路</span></div></td>
@@ -36,11 +86,17 @@
 <tr>
   <td><span class='navtrans-bus-icon walk'></span><div class='navtrans-bus-desc'>步行约610米，到达<span class='navtrans-busstation'>终点</span></div></td>
 </tr>
+<tr>
+  <td><span class='navtrans-bus-icon loc'></span><div class='navtrans-bus-desc'>共耗时<span class='navtrans-busstation'>120分钟</span></div></td>
+</tr>
 </table>
-                    
+</div>
 <div id="map" class="container"></div>
   <script>
+    $('[data-toggle=tooltip]').tooltip('show');
+    var tile;
     var map_center = {"lat":31.236923, "lng": 121.483644};
+    var map_center2 = {"lat":31.246923, "lng": 121.453644};
     var map_layer = 13;
     var map = new BMap.Map("map",{enableMapClick:false});
     var point = new BMap.Point(map_center.lng, map_center.lat);
@@ -50,15 +106,28 @@
     map.addEventListener("dblclick",function(e){
       add_star(e.point.lng, e.point.lat);
     });
-    map.addEventListener("longpress",function(e){
-      add_star(e.point.lng, e.point.lat);
+    map.addEventListener("click",function(e){
+      console.log("map is clicked");
+      //if (tile != 'undefined'){map.removeOverlay(tile);}
     });
     map.setMapStyle({style:"midnight"});
     var marker = new BMap.Marker(new BMap.Point(map_center.lng, map_center.lat));
     marker.disableMassClear();
     map.addOverlay(marker);
     marker.addEventListener("click",function(e){
+      console.log("marker is clicked");
+      if (tile != 'undefined'){map.removeOverlay(tile);}
       var m = new BusUnclickedOverlay(map_center,100,200);
+      tile = m;
+      map.addOverlay(m);
+    });
+    var marker2 = new BMap.Marker(new BMap.Point(map_center2.lng, map_center2.lat));
+    marker2.disableMassClear();
+    map.addOverlay(marker2);
+    marker2.addEventListener("click",function(e){
+      if (tile != 'undefined'){map.removeOverlay(tile);}
+      var m = new BusUnclickedOverlay(map_center2,100,200);
+      tile = m;
       map.addOverlay(m);
     });
   </script>
