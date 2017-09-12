@@ -137,7 +137,7 @@
   var avg_price_max;
   var comment_num;
   var shop_link = "http://www.dianping.com/shop/";
-  var existing_star;
+  var star;
   var existing_shops = new Set();
   var mode = "transit";
   var infoTile;
@@ -255,7 +255,7 @@
     });
     var param = {"taste_score": taste_score, "comment_num": comment_num, "avg_price_min": avg_price_min, "avg_price_max": avg_price_max, "category": category_str, "query": $("#shop-search").val()};
     if ($("#nearby-tab").attr("class")!=undefined && $("#nearby-tab").attr("class")!=""){
-      param.position = existing_star.point.lat+','+existing_star.point.lng;
+      param.position = star.point.lat+','+star.point.lng;
       order_col = "taste_score";
     }
     get_shops(param, current_page, limit_num, order_col)
@@ -371,7 +371,7 @@
       });
     }
     transit.disableAutoViewport();
-    transit.search(new BMap.Point(existing_star.point.lng,existing_star.point.lat), new BMap.Point(lng,lat));
+    transit.search(new BMap.Point(star.point.lng,star.point.lat), new BMap.Point(lng,lat));
   }
   function clear_path_overlays(){
     pathOverlays.forEach(function (item){
@@ -403,10 +403,23 @@
     });
   }
   function show_routeTile(marker, content){
-    if (routeTile!='undefined'){map.removeOverlay(routeTile);}
-    i = new RouteInfoOverlay(new BMap.Point(marker.point.lng, marker.point.lat), content);
-    routeTile = i;
-    map.addOverlay(i);
+  	remove_routeTile();
+    routeTile = new RouteInfoOverlay(new BMap.Point(marker.point.lng, marker.point.lat), content);
+    map.addOverlay(routeTile);
+  }
+  function remove_routeTile(){
+  	if (routeTile!='undefined'){map.removeOverlay(routeTile);}
+  }
+  function show_infoTile(marker, content){
+  	remove_infoTile();
+    infoTile = new ShopInfoOverlay(new BMap.Point(marker.point.lng, marker.point.lat), content);
+    map.addOverlay(infoTile);
+  }
+  function remove_infoTile(){
+  	if (infoTile!='undefined'){map.removeOverlay(infoTile);}
+  }
+  function remove_star(){
+  	if (star != undefined){map.removeOverlay(star);}
   }
   function gen_shop_title_html(item){
   	var shop_title_html = '<div class="row"><div class="col-xs-8">'+
@@ -434,23 +447,23 @@
     return tmp;
   }
   function add_star(lng, lat){
-    if (existing_star != undefined){map.removeOverlay(existing_star);}
+    remove_infoTile();
+    remove_routeTile();
     clear_dest_overlays();
     clear_path_overlays();
-    var marker = new BMap.Marker(new BMap.Point(lng, lat));
-    marker.disableMassClear();
-    existing_star = marker;
-    map.addOverlay(marker);
+    remove_star();
+    star = new BMap.Marker(new BMap.Point(lng, lat));
+    star.disableMassClear();
+    map.addOverlay(star);
   }
 
   function addClickHandler(detail,marker){
     marker.addEventListener("click",function(e){
-      if (infoTile != 'undefined'){map.removeOverlay(infoTile);}
-      var p = e.target;
-      var point = new BMap.Point(p.getPosition().lng, p.getPosition().lat);
-      var i = new ShopInfoOverlay(point, detail);
-      infoTile = i;
-      map.addOverlay(i);
+      remove_infoTile();
+      remove_routeTile();
+      clear_path_overlays();
+      clear_dest_overlays();
+      show_infoTile(marker, detail);
       }
     );
     marker.addEventListener("mouseover",function(e){

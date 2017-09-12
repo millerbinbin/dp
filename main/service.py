@@ -154,7 +154,6 @@ def get_all_info():
     shop_comment_score = pd.merge(shop_comment, scores, how="inner", on="shop_id")
     shop_comment_score_heat = pd.merge(shop_comment_score, heats, how="inner", on="shop_id")
     shop_comment_score_heat_favors = pd.merge(shop_comment_score_heat, favors,how="inner",on="shop_id")
-    # shop_comment_score_heat_favors_distance = pd.merge(shop_comment_score_heat_favors, routes, how="left", on="shop_id")
     shop_comment_score_heat_favors_distance_category = pd.merge(shop_comment_score_heat_favors, category, how="inner", on="category_id")
     return shop_comment_score_heat_favors_distance_category
 

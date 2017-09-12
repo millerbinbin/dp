@@ -10,7 +10,6 @@ RouteInfoOverlay.prototype.initialize = function(map) {
     div.setAttribute("role", "alert");
     div.style.position = "absolute";
     div.style.width = "310px";
-    div.style.zIndex = "10000";
     var btn = document.createElement("button");
     btn.setAttribute("type", "button");
     btn.setAttribute("class", "close");
@@ -44,8 +43,6 @@ ShopInfoOverlay.prototype.initialize = function(map) {
     div.style.position = "absolute";
     div.style.width = "400px";
     div.style.height = "260px";
-    div.style.zIndex = "800";
-    //div.style.zIndex = BMap.Overlay.getZIndex(this._point.lat);
     var btn = document.createElement("button");
     btn.setAttribute("type", "button");
     btn.setAttribute("class", "close");
