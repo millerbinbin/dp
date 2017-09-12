@@ -4,6 +4,7 @@ import os
 import re
 import glob
 import sys
+import shutil
 
 from crawl import crawlLib, location, SH_URL, WORK_DIR
 from entity import entity
@@ -118,7 +119,7 @@ def get_shop_result(data, category_id):
     try:
         region_name = data.find("div", class_="tag-addr").find(href=re.compile(".*/[^g]\d+$")).text
         region, district = REGION_TABLE.get(str(region_name))
-    except:
+    except Exception, e:
         region, district = None, None
     tmp = data.find("div", class_="comment")
     avg_price = get_average_price(tmp)
@@ -126,7 +127,7 @@ def get_shop_result(data, category_id):
     tmp = data.find("span", class_="comment-list")
     try:
         taste_score, env_score, ser_score = get_score(tmp)
-    except:
+    except Exception, e:
         return None
     phone_no, total_hits, today_hits, monthly_hits, weekly_hits, last_week_hits, lat, lng = get_shop_details(shop_id)
     cmt_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num = get_shop_review_star_num(shop_id)
@@ -165,7 +166,7 @@ def get_average_price(data):
     try:
         t = data.find("a", class_="mean-price")
         price = t.find(text=re.compile("\d.*"))[1:]
-    except:
+    except Exception, e:
         price = None
     return price
 
@@ -179,7 +180,7 @@ def get_shop_review_star_num(shop_id):
         star_3_num = data.find("div", class_="comment-star").find_all("dd")[3].find("em", class_="col-exp").text[1:-1]
         star_2_num = data.find("div", class_="comment-star").find_all("dd")[4].find("em", class_="col-exp").text[1:-1]
         star_1_num = data.find("div", class_="comment-star").find_all("dd")[5].find("em", class_="col-exp").text[1:-1]
-    except:
+    except Exception, e:
         comment_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num = None, None, None, None, None, None
     return comment_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num
 
@@ -314,7 +315,7 @@ def get_content(driver, url):
     try:
         cc = soup.select('pre')[0]
         return cc.string
-    except:
+    except Exception, e:
         return ""
 
 
@@ -331,7 +332,7 @@ def crawl_shops_baidu_location():
         if shop_id in shop_list: continue
         try:
             lng, lat = get_shop_location(address)
-        except:
+        except Exception, e:
             continue
 
         location_list.append((shop_id, lng, lat))
@@ -342,7 +343,6 @@ def crawl_shops_baidu_location():
 
 
 def backup_data_dir():
-    import shutil
     if os.path.exists(BACKUP_DATA_DIR) is True:
         shutil.rmtree(BACKUP_DATA_DIR)
     shutil.copytree(DATA_DIR, BACKUP_DATA_DIR)

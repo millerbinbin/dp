@@ -49,8 +49,8 @@ def test_get_favors():
 
 
 def test_xy():
-    csrf_token="ae942ad0094cba2e68a98d188b4eb09b"
-    url = "https://www.yingzt.com/invest/apiList?app_ver=2&loanGroup=101&period=ALL&interest=ALL&repay=ALL&order=DESC&orderBy=available&p1=1&_fromAjax_=1&_csrfToken_=85316bf555379961d6c0752652bc30eb&_=1504344376474"
+    csrf_token="85316bf555379961d6c0752652bc30eb"
+    url = "https://www.yingzt.com/invest/apiList?app_ver=2&loanGroup=101&period=ALL&interest=ALL&repay=ALL&order=DESC&orderBy=available&p1=1&_fromAjax_=1&_csrfToken_={0}&_=1504344376474".format(csrf_token)
     content = crawlLib.Crawler(url).crawl()
     content = json.loads(content)['data']['html']
     from bs4 import BeautifulSoup
@@ -73,7 +73,7 @@ def filter_months(rec):
     link = rec.split("\t")[6]
     try:
         months = int(rec.split("\t")[2][:-2])
-    except:
+    except Exception, e:
         months = 999
     amount = float(rec.split('\t')[3][:-2].replace(",",""))
     if amount<10: amount*=10000

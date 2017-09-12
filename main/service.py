@@ -193,7 +193,7 @@ def get_customized_shops(details, params, order_by):
         query = params['query']
         position = params["position"]
         category = params['category'].split(',') if params['category'] != '' else None
-    except:
+    except Exception, e:
         pass
     condition = True
     if good_rate is not None:

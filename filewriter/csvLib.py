@@ -2,9 +2,10 @@
 import sys
 import os
 import shutil
+import time
 from zipfile import ZipFile
 from filewriter import access_key, secret_key, bucket_name, host
-from qiniu import Auth, put_file, etag, BucketManager
+from qiniu import Auth, put_file, BucketManager
 import urllib
 
 __author__ = 'hubin6'
@@ -37,7 +38,7 @@ def upload(file_name):
     try:
         put_file(token, file_name, file_name)
         print "上传{0}成功！".format(file_name)
-    except:
+    except Exception, e:
         print "上传{0}失败！".format(file_name)
 
 
@@ -45,7 +46,7 @@ def download(file_name, download_path):
     try:
         urllib.urlretrieve(host + '/' + file_name, download_path)
         print "下载{0}成功！".format(file_name)
-    except:
+    except Exception, e:
         print "下载{0}失败！".format(file_name)
 
 
@@ -62,7 +63,6 @@ def get_latest_data():
     # 标记
     marker = None
     ret, eof, info = bucket.list(bucket_name, prefix, marker, limit, delimiter)
-    import time
     for item in ret.get('items'):
         print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(item['putTime']/10000000))
 
@@ -73,7 +73,7 @@ def del_cloud_file(file_name):
     try:
         bucket.delete(bucket_name, file_name)
         print "删除{0}成功！".format(file_name)
-    except:
+    except Exception, e:
         print "删除{0}失败！".format(file_name)
 
 

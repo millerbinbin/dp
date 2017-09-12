@@ -34,7 +34,7 @@ RouteInfoOverlay.prototype.draw = function() {
 function ShopInfoOverlay(point, html_content) {  
     this._point = point;
     this._content = html_content;
-}  
+}
 ShopInfoOverlay.prototype = new BMap.Overlay(); 
 ShopInfoOverlay.prototype.initialize = function(map) {  
     this._map = map;

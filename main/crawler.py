@@ -55,9 +55,9 @@ def upload_data():
 
 if __name__ == '__main__':
     start = time.time()
-    # backup_data()
-    # crawl_base_data()
-    # delete_shop_data()
+    backup_data()
+    crawl_base_data()
+    delete_shop_data()
     crawl_shop_data()
     crawl_shop_additional_info()
     upload_data()

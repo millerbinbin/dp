@@ -81,23 +81,23 @@
         </form>
         <div class="row" id="category-selection"></div><br>
         <div class="row">
-          <form class="form-inline col-xs-4">
+          <form class="form-inline col-sm-4">
             <label class="form-label">评分不低于:</label>
             <input class="form-control input-sm" type="number" style="width:40%;" id="taste-score" placeholder="8.0">
           </form>
-          <form class="form-inline col-xs-4">
+          <form class="form-inline col-sm-4">
               <label class="form-label">人均:</label>
               <input class="form-control input-sm" type="number" style="width:35%;" id="avg-price-min">
               <label class="form-label">-</label>
               <input class="form-control input-sm" type="number" style="width:35%;" id="avg-price-max">
           </form>
-          <form class="form-inline col-xs-4">
+          <form class="form-inline col-sm-4">
               <label class="form-label">评论不少于:</label>
               <input class="form-control input-sm" type="number" style="width:40%;" id="comment-num" placeholder="200">
           </form>
         </div><br>
         <div class="row">
-          <form class="form-inline col-xs-6">
+          <form class="form-inline col-sm-6">
             <label class="form-label">出行方式: </label>
             <span class="bootstrap-switch-square">
               <input type="checkbox" checked data-toggle="switch" data-on-text="公交" data-off-text="驾车" id="switch-mode" />
@@ -156,7 +156,7 @@
       error: function(){result = [];},
       success: function(data){
         data.forEach(function (item) {
-          $('#category-selection').append('<div class="col-xs-2"><span class="label label-default">'+item.category+'</span></div>');
+          $('#category-selection').append('<div class="col-sm-2"><span class="label label-default">'+item.category+'</span></div>');
         });
         $('#category-selection').find("span").each(function(){
           $(this).on({
@@ -410,26 +410,26 @@
     map.addOverlay(i);
   }
   function gen_shop_title_html(item){
-  	var shop_title_html = '<div class="row"><div class="col-xs-8">'+
+  	var shop_title_html = '<div class="row"><div class="col-sm-8">'+
   	  '<a class="text-left" target="_blank" href="'+shop_link+item.shop_id+'"><h6>'+item.name+'</h6></a></div>' +
-      '<div class="col-xs-3"><h6><button class="btn btn-embossed btn-inverse" onclick="' +
+      '<div class="col-sm-3"><h6><button class="btn btn-embossed btn-inverse" onclick="' +
       'show_route('+item.lng+','+item.lat+', mode)' +
       '"><b>到这里!</b></button></h6></div></div><br>';
     return shop_title_html;
   }
   function gen_content_html(item){
-  	return '<div class="row"><div class="col-xs-4"><span class="label label-primary">口&emsp;味：'+item.taste_score+'</span></div>' +
-      '<div class="col-xs-4"><span class="label label-primary">环&emsp;境：'+item.env_score+'</span></div>' +
-      '<div class="col-xs-4"><span class="label label-primary">菜&emsp;系：'+item.category+'</span></div></div>' +
-      '<div class="row"><div class="col-xs-4"><span class="label label-danger">评论数：'+item.comment_num+'</span></div>' +
-      '<div class="col-xs-4"><span class="label label-danger">好评率：'+item.good_rate+'%</span></div>' +
-      '<div class="col-xs-4"><span class="label label-danger">人&emsp;均：¥'+item.avg_price+'</span></div></div><br>';
+  	return '<div class="row"><div class="col-sm-4"><span class="label label-primary">口&emsp;味：'+item.taste_score+'</span></div>' +
+      '<div class="col-sm-4"><span class="label label-primary">环&emsp;境：'+item.env_score+'</span></div>' +
+      '<div class="col-sm-4"><span class="label label-primary">菜&emsp;系：'+item.category+'</span></div></div>' +
+      '<div class="row"><div class="col-sm-4"><span class="label label-danger">评论数：'+item.comment_num+'</span></div>' +
+      '<div class="col-sm-4"><span class="label label-danger">好评率：'+item.good_rate+'%</span></div>' +
+      '<div class="col-sm-4"><span class="label label-danger">人&emsp;均：¥'+item.avg_price+'</span></div></div><br>';
   }
   function get_recommendation_html(item){
     favors = item.favor_list.split(',')
     var tmp = '<div class="row">';
     for (var i=0; i<favors.length;++i){
-      tmp+='<div class="col-xs-4"><span class="label label-default">'+favors[i]+'</span></div>';
+      tmp+='<div class="col-sm-4"><span class="label label-default">'+favors[i]+'</span></div>';
     }
     tmp+='</div>';
     return tmp;
