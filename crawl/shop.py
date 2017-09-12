@@ -363,5 +363,6 @@ def del_local_all_shops_data():
 def split_category_segments(category, seg_num):
     size = len(category)
     seg_length = int(size / seg_num)
+    if seg_length == 0: seg_length = 1
     category_sets = [category[i:i + seg_length] for i in range(0, size + 1, seg_length)]
     return category_sets

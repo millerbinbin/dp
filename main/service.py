@@ -116,8 +116,11 @@ def get_heats():
     all_files = glob.glob(os.path.join(HEAT_DATA_DIR, "*.csv"))
     df = pd.concat((pd.read_csv(f, header=None, sep=FIELD_DELIMITER) for f in all_files))
     df.columns = ["shop_id", "total_hits", "today_hits", "monthly_hits", "weekly_hits", "last_week_hits"]
-    df["weighted_hits"] = 0.2*df["total_hits"] + 0.5*df["monthly_hits"] + 0.3*df["last_week_hits"]
-    df["weighted_hits"] = df["weighted_hits"].apply(lambda x: "{0:.1f}".format(x))
+    df["weighted_hits"] = df.apply(lambda x: "{0:.1f}".format(
+                                    0.2 * (0 if str(x["total_hits"])=="None" else int(x["total_hits"])) +
+                                    0.5 * (0 if str(x["monthly_hits"])=="None" else int(x["monthly_hits"])) +
+                                    0.3 * (0 if str(x["last_week_hits"])=="None" else int(x["last_week_hits"]))), axis=1)
+
     return df[["shop_id", "total_hits", "monthly_hits", "last_week_hits", "weighted_hits"]]
 
 
