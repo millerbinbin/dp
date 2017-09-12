@@ -19,7 +19,7 @@ def get_string_param_2_number(param_name):
     if value is not None:
         try:
             value = float(value)
-        except:
+        except Exception:
             value = str(value)
     return value
 
