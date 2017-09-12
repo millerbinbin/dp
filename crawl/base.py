@@ -44,7 +44,7 @@ def get_all_subcategory_by_category(category):
     try:
         return [(item.text, item['href'][item['href'].rfind("/") + 1:], item['href'][item['href'].rfind("/") + 2:], category_id)
             for item in data.find("div", id="classfy-sub", class_="nc-items nc-sub").find_all(tag_filter)]
-    except Exception, e:
+    except Exception:
         return []
 
 

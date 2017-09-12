@@ -14,6 +14,8 @@ __author__ = 'hubin6'
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
+q = Auth(access_key, secret_key)
+
 
 # mode="w" -- overwrite
 # mode="a" -- append
@@ -33,12 +35,11 @@ def unzip_dir(zip_file, dir_name):
 
 
 def upload(file_name):
-    q = Auth(access_key, secret_key)
     token = q.upload_token(bucket_name, file_name, 1800)
     try:
         put_file(token, file_name, file_name)
         print "上传{0}成功！".format(file_name)
-    except Exception, e:
+    except Exception:
         print "上传{0}失败！".format(file_name)
 
 
@@ -46,14 +47,12 @@ def download(file_name, download_path):
     try:
         urllib.urlretrieve(host + '/' + file_name, download_path)
         print "下载{0}成功！".format(file_name)
-    except Exception, e:
+    except Exception:
         print "下载{0}失败！".format(file_name)
 
 
 def get_latest_data():
-    q = Auth(access_key, secret_key)
     bucket = BucketManager(q)
-    bucket_name = 'dp-data'
     # 前缀
     prefix = None
     # 列举条目
@@ -68,12 +67,11 @@ def get_latest_data():
 
 
 def del_cloud_file(file_name):
-    q = Auth(access_key, secret_key)
     bucket = BucketManager(q)
     try:
         bucket.delete(bucket_name, file_name)
         print "删除{0}成功！".format(file_name)
-    except Exception, e:
+    except Exception:
         print "删除{0}失败！".format(file_name)
 
 

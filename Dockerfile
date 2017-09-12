@@ -9,7 +9,7 @@ ENV PYTHONPATH /app
 COPY main/__init__.py main/
 COPY main/web.py main/
 COPY main/service.py main/
-COPY main/shop_details.gz main/
+ADD main/shop_details.gz main/
 COPY app app
 WORKDIR /app/main
 

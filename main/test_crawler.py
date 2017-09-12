@@ -73,7 +73,7 @@ def filter_months(rec):
     link = rec.split("\t")[6]
     try:
         months = int(rec.split("\t")[2][:-2])
-    except Exception, e:
+    except Exception:
         months = 999
     amount = float(rec.split('\t')[3][:-2].replace(",",""))
     if amount<10: amount*=10000
