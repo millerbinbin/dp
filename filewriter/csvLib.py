@@ -6,6 +6,7 @@ from zipfile import ZipFile
 from filewriter import access_key, secret_key, bucket_name, host
 from qiniu import Auth, put_file, etag, BucketManager
 import urllib
+from datetime import datetime, timedelta
 
 __author__ = 'hubin6'
 
@@ -42,29 +43,30 @@ def upload(file_name):
 
 
 def download(file_name, download_path):
-    try:
-        urllib.urlretrieve(host + '/' + file_name, download_path)
-        print "下载{0}成功！".format(file_name)
-    except:
-        print "下载{0}失败！".format(file_name)
+    print host + '/' + file_name
+    urllib.urlretrieve(host + '/' + file_name, download_path)
+    print "下载{0}成功！".format(file_name)
+    print "下载{0}失败！".format(file_name)
 
 
-def get_latest_data():
+def get_latest_data(prefix=None):
     q = Auth(access_key, secret_key)
     bucket = BucketManager(q)
     bucket_name = 'dp-data'
-    # 前缀
-    prefix = None
-    # 列举条目
-    limit = 10
-    # 列举出除'/'的所有文件以及以'/'为分隔的所有前缀
+    limit = 100
     delimiter = None
-    # 标记
     marker = None
-    ret, eof, info = bucket.list(bucket_name, prefix, marker, limit, delimiter)
-    import time
-    for item in ret.get('items'):
-        print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(item['putTime']/10000000))
+    now = datetime.now()
+    if prefix is None:
+        for i in range(0, 30):
+            aDay = timedelta(days=0-i)
+            prefix = (now + aDay).strftime('%Y-%m-%d')
+            ret, eof, info = bucket.list(bucket_name, prefix, marker, limit, delimiter)
+            if len(ret['items']) > 0: return ret['items'][0]['key']
+    else:
+        ret, eof, info = bucket.list(bucket_name, prefix, marker, limit, delimiter)
+        if len(ret['items']) == 1: return ret['items'][0]['key']
+    return None
 
 
 def del_cloud_file(file_name):

@@ -48,7 +48,7 @@ html, body,
 }
 .alert{
   cursor:default;
-  padding: 10px;
+  padding: 5px;
   color: #31708f;
   background-color: #f3f1ee;
   border-color: #f3f1ee;

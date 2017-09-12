@@ -268,7 +268,6 @@
     map.centerAndZoom(point, map_layer);
     map.enableScrollWheelZoom(true);
     map.disableDoubleClickZoom();
-    map.highResolutionEnabled(true);
     map.addEventListener("dblclick",function(e){
       add_star(e.point.lng, e.point.lat);
     });
@@ -412,7 +411,7 @@
   function gen_shop_title_html(item){
   	var shop_title_html = '<div class="row"><div class="col-xs-8">'+
   	  '<a class="text-left" target="_blank" href="'+shop_link+item.shop_id+'"><h6>'+item.name+'</h6></a></div>' +
-      '<div class="col-xs-3"><h6><button class="btn btn-embossed btn-inverse" onclick="' +
+      '<div class="col-xs-3"><h6><button style="z-index:1000" class="btn btn-embossed btn-inverse" onclick="' +
       'show_route('+item.lng+','+item.lat+', mode)' +
       '"><b>到这里!</b></button></h6></div></div><br>';
     return shop_title_html;
@@ -450,6 +449,9 @@
       var p = e.target;
       var point = new BMap.Point(p.getPosition().lng, p.getPosition().lat);
       var i = new ShopInfoOverlay(point, detail);
+      i.addEventListener("click",function(e){
+	      alert("aaa");
+	  });
       infoTile = i;
       map.addOverlay(i);
       }
