@@ -1,6 +1,5 @@
 # -*- coding:utf-8 -*-
 from crawl import shop, crawlLib
-from phantom import favors
 import service
 import sys
 import json, time, webbrowser
@@ -80,6 +79,24 @@ def filter_months(rec):
     return months, amount, link
 
 
+def test_ljs():
+    link = "https://list.lu.com"
+    url = "https://list.lu.com/list/r030?minMoney=50000&maxMoney=55000&minDays=&maxDays=&minRate=&maxRate=&mode=&subType=&instId=&haitongGrade=&fundGroupId=&searchWord=&trade=&isCx=&currentPage=1&orderType=R030_INVEST_RATE&orderAsc=false&notHasBuyFeeRate=&rootProductCategoryEnum="
+    content = crawlLib.Crawler(url).parse_content()
+    prod_list = content.find("ul", class_="main-list").find_all("li",
+                                                                class_="product-list clearfix has-bottom is-2col ")
+    for prod in prod_list:
+        prod_link = link + prod.find("dt", class_="product-name").a['href']
+        prod_rate = prod.find("li", class_="interest-rate").find("p", class_="num-style").text.replace("%","")
+        prod_amount = prod.find("div", class_="product-amount").find("em", class_="num-style").text.replace(",", "")
+        prod_rate = float(prod_rate)
+        prod_amount = float(prod_amount)
+        if prod_amount / prod_rate <= 10600:
+            print prod_link, prod_rate, prod_amount
+            webbrowser.open_new(prod_link)
+            sys.exit(1)
+
+
 def test_crawl_one_cateogry():
     category = service.get_category()
     category_set = category[category.category_id==114]
@@ -98,4 +115,10 @@ if __name__ == '__main__':
 
     # print service.get_heats()["weighted_hits"].max(),service.get_heats()["weighted_hits"].min()
     # print crawlLib.Crawler("http://www.dianping.com/search/category/1/10/g114o5p1").crawl()
-    test_crawl_one_cateogry()
+    # test_crawl_one_cateogry()
+    for i in range(1, 1000):
+        print i
+        test_ljs()
+        time.sleep(1)
+
+
