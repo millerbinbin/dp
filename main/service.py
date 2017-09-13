@@ -187,6 +187,9 @@ def load_weight_details(filter_same_group=False):
 def get_customized_shops(details, params, order_by):
     good_rate, taste_score, comment_num, avg_price_min, avg_price_max, category, position, query = \
         None, None, None, None, None, None, None, None
+    details["avg_price"] = details.apply(
+        lambda x: "" if str(x["avg_price"]) == "nan" or str(x["avg_price"]) == "" else int(x["avg_price"]), axis=1)
+    details["favor_list"] = details.apply(lambda x: "" if str(x["favor_list"]) == "nan" else x["favor_list"], axis=1)
     try:
         good_rate = params['good_rate']
         taste_score = params['taste_score']
@@ -213,8 +216,6 @@ def get_customized_shops(details, params, order_by):
         condition = condition & (details["category_name"].isin(category))
     if condition is not True:
         details = details[condition]
-    details["avg_price"] = details["avg_price"].apply(lambda x: "" if str(x) == "nan" or str(x) == "" else int(x))
-    details["favor_list"] = details["favor_list"].apply(lambda x: "" if str(x) == "nan" else x)
     if query is not None:
         details = details[details.shop_group_name.str.contains(query) | details.favor_list.str.contains(query)]
     if position is not None:
