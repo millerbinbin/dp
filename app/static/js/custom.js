@@ -18,9 +18,8 @@ RouteInfoOverlay.prototype.initialize = function(map) {
     btn.innerHTML = '<span aria-hidden="true">×</span>';
     div.appendChild(btn);
     div.innerHTML += this._content;
-    map.getPanes().floatPane.appendChild(div); 
+    map.getPanes().labelPane.appendChild(div);
     return div;
-  
 }  
   
 RouteInfoOverlay.prototype.draw = function() {  
@@ -43,6 +42,7 @@ ShopInfoOverlay.prototype.initialize = function(map) {
     div.style.position = "absolute";
     div.style.width = "400px";
     div.style.height = "260px";
+    //div.style.z-index=10000;
     var btn = document.createElement("button");
     btn.setAttribute("type", "button");
     btn.setAttribute("class", "close");
@@ -51,7 +51,8 @@ ShopInfoOverlay.prototype.initialize = function(map) {
     btn.innerHTML = '<span aria-hidden="true">×</span>';
     div.appendChild(btn);
     div.innerHTML += this._content;
-    map.getPanes().floatPane.appendChild(div); 
+    map.getPanes().labelPane.appendChild(div);
+
     return div;
 }  
   
