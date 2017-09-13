@@ -53,6 +53,13 @@ def upload_data():
     csvLib.del_local_file(zip_file)
 
 
+def download_data():
+    import tempfile
+    tmp_dir = tempfile.mkdtemp()
+    zip_file = csvLib.get_latest_data()
+    csvLib.download(zip_file, tmp_dir+'/'+zip_file)
+
+
 if __name__ == '__main__':
     start = time.time()
     backup_data()

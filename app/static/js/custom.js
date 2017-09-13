@@ -17,7 +17,6 @@ RouteInfoOverlay.prototype.initialize = function(map) {
     btn.setAttribute("aria-label", "Close");
     btn.innerHTML = '<span aria-hidden="true">×</span>';
     div.appendChild(btn);
-    div.style.zIndex = BMap.Overlay.getZIndex(this._point.lat);
     div.innerHTML += this._content;
     map.getPanes().floatPane.appendChild(div); 
     return div;
@@ -51,7 +50,6 @@ ShopInfoOverlay.prototype.initialize = function(map) {
     btn.setAttribute("aria-label", "Close");
     btn.innerHTML = '<span aria-hidden="true">×</span>';
     div.appendChild(btn);
-    div.style.zIndex = BMap.Overlay.getZIndex(this._point.lat);
     div.innerHTML += this._content;
     map.getPanes().floatPane.appendChild(div); 
     return div;
@@ -60,7 +58,7 @@ ShopInfoOverlay.prototype.initialize = function(map) {
 ShopInfoOverlay.prototype.draw = function() {  
     var map = this._map;
     var pixel = map.pointToOverlayPixel(this._point);  
-    this._div.style.left = pixel.x -200 + "px";
-    this._div.style.top = pixel.y -280 + "px";
+    this._div.style.left = pixel.x - 200 + "px";
+    this._div.style.top = pixel.y - 280 + "px";
 }
 

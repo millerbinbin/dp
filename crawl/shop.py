@@ -43,9 +43,9 @@ HEAT_DATA_CSV = os.path.join(DATA_DIR, "heats/{0}.csv")
 SCORE_DATA_CSV = os.path.join(DATA_DIR, "scores/{0}.csv")
 
 FIELD_DELIMITER = "\t"
+HOME_LOC = entity.Location(lng=121.615539648, lat=31.2920292218)   #location of Chun Jiang
 REGION_TABLE = service.get_region_table()
 CATEGORY_TABLE = service.get_category_table()
-HOME_LOC = entity.Location(lng=121.615539648, lat=31.2920292218)   #location of Chun Jiang
 
 
 def get_seq_suffix_from_type(type):
