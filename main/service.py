@@ -178,6 +178,9 @@ def load_weight_details(filter_same_group=False):
     df = pd.read_csv(DETAILS_CSV_ZIP, sep=FIELD_DELIMITER, na_values="None", compression="gzip")
     df["shop_id"] = df["shop_id"].apply(lambda x: str(x))
     df['group_rank'] = df['taste_score'].groupby(df['shop_group_name']).rank(ascending=False)
+    df["avg_price"] = df.apply(
+        lambda x: "" if str(x["avg_price"]) == "nan" or str(x["avg_price"]) == "" else int(x["avg_price"]), axis=1)
+    df["favor_list"] = df.apply(lambda x: "" if str(x["favor_list"]) == "nan" else x["favor_list"], axis=1)
     if filter_same_group:
         return df[df.group_rank<2]
     return df
@@ -186,9 +189,6 @@ def load_weight_details(filter_same_group=False):
 def get_customized_shops(details, params, order_by):
     taste_score, comment_num, avg_price_min, avg_price_max, category, position, query = \
         None, None, None, None, None, None, None
-    details["avg_price"] = details.apply(
-        lambda x: "" if str(x["avg_price"]) == "nan" or str(x["avg_price"]) == "" else int(x["avg_price"]), axis=1)
-    details["favor_list"] = details.apply(lambda x: "" if str(x["favor_list"]) == "nan" else x["favor_list"], axis=1)
     try:
         taste_score = params['taste_score']
         comment_num = params['comment_num']

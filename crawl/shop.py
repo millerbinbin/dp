@@ -21,7 +21,7 @@ sys.setdefaultencoding("utf-8")
 
 
 SHOP_DETAILS_URL = "http://www.dianping.com/ajax/json/shopfood/wizard/BasicHideInfoAjaxFP?_nr_force=1502177990602&shopId={}"
-REVIEW_URL = "http://www.dianping.com/shop/{0}/review_more"
+REVIEW_URL = "http://www.dianping.com/shop/{0}/review_more_newest"
 # COMMENT_URL = "http://www.dianping.com/shop/{0}/review_more_5star?pageno={1}"
 # SHOP_URL = "http://www.dianping.com/shop/{0}"
 

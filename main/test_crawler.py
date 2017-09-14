@@ -115,10 +115,5 @@ if __name__ == '__main__':
 
     # print service.get_heats()["weighted_hits"].max(),service.get_heats()["weighted_hits"].min()
     # print crawlLib.Crawler("http://www.dianping.com/search/category/1/10/g114o5p1").crawl()
-    # test_crawl_one_cateogry()
-    for i in range(1, 1000):
-        print i
-        test_ljs()
-        time.sleep(1)
-
+    test_crawl_one_cateogry()
 
