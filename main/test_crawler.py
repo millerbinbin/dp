@@ -95,7 +95,7 @@ def test_ljs():
             print prod_link, prod_rate, prod_amount
             webbrowser.open_new(prod_link)
             sys.exit(1)
-#https://trading.lu.com/trading/i-trade-info?productId=158424838&sid=318608428
+
 
 def test_crawl_one_cateogry():
     category = service.get_category()
