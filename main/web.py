@@ -1,13 +1,9 @@
 #!flask/bin/python
-from flask_cors import *
 from app import app
 import os
 
-CORS(app, supports_credentials=True)
-
 
 if __name__ == '__main__':
-
     app.debug = True
     if os.environ.get("WEB_PORT") is None: WEB_PORT = 80
     else: WEB_PORT = int(os.environ.get("WEB_PORT"))

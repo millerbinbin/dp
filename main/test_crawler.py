@@ -91,7 +91,7 @@ def test_ljs():
         prod_amount = prod.find("div", class_="product-amount").find("em", class_="num-style").text.replace(",", "")
         prod_rate = float(prod_rate)
         prod_amount = float(prod_amount)
-        if prod_amount / prod_rate <= 10600:
+        if prod_amount / prod_rate <= 10500:
             print prod_link, prod_rate, prod_amount
             webbrowser.open_new(prod_link)
             sys.exit(1)

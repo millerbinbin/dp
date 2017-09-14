@@ -184,13 +184,12 @@ def load_weight_details(filter_same_group=False):
 
 
 def get_customized_shops(details, params, order_by):
-    good_rate, taste_score, comment_num, avg_price_min, avg_price_max, category, position, query = \
-        None, None, None, None, None, None, None, None
+    taste_score, comment_num, avg_price_min, avg_price_max, category, position, query = \
+        None, None, None, None, None, None, None
     details["avg_price"] = details.apply(
         lambda x: "" if str(x["avg_price"]) == "nan" or str(x["avg_price"]) == "" else int(x["avg_price"]), axis=1)
     details["favor_list"] = details.apply(lambda x: "" if str(x["favor_list"]) == "nan" else x["favor_list"], axis=1)
     try:
-        good_rate = params['good_rate']
         taste_score = params['taste_score']
         comment_num = params['comment_num']
         avg_price_min = params['avg_price_min']
@@ -201,8 +200,6 @@ def get_customized_shops(details, params, order_by):
     except Exception:
         pass
     condition = True
-    if good_rate is not None:
-        condition = condition & (details["good_rate"] >= good_rate)
     if taste_score is not None:
         condition = condition & (details["taste_score"] >= taste_score)
     if comment_num is not None:

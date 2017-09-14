@@ -148,10 +148,12 @@
     // get all category
     $.ajax({
       url: '/category/all',
-      dataType: 'json',
+      dataType: 'jsonp',
+      jsonp: "callback",
+      jsonpCallback:"Category",
       type: 'GET',
       timeout: 3000,
-      crossDomain: true,
+      crossDomain: false,
       async : true,
       error: function(){result = [];},
       success: function(data){
@@ -253,12 +255,13 @@
     category_set.forEach(function (item) {
       category_str+=item.toString() + ",";
     });
-    var param = {"taste_score": taste_score, "comment_num": comment_num, "avg_price_min": avg_price_min, "avg_price_max": avg_price_max, "category": category_str, "query": $("#shop-search").val()};
+    var query = $("#shop-search").val();
+    var param = {"taste_score": taste_score, "comment_num": comment_num, "avg_price_min": avg_price_min, "avg_price_max": avg_price_max, "category": category_str, "query": query, "page": current_page, "limit": limit_num, "order_by": order_col};
     if ($("#nearby-tab").attr("class")!=undefined && $("#nearby-tab").attr("class")!=""){
       param.position = star.point.lat+','+star.point.lng;
-      order_col = "taste_score";
+      param.order_by = "taste_score";
     }
-    get_shops(param, current_page, limit_num, order_col)
+    get_shops(param)
   }
   function init_map(){
   	var map_center = {"lat":31.236923, "lng": 121.483644};
@@ -274,15 +277,16 @@
     map.setMapStyle({style:"midnight"});
     return map;
   }
-  function get_shops(param, page, limit, order_by){
+  function get_shops(param){
     $.ajax({
-      url: '/shops/'+page+'/'+limit+'/order_by='+order_by,
-      dataType: 'json',
-      type: 'POST',
+      url: '/shops/',
       data: param,
+      dataType: 'jsonp',
+      jsonp: "callback",
+      jsonpCallback:"Shop",
+      type: 'GET',
       timeout: 3000,
-      crossDomain: true,
-      cache:true,
+      crossDomain: false,
       async : true,
       error: function(){alert("get data error!");},
       success: function(data){
@@ -291,7 +295,7 @@
       		existing_shops.delete(item);
       	});
         map.clearOverlays();
-
+        //debugger;
         var g=0;
         var t=0;
         for(var i=0;i<data.length;i++){
@@ -308,7 +312,7 @@
           var detail = gen_shop_title_html(data[i]) + gen_content_html(data[i]) + get_recommendation_html(data[i]);
           addClickHandler(detail,marker);
         }
-        map.centerAndZoom(new BMap.Point(g/data.length, t/data.length), 13);
+        if (data.length > 0){map.panTo(new BMap.Point(g/data.length, t/data.length), {noAnimation:true});}
         if (data.length < limit_num){
           current_page = 0
         }

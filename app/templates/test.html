@@ -93,6 +93,21 @@
 </div>
 <div id="map" class="container"></div>
   <script>
+    $.ajax({
+      url: '/category/test',
+      dataType: 'jsonp',
+      jsonp: "callback",
+      jsonpCallback:"testJsonP",
+      type: 'GET',
+      timeout: 3000,
+      crossDomain: false,
+      async : true,
+      error: function(){result = [];},
+      success: function(data){
+        alert(data[0].category);
+      }
+    });
+
     $('[data-toggle=tooltip]').tooltip('show');
     var tile;
     var map_center = {"lat":31.236923, "lng": 121.483644};
@@ -130,6 +145,7 @@
       tile = m;
       map.addOverlay(m);
     });
+    
   </script>
 </body>
 </html>
