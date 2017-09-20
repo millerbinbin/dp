@@ -7,6 +7,8 @@ import glob
 import json
 import math
 import sys
+import redis
+
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
@@ -24,6 +26,7 @@ ROUTE_DATA_DIR = os.path.join(BASE_DATA_DIR, "../routes")
 FAVOR_DATA_DIR = os.path.join(BASE_DATA_DIR, "../favorite")
 DETAILS_CSV_ZIP = os.path.join(WORK_DIR, "main/shop_details.gz")
 FIELD_DELIMITER = "\t"
+r = redis.Redis(host=os.getenv("REDIS_HOST"), port=6379)
 
 
 def get_region_table():
@@ -85,7 +88,6 @@ def get_shops():
         lambda x: x['category_id'] if x['subcategory_id'] == "None" else x['subcategory_id'], axis=1)
     df["shop_group_name"] = df.apply(
         lambda x: x['shop_name'] if x['shop_group_name'] == "None" else x['shop_group_name'], axis=1)
-
     return df[["shop_id", "shop_name", "shop_group_name", "address", "lng", "lat", "category_id", "mainCategory_id"]]
 
 
@@ -99,10 +101,10 @@ def get_locations():
 def get_comments():
     all_files = glob.glob(os.path.join(COMMENT_DATA_DIR, "*.csv"))
     df = pd.concat((pd.read_csv(f, header=None, sep=FIELD_DELIMITER, na_filter=True, na_values="None") for f in all_files))
-    df.columns = ["shop_id", "comment_num", "star_5_num", "star_4_num", "star_3_num", "star_2_num", "star_1_num"]
+    df.columns = ["shop_id", "first_cmt_date", "comment_num", "star_5_num", "star_4_num", "star_3_num", "star_2_num", "star_1_num"]
     df["good_rate"] = 100 * ((df["star_4_num"]+df["star_5_num"]) / df["comment_num"])
     df["good_rate"] = df["good_rate"].apply(lambda x: "{0:.1f}".format(x))
-    return df[["shop_id", "comment_num", "good_rate"]]
+    return df[["shop_id", "first_cmt_date", "comment_num", "good_rate"]]
 
 
 def get_scores():
@@ -161,7 +163,7 @@ def get_all_info():
 def get_weight_details():
     all_info = get_all_info()
     df = all_info[["shop_id", "shop_name", "shop_group_name", "lng", "lat",
-                   "comment_num", "good_rate",
+                   "first_cmt_date", "comment_num", "good_rate",
                    "avg_price", "taste_score", "env_score", "ser_score",
                    "weighted_hits", "favor_list","category_name", "category_id"
                    ]]
@@ -174,57 +176,85 @@ def save_weight_details():
     df.to_csv(DETAILS_CSV_ZIP, sep=FIELD_DELIMITER, doublequote=False, quoting=csv.QUOTE_NONE, compression="gzip")
 
 
-def load_weight_details(filter_same_group=False):
-    df = pd.read_csv(DETAILS_CSV_ZIP, sep=FIELD_DELIMITER, na_values="None", compression="gzip")
-    df["shop_id"] = df["shop_id"].apply(lambda x: str(x))
-    df['group_rank'] = df['taste_score'].groupby(df['shop_group_name']).rank(ascending=False)
-    df["avg_price"] = df.apply(
-        lambda x: "" if str(x["avg_price"]) == "nan" or str(x["avg_price"]) == "" else int(x["avg_price"]), axis=1)
-    df["favor_list"] = df.apply(lambda x: "" if str(x["favor_list"]) == "nan" else x["favor_list"], axis=1)
-    if filter_same_group:
-        return df[df.group_rank<2]
-    return df
+def load_weight_details(filter_same_group=False, filter_new_shop=True):
+    key = "all_shop_info,{0},{1}".format(filter_same_group, filter_new_shop)
+    if r.get(key) is not None:
+        all_shop_info = pd.read_msgpack(r.get(key))
+    else:
+        df = pd.read_csv(DETAILS_CSV_ZIP, sep=FIELD_DELIMITER, na_values="None", compression="gzip")
+        df["shop_id"] = df["shop_id"].apply(lambda x: str(x))
+        df['group_rank'] = df['taste_score'].groupby(df['shop_group_name']).rank(ascending=False)
+        df["avg_price"] = df.apply(
+            lambda x: "" if str(x["avg_price"]) == "nan" or str(x["avg_price"]) == "" else int(x["avg_price"]), axis=1)
+        df["favor_list"] = df.apply(lambda x: "" if str(x["favor_list"]) == "nan" else x["favor_list"], axis=1)
+        if filter_new_shop:
+            df = df[df.first_cmt_date <= '2017-06-01']
+        if filter_same_group:
+            df = df[df.group_rank < 2]
+        all_shop_info = df
+        r.setex(key, all_shop_info.to_msgpack(compress='zlib', encoding='utf-8'), time=3600*12)
+
+    key = "all_category,{0},{1}".format(filter_same_group, filter_new_shop)
+    if r.get(key) is not None:
+        all_category = pd.read_msgpack(r.get(key))
+    else:
+        all_category = all_shop_info[["category_name"]].drop_duplicates()
+        r.setex(key, all_category.to_msgpack(compress='zlib', encoding='utf-8'), time=3600*12)
+
+    return all_shop_info, all_category
 
 
-def get_customized_shops(details, params, order_by):
-    taste_score, comment_num, avg_price_min, avg_price_max, category, position, query = \
-        None, None, None, None, None, None, None
-    try:
-        taste_score = params['taste_score']
-        comment_num = params['comment_num']
-        avg_price_min = params['avg_price_min']
-        avg_price_max = params['avg_price_max']
-        query = params['query']
-        position = params["position"]
-        category = params['category'].split(',') if params['category'] != '' else None
-    except Exception:
-        pass
-    condition = True
-    if taste_score is not None:
-        condition = condition & (details["taste_score"] >= taste_score)
-    if comment_num is not None:
-        condition = condition & (details["comment_num"] >= comment_num)
-    if avg_price_max is not None:
-        condition = condition & (details["avg_price"] <= avg_price_max)
-    if avg_price_min is not None:
-        condition = condition & (details["avg_price"] >= avg_price_min)
-    if category is not None:
-        condition = condition & (details["category_name"].isin(category))
-    if condition is not True:
-        details = details[condition]
-    if query is not None:
-        details = details[details.shop_group_name.str.contains(query) | details.favor_list.str.contains(query)]
-    if position is not None:
-        lat = float(position.split(",")[0])
-        lng = float(position.split(",")[1])
-        details["distance"] = details.apply(
-            lambda x: calc_earth_distance({"lat": x["lat"], "lng": x["lng"]}, {"lat": lat, "lng": lng}),
-            axis=1)
-        details = details[details.distance <= 5]
-    if order_by is not None and order_by in ('taste_score', 'weighted_hits', 'comment_num', 'good_rate'):
-        details = details.sort_values([order_by], ascending=[False])
-    return details.loc[:, ["shop_id", "shop_name", "taste_score", "env_score", "comment_num", "good_rate", "avg_price",
-                                          "favor_list", "category_name", "lng", "lat"]]
+def get_customized_shops(params):
+    filter_same_group = True if params['filter_same_group'].lower() == "true" else False
+    filter_new_shop = True if params['filter_new_shop'].lower() == "true" else False
+    details = load_weight_details(filter_same_group=filter_same_group, filter_new_shop=filter_new_shop)[0]
+    if r.get(params) is None:
+        taste_score, comment_num, avg_price_min, avg_price_max, category, position, query = \
+            None, None, None, None, None, None, None
+        try:
+            taste_score = params['taste_score']
+            comment_num = params['comment_num']
+            avg_price_min = params['avg_price_min']
+            avg_price_max = params['avg_price_max']
+            query = params['query']
+            position = params["position"]
+            category = params['category'].split(',') if params['category'] != '' else None
+            order_by = params['order_by']
+            page = params['page']
+            limit = params['limit']
+        except Exception:
+            pass
+        condition = True
+        if taste_score is not None:
+            condition = condition & (details["taste_score"] >= taste_score)
+        if comment_num is not None:
+            condition = condition & (details["comment_num"] >= comment_num)
+        if avg_price_max is not None:
+            condition = condition & (details["avg_price"] <= avg_price_max)
+        if avg_price_min is not None:
+            condition = condition & (details["avg_price"] >= avg_price_min)
+        if category is not None:
+            condition = condition & (details["category_name"].isin(category))
+        if condition is not True:
+            details = details[condition]
+        if query is not None:
+            details = details[details.shop_group_name.str.contains(query) | details.favor_list.str.contains(query)]
+        if position is not None:
+            lat = float(position.split(",")[0])
+            lng = float(position.split(",")[1])
+            details["distance"] = details.apply(
+                lambda x: calc_earth_distance({"lat": x["lat"], "lng": x["lng"]}, {"lat": lat, "lng": lng}),
+                axis=1)
+            details = details[details.distance <= 5]
+        if order_by is not None and order_by in ('taste_score', 'weighted_hits', 'comment_num', 'good_rate'):
+            details = details.sort_values([order_by], ascending=[False])
+        result = details.loc[:, ["shop_id", "shop_name", "taste_score", "env_score", "comment_num", "good_rate", "avg_price",
+                                              "favor_list", "category_name", "lng", "lat"]].iloc[(page - 1) * limit:page * limit]
+        r.setex(params, result.to_msgpack(compress='zlib', encoding='utf-8'), time=3600*12)
+    else:
+        print "Existing: {0}".format(params)
+        result = pd.read_msgpack(r.get(params))
+    return result
 
 
 def get_distinct_shops():

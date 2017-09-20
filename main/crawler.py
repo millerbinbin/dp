@@ -51,6 +51,7 @@ def upload_data():
     csvLib.zip_dir("../data", current_date)
     csvLib.upload(zip_file)
     csvLib.del_local_file(zip_file)
+    csvLib.upload(service.DETAILS_CSV_ZIP)
 
 
 def download_data():
@@ -62,13 +63,12 @@ def download_data():
 
 if __name__ == '__main__':
     start = time.time()
-    backup_data()
     crawl_base_data()
     delete_shop_data()
     crawl_shop_data()
     crawl_shop_additional_info()
-    upload_data()
     save_shop_data()
+    upload_data()
     end = time.time()
     print "任务结束，共耗时{0}".format(service.get_time_str(end-start))
 
