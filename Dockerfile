@@ -1,5 +1,5 @@
 FROM python:2.7
-MAINTAINER millerbinbi@gmail.caom
+MAINTAINER millerbinbin@gmail.com
 RUN mkdir -p /app
 WORKDIR /app
 COPY requirements.txt requirements.txt

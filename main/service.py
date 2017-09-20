@@ -26,7 +26,11 @@ ROUTE_DATA_DIR = os.path.join(BASE_DATA_DIR, "../routes")
 FAVOR_DATA_DIR = os.path.join(BASE_DATA_DIR, "../favorite")
 DETAILS_CSV_ZIP = os.path.join(WORK_DIR, "main/shop_details.gz")
 FIELD_DELIMITER = "\t"
-r = redis.Redis(host=os.getenv("REDIS_HOST"), port=6379)
+
+redis_host = os.getenv("REDIS_PORT_6379_TCP_ADDR") if os.getenv("REDIS_PORT_6379_TCP_ADDR") != None else os.getenv("REDIS_HOST")
+redis_port = int(os.getenv("REDIS_PORT_6379_TCP_PORT") if os.getenv("REDIS_PORT_6379_TCP_PORT") != None else os.getenv("REDIS_PORT"))
+redis_password = os.getenv("REDIS_PASSWORD")
+r = redis.Redis(host=redis_host, port=redis_port, password=redis_password)
 
 
 def get_region_table():
