@@ -35,12 +35,13 @@ def unzip_dir(zip_file, dir_name):
 
 
 def upload(file_name):
-    token = q.upload_token(bucket_name, file_name, 1800)
+    key = os.path.basename(file_name)
+    token = q.upload_token(bucket_name, key, 1800)
     try:
-        put_file(token, file_name, file_name)
-        print "上传{0}成功！".format(file_name)
+        put_file(token, key, file_name)
+        print "上传{0}成功！".format(key)
     except Exception:
-        print "上传{0}失败！".format(file_name)
+        print "上传{0}失败！".format(key)
 
 
 def download(file_name, download_path):

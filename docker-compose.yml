@@ -1,0 +1,30 @@
+version: '2'
+services:
+  redis:
+    image: redis
+    container_name: bigdata_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - dp-server
+
+  dp-express:
+    build: .
+    image: dp-image
+    container_name: dp_express
+    command: python web.py
+    ports:
+      - "18080:80"
+    links:
+      - redis
+    depends_on:
+      - redis
+    environment:
+      REDIS_HOST: redis
+    networks:
+      - dp-server
+
+networks:
+  dp-server:
+    driver: bridge

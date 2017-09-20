@@ -5,6 +5,7 @@ import re
 import glob
 import sys
 import shutil
+import datetime
 
 from crawl import crawlLib, location, SH_URL, WORK_DIR
 from entity import entity
@@ -130,14 +131,14 @@ def get_shop_result(data, category_id):
     except Exception:
         return None
     phone_no, total_hits, today_hits, monthly_hits, weekly_hits, last_week_hits, lat, lng = get_shop_details(shop_id)
-    cmt_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num = get_shop_review_star_num(shop_id)
+    first_cmt_date, cmt_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num = get_shop_review_star_num(shop_id)
     # crawl again to solve the network issue sometimes
     if cmt_num is None:
-        cmt_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num = get_shop_review_star_num(shop_id)
+        first_cmt_date, cmt_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num = get_shop_review_star_num(shop_id)
     return entity.Shop(shop_id, shop_name, shop_group_name, address, lng, lat, phone_no, district, region, category_id, subcategory_id,
                        avg_price, taste_score, env_score, ser_score,
                        total_hits, today_hits, monthly_hits, weekly_hits, last_week_hits,
-                       cmt_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num)
+                       first_cmt_date, cmt_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num)
 
 
 def get_group_name(shop_name):
@@ -180,19 +181,14 @@ def get_shop_review_star_num(shop_id):
         star_3_num = data.find("div", class_="comment-star").find_all("dd")[3].find("em", class_="col-exp").text[1:-1]
         star_2_num = data.find("div", class_="comment-star").find_all("dd")[4].find("em", class_="col-exp").text[1:-1]
         star_1_num = data.find("div", class_="comment-star").find_all("dd")[5].find("em", class_="col-exp").text[1:-1]
+        first_cmt_date = data.find("div", class_="comment-list").find("div", class_="misc-info").find("span", class_="time").text.split("  ")[0]
+        if len(first_cmt_date) <= 6:
+            first_cmt_date = datetime.datetime.now().strftime("%Y")+"-"+first_cmt_date
+        else:
+            first_cmt_date = "20" + first_cmt_date
     except Exception:
-        comment_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num = None, None, None, None, None, None
-    return comment_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num
-
-
-# def get_shop_favorite_food(shop_id):
-#     dish_list = {}
-#     for pageno in range(1, 11):
-#         data = crawlLib.Crawler(COMMENT_URL.format(shop_id, pageno)).parse_content(mode="complex")
-#         for comment in data.find_all("div", class_="comment-recommend"):
-#             for dish in comment.find_all("a", class_="col-exp", target="_blank"):
-#                 dish_list[dish.text] = 1 if dish_list.get(dish.text) is None else 1 + dish_list.get(dish.text)
-#     return dish_list
+        first_cmt_date, comment_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num = None, None, None, None, None, None, None
+    return first_cmt_date, comment_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num
 
 
 def get_shop_location(shop_name):

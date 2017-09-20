@@ -79,7 +79,7 @@ class Shop(object):
     def __init__(self, shop_id, shop_name, shop_group_name, address, lng, lat, phone_no, district, region, category_id, subcategory_id,
                  avg_price, taste_score, env_score, ser_score,
                  total_hits, today_hits, monthly_hits, weekly_hits, last_week_hits,
-                 cmt_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num):
+                 first_cmt_date, cmt_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num):
         self.shop_id = shop_id
         self.shop_name = shop_name
         self.shop_group_name = shop_group_name
@@ -100,6 +100,7 @@ class Shop(object):
         self.monthly_hits = monthly_hits
         self.weekly_hits = weekly_hits
         self.last_week_hits = last_week_hits
+        self.first_cmt_date = first_cmt_date
         self.cmt_num = cmt_num
         self.star_5_num = star_5_num
         self.star_4_num = star_4_num
@@ -117,7 +118,7 @@ class Shop(object):
         return ShopHeat(self.shop_id, self.total_hits, self.today_hits, self.monthly_hits, self.weekly_hits, self.last_week_hits)
 
     def get_comment(self):
-        return ShopComment(self.shop_id, self.cmt_num, self.star_5_num, self.star_4_num, self.star_3_num, self.star_2_num, self.star_1_num)
+        return ShopComment(self.shop_id, self.first_cmt_date, self.cmt_num, self.star_5_num, self.star_4_num, self.star_3_num, self.star_2_num, self.star_1_num)
 
 
 class ShopInfo(object):
@@ -164,8 +165,9 @@ class ShopHeat(object):
 
 
 class ShopComment(object):
-    def __init__(self, shop_id, cmt_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num):
+    def __init__(self, shop_id, first_cmt_date, cmt_num, star_5_num, star_4_num, star_3_num, star_2_num, star_1_num):
         self.shop_id = shop_id
+        self.first_cmt_date = first_cmt_date
         self.cmt_num = cmt_num
         self.star_5_num = star_5_num
         self.star_4_num = star_4_num
@@ -174,4 +176,4 @@ class ShopComment(object):
         self.star_1_num = star_1_num
 
     def to_tuple(self):
-        return self.shop_id, self.cmt_num, self.star_5_num, self.star_4_num, self.star_3_num, self.star_2_num, self.star_1_num
+        return self.shop_id, self.first_cmt_date, self.cmt_num, self.star_5_num, self.star_4_num, self.star_3_num, self.star_2_num, self.star_1_num

@@ -97,10 +97,22 @@
           </form>
         </div><br>
         <div class="row">
-          <form class="form-inline col-xs-6">
+          <form class="form-inline col-xs-4">
             <label class="form-label">出行方式: </label>
             <span class="bootstrap-switch-square">
               <input type="checkbox" checked data-toggle="switch" data-on-text="公交" data-off-text="驾车" id="switch-mode" />
+            </span>
+          </form>
+          <form class="form-inline col-xs-4">
+            <label class="form-label">过滤连锁: </label>
+            <span class="bootstrap-switch-square">
+              <input type="checkbox" checked data-toggle="switch" data-on-text="开" data-off-text="关" id="filter-group-mode" />
+            </span>
+          </form>
+          <form class="form-inline col-xs-4">
+            <label class="form-label">过滤新店: </label>
+            <span class="bootstrap-switch-square">
+              <input type="checkbox" checked data-toggle="switch" data-on-text="开" data-off-text="关" id="filter-new-mode" />
             </span>
           </form>
         </div>
@@ -140,6 +152,8 @@
   var star;
   var existing_shops = new Set();
   var mode = "transit";
+  var filter_new_shop = "true";
+  var filter_same_group = "true";
   var infoTile;
   var routeTile;
   var pathOverlays = new Set();
@@ -203,6 +217,22 @@
           mode = "transit";
         }
     });
+    $('#filter-new-mode').on('switchChange.bootstrapSwitch', function (e, state) {
+        if (state===false){
+          filter_new_shop = "false";
+        }
+        else {
+          filter_new_shop = "true";
+        }
+    });
+    $('#filter-group-mode').on('switchChange.bootstrapSwitch', function (e, state) {
+        if (state===false){
+          filter_same_group = "false";
+        }
+        else {
+          filter_same_group = "true";
+        }
+    });
 
     $(':checkbox').on('change.radiocheck', function(e) {
       if ($(this).is(':checked')){
@@ -261,6 +291,8 @@
       param.position = star.point.lat+','+star.point.lng;
       param.order_by = "taste_score";
     }
+    param.filter_new_shop = filter_new_shop;
+    param.filter_same_group = filter_same_group;
     get_shops(param);
   }
   function init_map(){
