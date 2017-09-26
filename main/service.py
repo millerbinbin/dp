@@ -1,16 +1,18 @@
 # -*- coding:utf-8 -*-
-from main import WORK_DIR
-import pandas as pd
-import numpy as np
-import os
+import datetime
 import glob
 import json
 import math
-import sys
+import os
+
+import numpy as np
+import pandas as pd
 import redis
 
-reload(sys)
-sys.setdefaultencoding("utf-8")
+from main import WORK_DIR
+
+# reload(sys)
+# sys.setdefaultencoding("utf-8")
 
 BASE_DATA_DIR = os.path.join(WORK_DIR, "data/base")
 REGION_CSV = os.path.join(BASE_DATA_DIR, "regions.csv")
@@ -35,14 +37,10 @@ class Cache():
             redis_port = int(os.getenv("REDIS_PORT"))
             redis_password = os.getenv("REDIS_PASSWORD")
             self.r = redis.Redis(host=redis_host, port=redis_port, password=redis_password)
-            self.redis = True
         else:
             self.r = {}
-            self.redis = False
 
     def get(self, key):
-        if len(self.r) <= 0:
-            return None
         value = self.r.get(key)
         if value is None: return None
         return pd.read_msgpack(value)
@@ -50,7 +48,7 @@ class Cache():
     def set(self, key, value):
         if isinstance(value, pd.core.frame.DataFrame):
             value = value.to_msgpack(compress='zlib', encoding='utf-8')
-        if self.redis is True:
+        if isinstance(self.r, redis.client.Redis):
             self.r.set(key, value)
         else:
             self.r[key] = value
@@ -58,7 +56,7 @@ class Cache():
     def setex(self, key, value, time):
         if isinstance(value, pd.core.frame.DataFrame):
             value = value.to_msgpack(compress='zlib', encoding='utf-8')
-        if self.redis is True:
+        if isinstance(self.r, redis.client.Redis):
             self.r.setex(key, value, time)
         else:
             self.r[key] = value
@@ -229,18 +227,19 @@ def load_weight_details(filter_same_group=False, filter_new_shop=True):
             lambda x: "" if str(x["avg_price"]) == "nan" or str(x["avg_price"]) == "" else int(x["avg_price"]), axis=1)
         df["favor_list"] = df.apply(lambda x: "" if str(x["favor_list"]) == "nan" else x["favor_list"], axis=1)
         if filter_new_shop:
-            df = df[df.first_cmt_date <= '2017-06-01']
+            current_date = (datetime.datetime.now() - datetime.timedelta(days=180)).strftime("%Y-%m-%d")
+            df = df[df.first_cmt_date <= current_date]
         if filter_same_group:
             df = df[df.group_rank < 2]
         all_shop_info = df
-        t.setex(key, all_shop_info, time=3600 * 12)
+        t.setex(key, all_shop_info, time=3600 * 24)
 
     key = "all_category,{0},{1}".format(filter_same_group, filter_new_shop)
     if t.get(key) is not None:
         all_category = t.get(key)
     else:
         all_category = all_shop_info[["category_name"]].drop_duplicates()
-        t.setex(key, all_category, time=3600 * 12)
+        t.setex(key, all_category, time=3600 * 24)
 
     return all_shop_info, all_category
 
@@ -287,7 +286,7 @@ def get_customized_shops(params):
             details["distance"] = details.apply(
                 lambda x: calc_earth_distance({"lat": x["lat"], "lng": x["lng"]}, {"lat": lat, "lng": lng}),
                 axis=1)
-            details = details[details.distance <= 5]
+            details = details[details.distance <= 5.0]
         if order_by is not None and order_by in ('taste_score', 'weighted_hits', 'comment_num', 'good_rate'):
             details = details.sort_values([order_by], ascending=[False])
         result = details.loc[:,
