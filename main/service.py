@@ -27,10 +27,43 @@ FAVOR_DATA_DIR = os.path.join(BASE_DATA_DIR, "../favorite")
 DETAILS_CSV_ZIP = os.path.join(WORK_DIR, "main/shop_details.gz")
 FIELD_DELIMITER = "\t"
 
-redis_host = os.getenv("REDIS_PORT_6379_TCP_ADDR") if os.getenv("REDIS_PORT_6379_TCP_ADDR") != None else os.getenv("REDIS_HOST")
-redis_port = int(os.getenv("REDIS_PORT_6379_TCP_PORT") if os.getenv("REDIS_PORT_6379_TCP_PORT") != None else os.getenv("REDIS_PORT"))
-redis_password = os.getenv("REDIS_PASSWORD")
-r = redis.Redis(host=redis_host, port=redis_port, password=redis_password)
+
+class Cache():
+    def __init__(self):
+        if os.getenv("REDIS_HOST") is not None:
+            redis_host = os.getenv("REDIS_HOST")
+            redis_port = int(os.getenv("REDIS_PORT"))
+            redis_password = os.getenv("REDIS_PASSWORD")
+            self.r = redis.Redis(host=redis_host, port=redis_port, password=redis_password)
+            self.redis = True
+        else:
+            self.r = {}
+            self.redis = False
+
+    def get(self, key):
+        if len(self.r) <= 0:
+            return None
+        value = self.r.get(key)
+        if value is None: return None
+        return pd.read_msgpack(value)
+
+    def set(self, key, value):
+        if isinstance(value, pd.core.frame.DataFrame):
+            value = value.to_msgpack(compress='zlib', encoding='utf-8')
+        if self.redis is True:
+            self.r.set(key, value)
+        else:
+            self.r[key] = value
+
+    def setex(self, key, value, time):
+        if isinstance(value, pd.core.frame.DataFrame):
+            value = value.to_msgpack(compress='zlib', encoding='utf-8')
+        if self.redis is True:
+            self.r.setex(key, value, time)
+        else:
+            self.r[key] = value
+
+t = Cache()
 
 
 def get_region_table():
@@ -82,7 +115,8 @@ def get_subcategory():
 def get_shops():
     all_files = glob.glob(os.path.join(SHOP_DATA_DIR, "*.csv"))
     df = pd.concat((pd.read_csv(f, header=None, sep=FIELD_DELIMITER) for f in all_files))
-    df.columns = ["shop_id", "shop_name", "shop_group_name", "address", "lng", "lat", "phone", "district_id", "region_id", "category_id", "subcategory_id"]
+    df.columns = ["shop_id", "shop_name", "shop_group_name", "address", "lng", "lat", "phone", "district_id",
+                  "region_id", "category_id", "subcategory_id"]
     shops = df[["shop_id", "shop_name", "shop_group_name", "address", "lng", "lat", "category_id", "subcategory_id"]]
     locations = get_locations()
     df = pd.merge(shops, locations, how="left", on="shop_id")
@@ -104,9 +138,11 @@ def get_locations():
 
 def get_comments():
     all_files = glob.glob(os.path.join(COMMENT_DATA_DIR, "*.csv"))
-    df = pd.concat((pd.read_csv(f, header=None, sep=FIELD_DELIMITER, na_filter=True, na_values="None") for f in all_files))
-    df.columns = ["shop_id", "first_cmt_date", "comment_num", "star_5_num", "star_4_num", "star_3_num", "star_2_num", "star_1_num"]
-    df["good_rate"] = 100 * ((df["star_4_num"]+df["star_5_num"]) / df["comment_num"])
+    df = pd.concat(
+        (pd.read_csv(f, header=None, sep=FIELD_DELIMITER, na_filter=True, na_values="None") for f in all_files))
+    df.columns = ["shop_id", "first_cmt_date", "comment_num", "star_5_num", "star_4_num", "star_3_num", "star_2_num",
+                  "star_1_num"]
+    df["good_rate"] = 100 * ((df["star_4_num"] + df["star_5_num"]) / df["comment_num"])
     df["good_rate"] = df["good_rate"].apply(lambda x: "{0:.1f}".format(x))
     return df[["shop_id", "first_cmt_date", "comment_num", "good_rate"]]
 
@@ -123,9 +159,9 @@ def get_heats():
     df = pd.concat((pd.read_csv(f, header=None, sep=FIELD_DELIMITER) for f in all_files))
     df.columns = ["shop_id", "total_hits", "today_hits", "monthly_hits", "weekly_hits", "last_week_hits"]
     df["weighted_hits"] = df.apply(lambda x: "{0:.1f}".format(
-                                    0.2 * (0 if str(x["total_hits"])=="None" else int(x["total_hits"])) +
-                                    0.5 * (0 if str(x["monthly_hits"])=="None" else int(x["monthly_hits"])) +
-                                    0.3 * (0 if str(x["last_week_hits"])=="None" else int(x["last_week_hits"]))), axis=1)
+        0.2 * (0 if str(x["total_hits"]) == "None" else int(x["total_hits"])) +
+        0.5 * (0 if str(x["monthly_hits"]) == "None" else int(x["monthly_hits"])) +
+        0.3 * (0 if str(x["last_week_hits"]) == "None" else int(x["last_week_hits"]))), axis=1)
 
     return df[["shop_id", "total_hits", "monthly_hits", "last_week_hits", "weighted_hits"]]
 
@@ -134,7 +170,7 @@ def get_routes():
     all_files = glob.glob(os.path.join(ROUTE_DATA_DIR, "*.csv"))
     df = pd.concat((pd.read_csv(f, header=None, sep=FIELD_DELIMITER, na_values="None") for f in all_files))
     df.columns = ["shop_id", "taxi_route", "public_route"]
-    df['verse_taxi_distance'] = df['taxi_route'].apply(lambda x: 0-int(json.loads(x)['distance']))
+    df['verse_taxi_distance'] = df['taxi_route'].apply(lambda x: 0 - int(json.loads(x)['distance']))
     df['route'] = df['public_route'].apply(get_route_info)
     df['public_duration'] = df['public_route'].apply(get_duration)
     return df[["shop_id", "verse_taxi_distance", "route", "public_duration"]]
@@ -159,8 +195,9 @@ def get_all_info():
     shop_comment = pd.merge(shops, comments, how="inner", on="shop_id")
     shop_comment_score = pd.merge(shop_comment, scores, how="inner", on="shop_id")
     shop_comment_score_heat = pd.merge(shop_comment_score, heats, how="inner", on="shop_id")
-    shop_comment_score_heat_favors = pd.merge(shop_comment_score_heat, favors,how="inner",on="shop_id")
-    shop_comment_score_heat_favors_distance_category = pd.merge(shop_comment_score_heat_favors, category, how="inner", on="category_id")
+    shop_comment_score_heat_favors = pd.merge(shop_comment_score_heat, favors, how="inner", on="shop_id")
+    shop_comment_score_heat_favors_distance_category = pd.merge(shop_comment_score_heat_favors, category, how="inner",
+                                                                on="category_id")
     return shop_comment_score_heat_favors_distance_category
 
 
@@ -169,7 +206,7 @@ def get_weight_details():
     df = all_info[["shop_id", "shop_name", "shop_group_name", "lng", "lat",
                    "first_cmt_date", "comment_num", "good_rate",
                    "avg_price", "taste_score", "env_score", "ser_score",
-                   "weighted_hits", "favor_list","category_name", "category_id"
+                   "weighted_hits", "favor_list", "category_name", "category_id"
                    ]]
     return df
 
@@ -182,8 +219,8 @@ def save_weight_details():
 
 def load_weight_details(filter_same_group=False, filter_new_shop=True):
     key = "all_shop_info,{0},{1}".format(filter_same_group, filter_new_shop)
-    if r.get(key) is not None:
-        all_shop_info = pd.read_msgpack(r.get(key))
+    if t.get(key) is not None:
+        all_shop_info = t.get(key)
     else:
         df = pd.read_csv(DETAILS_CSV_ZIP, sep=FIELD_DELIMITER, na_values="None", compression="gzip")
         df["shop_id"] = df["shop_id"].apply(lambda x: str(x))
@@ -196,14 +233,14 @@ def load_weight_details(filter_same_group=False, filter_new_shop=True):
         if filter_same_group:
             df = df[df.group_rank < 2]
         all_shop_info = df
-        r.setex(key, all_shop_info.to_msgpack(compress='zlib', encoding='utf-8'), time=3600*12)
+        t.setex(key, all_shop_info, time=3600 * 12)
 
     key = "all_category,{0},{1}".format(filter_same_group, filter_new_shop)
-    if r.get(key) is not None:
-        all_category = pd.read_msgpack(r.get(key))
+    if t.get(key) is not None:
+        all_category = t.get(key)
     else:
         all_category = all_shop_info[["category_name"]].drop_duplicates()
-        r.setex(key, all_category.to_msgpack(compress='zlib', encoding='utf-8'), time=3600*12)
+        t.setex(key, all_category, time=3600 * 12)
 
     return all_shop_info, all_category
 
@@ -212,9 +249,10 @@ def get_customized_shops(params):
     filter_same_group = True if params['filter_same_group'].lower() == "true" else False
     filter_new_shop = True if params['filter_new_shop'].lower() == "true" else False
     details = load_weight_details(filter_same_group=filter_same_group, filter_new_shop=filter_new_shop)[0]
-    if r.get(params) is None:
-        taste_score, comment_num, avg_price_min, avg_price_max, category, position, query = \
-            None, None, None, None, None, None, None
+    param_str = json.dumps(params, ensure_ascii=False).encode("utf-8")
+    if t.get(param_str) is None:
+        taste_score, comment_num, avg_price_min, avg_price_max, category, position, query, order_by, page, limit = \
+            None, None, None, None, None, None, None, None, None, None
         try:
             taste_score = params['taste_score']
             comment_num = params['comment_num']
@@ -252,12 +290,13 @@ def get_customized_shops(params):
             details = details[details.distance <= 5]
         if order_by is not None and order_by in ('taste_score', 'weighted_hits', 'comment_num', 'good_rate'):
             details = details.sort_values([order_by], ascending=[False])
-        result = details.loc[:, ["shop_id", "shop_name", "taste_score", "env_score", "comment_num", "good_rate", "avg_price",
-                                              "favor_list", "category_name", "lng", "lat"]].iloc[(page - 1) * limit:page * limit]
-        r.setex(params, result.to_msgpack(compress='zlib', encoding='utf-8'), time=3600*12)
+        result = details.loc[:,
+                 ["shop_id", "shop_name", "taste_score", "env_score", "comment_num", "good_rate", "avg_price",
+                  "favor_list", "category_name", "lng", "lat"]].iloc[(page - 1) * limit:page * limit]
+        t.setex(param_str, result, time=3600 * 12)
     else:
-        print "Existing: {0}".format(params)
-        result = pd.read_msgpack(r.get(params))
+        print "Existing: {0}".format(param_str)
+        result = t.get(param_str)
     return result
 
 
@@ -268,11 +307,12 @@ def get_distinct_shops():
 
 def get_shops_json_from_df(df):
     res = [{"name": row.shop_name, "lng": row.lng, "lat": row.lat,
-            "avg_price": "-" if row.avg_price=="" else str(int(row.avg_price)),
-            "taste_score": str(row.taste_score), "env_score": str(row.env_score), "comment_num": int(row.comment_num), "good_rate": int(row.good_rate),
+            "avg_price": "-" if row.avg_price == "" else str(int(row.avg_price)),
+            "taste_score": str(row.taste_score), "env_score": str(row.env_score), "comment_num": int(row.comment_num),
+            "good_rate": int(row.good_rate),
             "category": row.category_name, "shop_id": row.shop_id, "favor_list": row.favor_list
             }
-            for row in df.itertuples()]
+           for row in df.itertuples()]
     return json.dumps(res, ensure_ascii=False).encode("utf-8")
 
 
@@ -310,9 +350,9 @@ def get_time_str(duration):
     x = ""
     if hour > 0:
         x += "{0}小时".format(hour)
-    if minute > 0 :
+    if minute > 0:
         x += "{0}分".format(minute)
-    if hour==0 and minute==0:
+    if hour == 0 and minute == 0:
         return "{0}秒".format(duration)
     return x
 
@@ -321,11 +361,12 @@ def get_random_favor_shops(all_data_info):
     favor_shops = get_favors()
     s = pd.merge(all_data_info, favor_shops, how="left", on="shop_id")
     return s[s.favors.isnull()][["shop_id", "shop_name", "taste_score", 'comment_num', 'good_rate', "avg_price",
-                               "category_id", "category_name", "lng", "lat"]]
+                                 "category_id", "category_name", "lng", "lat"]]
 
 
 def calc_earth_distance(origin, dest):
-    C = math.sin(origin['lat']) * math.sin(dest['lat']) + math.cos(origin['lng'] - dest['lng']) * math.cos(origin['lat']) * math.cos(
+    C = math.sin(origin['lat']) * math.sin(dest['lat']) + math.cos(origin['lng'] - dest['lng']) * math.cos(
+        origin['lat']) * math.cos(
         dest['lat'])
     R = 6371.004
     Pi = 3.1415926
