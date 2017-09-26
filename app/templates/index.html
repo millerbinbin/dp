@@ -24,7 +24,7 @@
 </head>
 <body>
 <div class="container">
-  <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="navbar-header">
       <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbarCollapse">
         <span class="sr-only">Toggle navigation</span>
@@ -66,7 +66,7 @@
     </div>
   </nav>
 </div>
-<div class="modal fade" id="selection-modal" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal fade" id="selection-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -444,7 +444,9 @@
     map.addOverlay(routeTile);
   }
   function remove_routeTile(){
-  	if (routeTile!='undefined'){map.removeOverlay(routeTile);}
+  	if (routeTile!=undefined){
+      map.removeOverlay(routeTile);
+    }
   }
   function show_infoTile(marker, content){
   	remove_infoTile();
@@ -452,10 +454,14 @@
     map.addOverlay(infoTile);
   }
   function remove_infoTile(){
-  	if (infoTile!='undefined'){map.removeOverlay(infoTile);}
+  	if (infoTile!=undefined){
+      map.removeOverlay(infoTile);
+    }
   }
   function remove_star(){
-  	if (star != undefined){map.removeOverlay(star);}
+  	if (star != undefined){
+      map.removeOverlay(star);
+    }
   }
   function gen_shop_title_html(item){
   	var shop_title_html = '<div class="row"><div class="col-xs-8">'+
