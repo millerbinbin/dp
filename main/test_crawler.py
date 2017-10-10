@@ -81,7 +81,7 @@ def filter_months(rec):
 
 def test_ljs():
     link = "https://list.lu.com"
-    url = "https://list.lu.com/list/r030?minMoney=50000&maxMoney=55000&minDays=&maxDays=&minRate=&maxRate=&mode=&subType=&instId=&haitongGrade=&fundGroupId=&searchWord=&trade=&isCx=&currentPage=1&orderType=R030_INVEST_RATE&orderAsc=false&notHasBuyFeeRate=&rootProductCategoryEnum="
+    url = "https://list.lu.com/list/r030?minMoney=10000&maxMoney=11000&minDays=&maxDays=&minRate=&maxRate=&mode=&subType=&instId=&haitongGrade=&fundGroupId=&searchWord=&trade=&isCx=&currentPage=1&orderType=R030_INVEST_RATE&orderAsc=false&notHasBuyFeeRate=&rootProductCategoryEnum="
     content = crawlLib.Crawler(url).parse_content()
     prod_list = content.find("ul", class_="main-list").find_all("li",
                                                                 class_="product-list clearfix has-bottom is-2col ")
@@ -91,7 +91,7 @@ def test_ljs():
         prod_amount = prod.find("div", class_="product-amount").find("em", class_="num-style").text.replace(",", "")
         prod_rate = float(prod_rate)
         prod_amount = float(prod_amount)
-        if prod_amount / prod_rate <= 10500:
+        if prod_amount / prod_rate <= 2120:
             print prod_link, prod_rate, prod_amount
             webbrowser.open_new(prod_link)
             sys.exit(1)
@@ -116,5 +116,7 @@ if __name__ == '__main__':
     # print service.get_heats()["weighted_hits"].max(),service.get_heats()["weighted_hits"].min()
     # print crawlLib.Crawler("http://www.dianping.com/search/category/1/10/g114o5p1").crawl()
     #test_crawl_one_cateogry()
-    import numpy as np
-    print 1/(1+np.exp(-4))
+    for i in range(1,1000):
+        print i
+        test_ljs()
+        time.sleep(1)

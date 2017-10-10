@@ -23,6 +23,7 @@ def write_records_to_csv(fileName, records, field_delimiter, mode="w"):
     f = open(fileName, mode)
     for row in records:
         f.write(field_delimiter.join("{0}".format(r) for r in row)+'\n')
+    print "flush data to disk..."
     f.close()
 
 

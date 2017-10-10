@@ -34,8 +34,8 @@ def crawl_shop_data():
 def crawl_shop_additional_info():
     print "开始抓取位置数据..."
     shop.crawl_shops_baidu_location()
-    print "开始抓取行程数据..."
-    shop.crawl_shops_routes()
+    # print "开始抓取行程数据..."
+    # shop.crawl_shops_routes()
     print "开始抓取推荐菜品数据..."
     shop.crawl_shops_favorite_food()
 

@@ -29,6 +29,7 @@ def get_all_available_routes(origin, destination):
     url = "http://api.map.baidu.com/direction/v2/transit?tactics_incity=4&origin={0}&destination={1}&ak={2}".format(x,
                                                                                                                     y,
                                                                                                                     BAIDU_APP_KEY)
+    print url
     result = crawlLib.Crawler(url).to_json()['result']
     return result['routes'], result['taxi']
 

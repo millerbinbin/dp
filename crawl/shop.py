@@ -295,8 +295,7 @@ def crawl_shops_favorite_food():
                               } for i in range(min(5, len(favors)))]
                 favor_list.append((shop_id, json.dumps(dish_list, ensure_ascii=False).encode("utf-8")))
             time.sleep(0.5)
-            if len(favor_list) % 10 == 0:
-                print "flush data to disk..."
+            if len(favor_list) % 20 == 0:
                 csvLib.write_records_to_csv(FAVORITE_CSV, favor_list, FIELD_DELIMITER, mode="a")
                 favor_list = []
         csvLib.write_records_to_csv(FAVORITE_CSV, favor_list, FIELD_DELIMITER, mode="a")

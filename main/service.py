@@ -118,8 +118,10 @@ def get_shops():
     shops = df[["shop_id", "shop_name", "shop_group_name", "address", "lng", "lat", "category_id", "subcategory_id"]]
     locations = get_locations()
     df = pd.merge(shops, locations, how="left", on="shop_id")
-    df["lng"] = df["lng_baidu"].apply(lambda x: "{0:.6f}".format(x))
-    df["lat"] = df["lat_baidu"].apply(lambda x: "{0:.6f}".format(x))
+    df["lng"] = df.apply(
+        lambda x: x['lng'] if str(x['lng_baidu']) == "nan" else x['lng_baidu'], axis=1)
+    df["lat"] = df.apply(
+        lambda x: x['lat'] if str(x['lat_baidu']) == "nan" else x['lat_baidu'], axis=1)
     df["mainCategory_id"] = df.apply(
         lambda x: x['category_id'] if x['subcategory_id'] == "None" else x['subcategory_id'], axis=1)
     df["shop_group_name"] = df.apply(
