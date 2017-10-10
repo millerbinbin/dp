@@ -1,8 +1,11 @@
 # -*- coding:utf-8 -*-
-from crawl import shop, crawlLib
-import service
+import json
 import sys
-import json, time, webbrowser
+import time
+import webbrowser
+
+import service
+from crawl import shop, crawlLib
 
 __author__ = 'hubin6'
 
@@ -32,10 +35,6 @@ def test_save_weight_details():
     service.save_weight_details()
 
 
-def test_get_shop_favorite_food(shop_id):
-    return shop.get_shop_favorite_food(shop_id)
-
-
 def test_get_random_favor_shops():
     return service.get_random_favor_shops(service.load_weight_details())
 
@@ -62,7 +61,7 @@ def test_xy():
         for item in proj.find("ul", class_="info-detail").find_all("li"):
             str += "\t" + item.find("p").text
         months, amount, link = filter_months(proj_name + str + '\t' + proj_link)
-        if (months >3 and months<=6 and amount > 5000):
+        if (months > 3 and months <= 6 and amount > 5000):
             print link, months, amount
             webbrowser.open_new(link)
             sys.exit(1)
